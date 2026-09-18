@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f7f9fc">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Feed Plant Inventory</title>
+<style>
+:root{--bg:#f6f8fb;--card:#fff;--text:#162033;--muted:#697586;--line:#e7ebf0;--accent:#176b4d;--accent2:#e9f6ef;--danger:#c63d3d;--dangerbg:#fff0f0;--warn:#a66500;--warnbg:#fff7e7;--shadow:0 8px 28px rgba(22,32,51,.07);--radius:16px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+button,input,select{font:inherit}button{cursor:pointer}
+.top{position:sticky;top:0;z-index:10;background:rgba(246,248,251,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.header{max-width:1100px;margin:auto;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-size:18px;font-weight:800}.sub{font-size:12px;color:var(--muted);margin-top:2px}
+.sync{border:1px solid var(--line);background:#fff;color:var(--text);padding:9px 12px;border-radius:10px}
+.wrap{max-width:1100px;margin:auto;padding:16px}
+.tabs{display:flex;gap:7px;overflow:auto;padding-bottom:3px;margin-bottom:15px}
+.tabs button{white-space:nowrap;border:1px solid var(--line);background:#fff;color:var(--muted);padding:10px 13px;border-radius:11px;font-weight:700}
+.tabs button.active{background:var(--text);color:#fff;border-color:var(--text)}
+.view{display:none}.view.active{display:block}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:15px;box-shadow:var(--shadow)}
+.label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em}.value{font-size:27px;font-weight:850;margin-top:7px}.green{color:var(--accent)}.orange{color:var(--warn)}.red{color:var(--danger)}
+.panel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:15px;margin-top:12px;box-shadow:var(--shadow)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.search{flex:1;min-width:210px}
+input,select{width:100%;border:1px solid var(--line);background:#fff;border-radius:11px;padding:11px 12px;outline:none}
+input:focus,select:focus{border-color:#9bbcab;box-shadow:0 0 0 3px #e9f6ef}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:0 0 6px}
+.primary{border:0;background:var(--accent);color:#fff;padding:12px 15px;border-radius:11px;font-weight:800;width:100%;margin-top:4px}
+.primary:disabled{opacity:.55;cursor:not-allowed}
+.msg{margin-top:10px;padding:10px 12px;border-radius:10px;background:#f1f5f9;color:var(--text)}
+table{width:100%;border-collapse:collapse}th,td{padding:11px 7px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}td{font-size:13px}.tablewrap{overflow:auto}
+.badge{display:inline-flex;padding:5px 8px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap}.b-ok{background:var(--accent2);color:var(--accent)}.b-low{background:var(--warnbg);color:var(--warn)}.b-out{background:var(--dangerbg);color:var(--danger)}
+.kpi{display:flex;justify-content:space-between;align-items:center;gap:10px}.empty{text-align:center;color:var(--muted);padding:25px}
+.footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
+@media(max-width:720px){.cards{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}.wrap{padding:12px}.header{padding:12px}.brand{font-size:16px}th,td{padding:9px 5px}.hide-m{display:none}}
+</style>
+</head>
+<body>
+<div class="top"><div class="header">
+<div><div class="brand">🔧 Feed Plant Spare Parts</div><div class="sub" id="updated">Connecting to inventory…</div></div>
+<button class="sync" id="refreshBtn">↻ Refresh</button>
+</div></div>
+
+<main class="wrap">
+<nav class="tabs">
+<button class="active" data-view="dashboard">Dashboard</button>
+<button data-view="parts">Spare Parts</button>
+<button data-view="stockin">Stock In</button>
+<button data-view="stockout">Stock Issue</button>
+<button data-view="history">History</button>
+</nav>
+
+<section id="dashboard" class="view active">
+<div class="cards">
+<div class="card"><div class="label">Total Parts</div><div class="value" id="total">—</div></div>
+<div class="card"><div class="label">Total Stock</div><div class="value green" id="stock">—</div></div>
+<div class="card"><div class="label">Low Stock</div><div class="value orange" id="low">—</div></div>
+<div class="card"><div class="label">Out of Stock</div><div class="value red" id="out">—</div></div>
+</div>
+<div class="panel">
+<div class="kpi"><b>Stock Overview</b><span class="sub" id="dashCount"></span></div>
+<div class="toolbar" style="margin-top:12px"><input class="search" id="dashSearch" placeholder="🔍 Search spare part"></div>
+<div class="tablewrap"><table><thead><tr><th>Part</th><th>Category</th><th>Stock</th><th>Status</th></tr></thead><tbody id="dashTable"></tbody></table></div>
+</div>
+</section>
+
+<section id="parts" class="view">
+<div class="panel">
+<div class="toolbar"><input class="search" id="partSearch" placeholder="🔍 Search part or category"><select id="catFilter" style="max-width:220px"><option value="">All categories</option></select></div>
+<div class="tablewrap"><table><thead><tr><th>Part</th><th>Category</th><th>Stock</th><th>Reorder</th><th>Status</th></tr></thead><tbody id="partTable"></tbody></table></div>
+</div>
+</section>
+
+<section id="stockin" class="view">
+<div class="panel"><h2 style="margin-top:0">➕ Stock In</h2>
+<div class="grid2">
+<div class="field"><label>Part</label><select id="inPart"></select></div>
+<div class="field"><label>Employee</label><select id="inEmployee"></select></div>
+<div class="field"><label>Quantity</label><input id="inQty" type="number" min="1" step="1" placeholder="Enter quantity"></div>
+<div class="field"><label>Invoice / Reference</label><input id="inRef" placeholder="Optional"></div>
+</div>
+<button class="primary" id="inBtn">ADD STOCK</button><div id="inMsg"></div></div>
+</section>
+
+<section id="stockout" class="view">
+<div class="panel"><h2 style="margin-top:0">➖ Stock Issue</h2>
+<div class="grid2">
+<div class="field"><label>Part</label><select id="outPart"></select></div>
+<div class="field"><label>Employee</label><select id="outEmployee"></select></div>
+<div class="field"><label>Quantity</label><input id="outQty" type="number" min="1" step="1" placeholder="Enter quantity"></div>
+<div class="field"><label>Machine / Section</label><input id="outRef" placeholder="Optional"></div>
+</div>
+<button class="primary" id="outBtn">ISSUE STOCK</button><div id="outMsg"></div></div>
+</section>
+
+<section id="history" class="view">
+<div class="panel">
+<div class="toolbar"><input class="search" id="historySearch" placeholder="🔍 Search part or employee"><select id="historyType" style="max-width:160px"><option value="">All actions</option><option value="Add">Stock In</option><option value="Issue">Stock Issue</option></select></div>
+<div class="tablewrap"><table><thead><tr><th>Time</th><th>Action</th><th>Part</th><th>Qty</th><th>Employee</th><th class="hide-m">Old</th><th class="hide-m">New</th><th>Status</th></tr></thead><tbody id="historyTable"></tbody></table></div>
+</div>
+</section>
+<div class="footer">Feed Plant Inventory • Google Sheets connected</div>
+</main>
+
+<script>
+const BACKEND_URL="https://script.google.com/macros/s/AKfycbxBUvYtsbVY4c2MRYGoSfiiTXCzFiOvE44_tsNQ2_bvNlo1K3B8zbveckI08iws7iY/exec";
+let parts=[],employees=[],history=[];
+
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+function status(p){if(Number(p.stock)<=0)return["OUT OF STOCK","b-out"];if(Number(p.stock)<=Number(p.reorder))return["LOW STOCK","b-low"];return["AVAILABLE","b-ok"]}
+
+async function api(action,params={}){
+ const u=new URL(BACKEND_URL);u.searchParams.set("action",action);
+ Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
+ const r=await fetch(u.toString(),{cache:"no-store"});
+ if(!r.ok)throw new Error("Server error "+r.status);
+ const d=await r.json();if(d.success===false)throw new Error(d.error||"Request failed");return d;
+}
+
+function renderParts(){
+ const q=$("partSearch").value.toLowerCase(),cat=$("catFilter").value;
+ const a=parts.filter(p=>(!cat||p.category===cat)&&((p.name+" "+p.category).toLowerCase().includes(q)));
+ $("partTable").innerHTML=a.length?a.map(p=>{let s=status(p);return `<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.category)}</td><td><b>${p.stock}</b></td><td>${p.reorder}</td><td><span class="badge ${s[1]}">${s[0]}</span></td></tr>`}).join(""):`<tr><td colspan="5" class="empty">No parts found</td></tr>`;
+}
+
+function renderDash(){
+ const q=$("dashSearch").value.toLowerCase(),a=parts.filter(p=>(p.name+" "+p.category).toLowerCase().includes(q));
+ $("dashCount").textContent=a.length+" parts";
+ $("dashTable").innerHTML=a.length?a.map(p=>{let s=status(p);return `<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.category)}</td><td><b>${p.stock}</b></td><td><span class="badge ${s[1]}">${s[0]}</span></td></tr>`}).join(""):`<tr><td colspan="4" class="empty">No parts found</td></tr>`;
+}
+
+function renderHistory(){
+ const q=$("historySearch").value.toLowerCase(),t=$("historyType").value;
+ const a=history.filter(x=>(!t||x.type===t)&&((x.part+" "+x.employee+" "+x.type).toLowerCase().includes(q)));
+ $("historyTable").innerHTML=a.length?a.map(x=>`<tr><td>${esc(x.timestamp)}</td><td>${esc(x.type)}</td><td><b>${esc(x.part)}</b></td><td>${x.quantity}</td><td>${esc(x.employee)}</td><td class="hide-m">${x.oldStock}</td><td class="hide-m">${x.newStock}</td><td>${esc(x.status)}</td></tr>`).join(""):`<tr><td colspan="8" class="empty">No transactions found</td></tr>`;
+}
+
+function fill(){
+ const opts=parts.map(p=>`<option value="${esc(p.name)}">${esc(p.name)}</option>`).join("");
+ $("inPart").innerHTML=opts;$("outPart").innerHTML=opts;
+ const eo=employees.map(e=>`<option value="${esc(e)}">${esc(e)}</option>`).join("");
+ $("inEmployee").innerHTML=eo;$("outEmployee").innerHTML=eo;
+ const cats=[...new Set(parts.map(p=>p.category).filter(Boolean))].sort();
+ $("catFilter").innerHTML='<option value="">All categories</option>'+cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+}
+
+async function load(){
+ $("updated").textContent="Syncing…";
+ try{
+  const [i,e,h]=await Promise.all([api("inventory"),api("employees"),api("history")]);
+  parts=(i.parts||[]).map(p=>({name:String(p.name||""),category:String(p.category||""),stock:Number(p.stock||0),reorder:Number(p.reorder||0),price:Number(p.price||0)}));
+  employees=e.employees||[];history=h.history||[];
+  $("total").textContent=parts.length;
+  $("stock").textContent=parts.reduce((s,p)=>s+p.stock,0);
+  $("low").textContent=parts.filter(p=>p.stock>0&&p.stock<=p.reorder).length;
+  $("out").textContent=parts.filter(p=>p.stock<=0).length;
+  fill();renderDash();renderParts();renderHistory();
+  $("updated").textContent="Last synced "+new Date().toLocaleTimeString();
+ }catch(err){$("updated").textContent="Connection error";alert("Google Sheet connection failed: "+err.message)}
+}
+
+async function transaction(type){
+ const add=type==="Add",part=$(add?"inPart":"outPart").value,qty=Number($(add?"inQty":"outQty").value),employee=$(add?"inEmployee":"outEmployee").value,msg=$(add?"inMsg":"outMsg"),btn=$(add?"inBtn":"outBtn");
+ if(!part)return msg.innerHTML='<div class="msg">Select a part.</div>';
+ if(!employee)return msg.innerHTML='<div class="msg">Select employee.</div>';
+ if(!qty||qty<1)return msg.innerHTML='<div class="msg">Enter a valid quantity.</div>';
+ if(!add){const p=parts.find(x=>x.name===part);if(p&&qty>p.stock)return msg.innerHTML='<div class="msg">Insufficient stock. Available: '+p.stock+'</div>'}
+ btn.disabled=true;btn.textContent=add?"ADDING…":"ISSUING…";msg.innerHTML='<div class="msg">Saving…</div>';
+ try{
+  const r=await api("transaction",{employee,type,part,qty});
+  await load();
+  $(add?"inQty":"outQty").value="";
+  $(add?"inRef":"outRef").value="";
+  msg.innerHTML='<div class="msg">✓ Completed. New stock: <b>'+r.newStock+'</b> • '+esc(r.status)+'</div>';
+ }catch(err){msg.innerHTML='<div class="msg">Error: '+esc(err.message)+'</div>'}
+ finally{btn.disabled=false;btn.textContent=add?"ADD STOCK":"ISSUE STOCK"}
+}
+
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tabs button").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));$(b.dataset.view).classList.add("active")});
+$("refreshBtn").onclick=load;$("partSearch").oninput=renderParts;$("catFilter").onchange=renderParts;$("dashSearch").oninput=renderDash;$("historySearch").oninput=renderHistory;$("historyType").onchange=renderHistory;$("inBtn").onclick=()=>transaction("Add");$("outBtn").onclick=()=>transaction("Issue");
+load();
+</script>
+</body>
+</html>
