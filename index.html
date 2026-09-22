@@ -1,906 +1,2820 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#f7f8fa">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0,
+               maximum-scale=1.0, user-scalable=no">
+
+<meta name="theme-color" content="#f5f6f8">
 
 <title>Manager Dashboard</title>
 
 <style>
+
 *{
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
 }
 
 body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  background:#f5f6f8;
-  color:#1f2937;
-  padding-bottom:80px;
+    font-family:-apple-system,BlinkMacSystemFont,
+    "Segoe UI",Roboto,Arial,sans-serif;
+
+    background:#f5f6f8;
+    color:#202938;
+
+    padding-bottom:90px;
 }
 
 .container{
-  width:100%;
-  max-width:600px;
-  margin:auto;
-  padding:16px;
+    width:100%;
+    max-width:620px;
+    margin:auto;
+    padding:16px;
 }
+
 
 /* HEADER */
 
 .header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:18px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
 }
 
 .header h1{
-  font-size:22px;
-  font-weight:700;
+    font-size:23px;
 }
 
 .header p{
-  font-size:13px;
-  color:#777;
-  margin-top:3px;
+    color:#777;
+    font-size:13px;
+    margin-top:3px;
 }
 
-.status{
-  width:38px;
-  height:38px;
-  border-radius:50%;
-  background:#ffffff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  box-shadow:0 2px 10px rgba(0,0,0,.05);
+.plant{
+    width:42px;
+    height:42px;
+    background:#fff;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    box-shadow:0 2px 10px rgba(0,0,0,.05);
 }
+
 
 /* SUMMARY */
 
 .summary{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-  margin-bottom:14px;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:9px;
+    margin-bottom:13px;
 }
 
 .summary-card{
-  background:white;
-  border-radius:16px;
-  padding:14px 10px;
-  box-shadow:0 2px 10px rgba(0,0,0,.04);
+    background:#fff;
+    border-radius:17px;
+    padding:13px 10px;
+    box-shadow:0 2px 10px rgba(0,0,0,.04);
+    cursor:pointer;
+}
+
+.summary-card:active{
+    transform:scale(.97);
 }
 
 .summary-card .icon{
-  font-size:20px;
+    font-size:19px;
 }
 
 .summary-card h3{
-  font-size:18px;
-  margin-top:7px;
+    font-size:18px;
+    margin-top:6px;
 }
 
 .summary-card p{
-  font-size:11px;
-  color:#777;
-  margin-top:2px;
+    font-size:11px;
+    color:#777;
+    margin-top:2px;
 }
+
 
 /* CARD */
 
 .card{
-  background:white;
-  border-radius:18px;
-  padding:17px;
-  margin-bottom:14px;
-  box-shadow:0 2px 12px rgba(0,0,0,.04);
+    background:#fff;
+    border-radius:19px;
+    padding:16px;
+    margin-bottom:13px;
+    box-shadow:0 2px 12px rgba(0,0,0,.04);
 }
 
 .card-title{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:14px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
 }
 
 .card-title h2{
-  font-size:16px;
+    font-size:16px;
 }
 
 .card-title span{
-  font-size:12px;
-  color:#777;
+    font-size:12px;
+    color:#777;
 }
+
 
 /* STOCK */
 
 .stock-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:11px 0;
-  border-bottom:1px solid #f0f0f0;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px 0;
+    border-bottom:1px solid #f0f0f0;
+    cursor:pointer;
 }
 
 .stock-row:last-child{
-  border-bottom:none;
+    border-bottom:0;
 }
 
 .stock-name{
-  font-size:14px;
-  font-weight:500;
+    font-size:14px;
+    font-weight:500;
 }
 
 .stock-value{
-  text-align:right;
+    text-align:right;
 }
 
 .stock-value strong{
-  display:block;
-  font-size:14px;
+    display:block;
+    font-size:14px;
 }
 
 .stock-value small{
-  color:#888;
-  font-size:11px;
+    color:#888;
+    font-size:11px;
 }
+
 
 /* PRODUCTION */
 
-.production-main{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.production-number{
-  font-size:28px;
-  font-weight:700;
+.production-total{
+    font-size:30px;
+    font-weight:700;
 }
 
 .production-label{
-  color:#777;
-  font-size:12px;
+    color:#777;
+    font-size:12px;
 }
 
-.progress{
-  height:8px;
-  background:#edf0f3;
-  border-radius:10px;
-  margin-top:14px;
-  overflow:hidden;
+.production-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:11px 0;
+    border-bottom:1px solid #f0f0f0;
+    cursor:pointer;
 }
 
-.progress-bar{
-  height:100%;
-  width:82%;
-  background:#4f7cff;
-  border-radius:10px;
+.production-row:last-child{
+    border-bottom:0;
 }
+
+.production-row span{
+    font-size:13px;
+}
+
+.production-row strong{
+    font-size:13px;
+}
+
 
 /* PP BAGS */
 
 .pp-grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:10px;
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:9px;
 }
 
 .pp-item{
-  background:#f7f8fa;
-  padding:13px;
-  border-radius:13px;
+    background:#f7f8fa;
+    padding:13px;
+    border-radius:13px;
 }
 
 .pp-item p{
-  color:#777;
-  font-size:11px;
+    color:#777;
+    font-size:11px;
 }
 
 .pp-item strong{
-  display:block;
-  font-size:18px;
-  margin-top:5px;
+    display:block;
+    font-size:18px;
+    margin-top:4px;
 }
+
 
 /* ALERT */
 
 .alert{
-  background:#fff8e7;
-  border-radius:14px;
-  padding:13px;
-  display:flex;
-  gap:10px;
-  align-items:flex-start;
+    background:#fff8e7;
+    border-radius:14px;
+    padding:12px;
+    display:flex;
+    gap:10px;
+    margin-bottom:8px;
+    cursor:pointer;
+}
+
+.alert:last-child{
+    margin-bottom:0;
 }
 
 .alert-icon{
-  font-size:20px;
+    font-size:19px;
 }
 
 .alert p{
-  font-size:13px;
-  line-height:1.4;
+    font-size:13px;
 }
 
 .alert small{
-  color:#8a6d1d;
+    color:#8a6d1d;
+    display:block;
+    margin-top:3px;
+    font-size:11px;
 }
 
-/* TRENDS */
+
+/* TREND */
 
 .trend-wrapper{
-  overflow-x:auto;
-  scroll-snap-type:x mandatory;
-  display:flex;
-  gap:12px;
-  scrollbar-width:none;
-  -webkit-overflow-scrolling:touch;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    display:flex;
+    gap:10px;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
 }
 
 .trend-wrapper::-webkit-scrollbar{
-  display:none;
+    display:none;
 }
 
 .trend-card{
-  min-width:100%;
-  scroll-snap-align:start;
-  background:#fafbfc;
-  border-radius:15px;
-  padding:14px;
+    min-width:100%;
+    scroll-snap-align:start;
+    background:#fafbfc;
+    border-radius:15px;
+    padding:13px;
 }
 
 .trend-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
 }
 
 .trend-header h3{
-  font-size:14px;
+    font-size:14px;
 }
 
 .trend-header small{
-  color:#777;
+    display:block;
+    color:#777;
+    margin-top:2px;
+}
+
+select{
+    border:1px solid #ddd;
+    background:#fff;
+    border-radius:9px;
+    padding:7px 9px;
+    font-size:12px;
 }
 
 canvas{
-  width:100%;
-  height:170px;
+    width:100%;
+    height:160px;
+    display:block;
 }
-
-/* SELECT */
-
-select{
-  border:1px solid #e1e4e8;
-  background:white;
-  padding:7px 10px;
-  border-radius:9px;
-  font-size:12px;
-  outline:none;
-}
-
-/* DOTS */
 
 .dots{
-  display:flex;
-  justify-content:center;
-  gap:6px;
-  margin-top:10px;
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    margin-top:9px;
 }
 
 .dot{
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  background:#d5d8dd;
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:#d5d8dd;
 }
 
 .dot.active{
-  width:18px;
-  border-radius:10px;
-  background:#4f7cff;
+    width:18px;
+    border-radius:10px;
+    background:#4f7cff;
 }
 
-/* QUICK VIEW */
+
+/* QUICK */
 
 .quick-grid{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:10px;
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:9px;
 }
 
 .quick{
-  background:#f7f8fa;
-  padding:14px;
-  border-radius:14px;
+    background:#f7f8fa;
+    padding:12px;
+    border-radius:13px;
 }
 
 .quick p{
-  font-size:11px;
-  color:#777;
+    font-size:11px;
+    color:#777;
 }
 
 .quick strong{
-  display:block;
-  font-size:17px;
-  margin-top:5px;
+    display:block;
+    font-size:17px;
+    margin-top:4px;
 }
+
 
 /* BOTTOM NAV */
 
 .bottom-nav{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  height:66px;
-  background:rgba(255,255,255,.96);
-  border-top:1px solid #e9eaec;
-  display:flex;
-  justify-content:space-around;
-  align-items:center;
-  z-index:100;
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+
+    height:68px;
+
+    background:rgba(255,255,255,.97);
+
+    border-top:1px solid #e9eaec;
+
+    display:flex;
+    justify-content:space-around;
+    align-items:center;
+
+    z-index:100;
 }
 
 .nav-item{
-  text-align:center;
-  font-size:10px;
-  color:#888;
-  min-width:55px;
+    text-align:center;
+    font-size:10px;
+    color:#888;
+    cursor:pointer;
 }
 
 .nav-item div{
-  font-size:20px;
-  margin-bottom:2px;
+    font-size:19px;
 }
 
 .nav-item.active{
-  color:#315efb;
-  font-weight:600;
+    color:#315efb;
+    font-weight:600;
 }
+
+
+/* MODAL */
+
+.modal{
+    position:fixed;
+    inset:0;
+
+    background:rgba(0,0,0,.38);
+
+    display:none;
+
+    align-items:flex-end;
+
+    z-index:500;
+}
+
+.modal.show{
+    display:flex;
+}
+
+.modal-box{
+    width:100%;
+    max-width:620px;
+
+    max-height:88vh;
+
+    overflow-y:auto;
+
+    background:#fff;
+
+    border-radius:24px 24px 0 0;
+
+    padding:18px;
+
+    animation:slideUp .2s ease;
+}
+
+@keyframes slideUp{
+
+    from{
+        transform:translateY(100%);
+    }
+
+    to{
+        transform:translateY(0);
+    }
+
+}
+
+.modal-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    margin-bottom:15px;
+}
+
+.modal-head h2{
+    font-size:19px;
+}
+
+.close{
+    width:34px;
+    height:34px;
+
+    border:0;
+
+    border-radius:50%;
+
+    background:#f2f3f5;
+
+    font-size:20px;
+}
+
+
+/* DETAIL */
+
+.detail-section{
+    background:#f7f8fa;
+    border-radius:14px;
+    padding:13px;
+    margin-bottom:10px;
+}
+
+.detail-section h3{
+    font-size:13px;
+    margin-bottom:8px;
+}
+
+.detail-row{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+
+    padding:9px 0;
+
+    border-bottom:1px solid #e7e8ea;
+
+    font-size:13px;
+}
+
+.detail-row:last-child{
+    border-bottom:0;
+}
+
+.detail-row span:first-child{
+    color:#777;
+}
+
+.detail-row strong{
+    text-align:right;
+}
+
+
+/* TRANSACTION */
+
+.transaction{
+    background:#fff;
+
+    border:1px solid #eceef1;
+
+    border-radius:13px;
+
+    padding:12px;
+
+    margin-bottom:8px;
+}
+
+.transaction:last-child{
+    margin-bottom:0;
+}
+
+.transaction-title{
+    display:flex;
+    justify-content:space-between;
+
+    font-size:13px;
+
+    margin-bottom:8px;
+}
+
+.transaction-title strong{
+    font-size:13px;
+}
+
+.transaction-values{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:6px;
+}
+
+.transaction-value{
+    background:#f7f8fa;
+    border-radius:9px;
+    padding:8px;
+}
+
+.transaction-value span{
+    display:block;
+    font-size:9px;
+    color:#888;
+}
+
+.transaction-value strong{
+    display:block;
+    margin-top:3px;
+    font-size:12px;
+}
+
+
+/* BADGE */
+
+.badge{
+    display:inline-block;
+    padding:4px 8px;
+    border-radius:20px;
+    font-size:10px;
+    background:#eef2ff;
+}
+
 
 /* DESKTOP */
 
 @media(min-width:700px){
 
-  .container{
-    max-width:900px;
-  }
+    .container{
+        max-width:900px;
+    }
 
-  .summary{
-    grid-template-columns:repeat(3,1fr);
-  }
+    .dashboard-grid{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:13px;
+    }
 
-  .dashboard-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:14px;
-  }
-
-  .dashboard-grid .card{
-    margin-bottom:0;
-  }
 }
+
 </style>
+
 </head>
+
 
 <body>
 
+
 <div class="container">
 
-  <!-- HEADER -->
 
-  <div class="header">
+<!-- HEADER -->
+
+<div class="header">
+
     <div>
-      <h1>Manager Dashboard</h1>
-      <p>Feed Plant • Today</p>
+
+        <h1>
+            Manager Dashboard
+        </h1>
+
+        <p>
+            Feed Plant •
+            <span id="reportDate">
+                Latest
+            </span>
+        </p>
+
     </div>
 
-    <div class="status">
-      🏭
-    </div>
-  </div>
-
-
-  <!-- SUMMARY -->
-
-  <div class="summary">
-
-    <div class="summary-card">
-      <div class="icon">📦</div>
-      <h3>28</h3>
-      <p>Materials</p>
+    <div class="plant">
+        🏭
     </div>
 
-    <div class="summary-card">
-      <div class="icon">🏭</div>
-      <h3>156 T</h3>
-      <p>Production</p>
-    </div>
-
-    <div class="summary-card">
-      <div class="icon">🛍️</div>
-      <h3>13,604</h3>
-      <p>PP Bags</p>
-    </div>
-
-  </div>
+</div>
 
 
-  <!-- MAIN GRID -->
 
-  <div class="dashboard-grid">
+<!-- SUMMARY -->
 
-    <!-- STOCK -->
+<div class="summary">
 
-    <div class="card">
+    <div
+        class="summary-card"
+        onclick="openStockDetails()">
 
-      <div class="card-title">
-        <h2>📦 Raw Material Stock</h2>
-        <span>Today</span>
-      </div>
-
-      <div class="stock-row">
-        <div class="stock-name">SOYA DOC</div>
-        <div class="stock-value">
-          <strong>142.5 T</strong>
-          <small>Good</small>
+        <div class="icon">
+            📦
         </div>
-      </div>
 
-      <div class="stock-row">
-        <div class="stock-name">MAIZE</div>
-        <div class="stock-value">
-          <strong>86.2 T</strong>
-          <small>Good</small>
-        </div>
-      </div>
+        <h3 id="materialCount">
+            --
+        </h3>
 
-      <div class="stock-row">
-        <div class="stock-name">DORB</div>
-        <div class="stock-value">
-          <strong>42.8 T</strong>
-          <small>Normal</small>
-        </div>
-      </div>
-
-      <div class="stock-row">
-        <div class="stock-name">RSM</div>
-        <div class="stock-value">
-          <strong>18.4 T</strong>
-          <small>Low</small>
-        </div>
-      </div>
+        <p>
+            Materials
+        </p>
 
     </div>
 
 
-    <!-- PRODUCTION -->
+    <div
+        class="summary-card"
+        onclick="openProductionDetails()">
 
-    <div class="card">
-
-      <div class="card-title">
-        <h2>🏭 Production</h2>
-        <span>Today</span>
-      </div>
-
-      <div class="production-main">
-
-        <div>
-          <div class="production-number">156.4 T</div>
-          <div class="production-label">Actual Production</div>
+        <div class="icon">
+            🏭
         </div>
 
-        <div style="font-size:26px;">
-          📈
-        </div>
+        <h3 id="productionTotal">
+            --
+        </h3>
 
-      </div>
-
-      <div class="progress">
-        <div class="progress-bar"></div>
-      </div>
-
-      <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:11px;color:#777;">
-        <span>Target: 190 T</span>
-        <span>82.3%</span>
-      </div>
+        <p>
+            Production
+        </p>
 
     </div>
 
 
-    <!-- PP BAGS -->
+    <div
+        class="summary-card"
+        onclick="openPPBagDetails()">
 
-    <div class="card">
-
-      <div class="card-title">
-        <h2>🛍️ PP Bags</h2>
-        <span>Closing</span>
-      </div>
-
-      <div class="pp-grid">
-
-        <div class="pp-item">
-          <p>Opening</p>
-          <strong>16,784</strong>
+        <div class="icon">
+            🛍️
         </div>
 
-        <div class="pp-item">
-          <p>Received</p>
-          <strong>0</strong>
-        </div>
+        <h3 id="bagClosing">
+            --
+        </h3>
 
-        <div class="pp-item">
-          <p>Issue</p>
-          <strong>3,166</strong>
-        </div>
-
-        <div class="pp-item">
-          <p>Closing</p>
-          <strong>13,604</strong>
-        </div>
-
-      </div>
+        <p>
+            PP Bags
+        </p>
 
     </div>
 
-
-    <!-- ALERTS -->
-
-    <div class="card">
-
-      <div class="card-title">
-        <h2>⚠️ Alerts</h2>
-        <span>2 Items</span>
-      </div>
-
-      <div class="alert">
-
-        <div class="alert-icon">⚠️</div>
-
-        <div>
-          <p><b>RSM Stock is Low</b></p>
-          <small>Current stock: 18.4 T</small>
-        </div>
-
-      </div>
-
-      <div style="height:8px;"></div>
-
-      <div class="alert">
-
-        <div class="alert-icon">📦</div>
-
-        <div>
-          <p><b>Reorder Required</b></p>
-          <small>Check today's requirement</small>
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
+</div>
 
 
-  <!-- TRENDS -->
 
-  <div class="card">
+<div class="dashboard-grid">
+
+
+<!-- RAW MATERIAL -->
+
+<div
+    class="card">
 
     <div class="card-title">
-      <h2>📊 Trends</h2>
-      <span>Swipe →</span>
+
+        <h2>
+            📦 Raw Material Stock
+        </h2>
+
+        <span>
+            Tap material
+        </span>
+
     </div>
 
-    <div class="trend-wrapper" id="trendWrapper">
+
+    <div id="stockList">
+
+        Loading...
+
+    </div>
+
+</div>
 
 
-      <!-- PRODUCTION TREND -->
 
-      <div class="trend-card">
+<!-- PRODUCTION -->
 
-        <div class="trend-header">
-          <div>
-            <h3>🏭 Production Trend</h3>
-            <small>Last 7 Days</small>
-          </div>
+<div
+    class="card">
 
-          <span style="font-size:20px;">📈</span>
+    <div class="card-title">
+
+        <h2>
+            🏭 Production
+        </h2>
+
+        <span>
+            Tap product
+        </span>
+
+    </div>
+
+
+    <div
+        class="production-total"
+        id="productionTotalMain">
+
+        --
+
+    </div>
+
+
+    <div class="production-label">
+
+        Actual Production
+
+    </div>
+
+
+    <div id="productionList">
+
+    </div>
+
+</div>
+
+
+
+<!-- PP BAGS -->
+
+<div
+    class="card"
+    onclick="openPPBagDetails()">
+
+    <div class="card-title">
+
+        <h2>
+            🛍️ PP Bags
+        </h2>
+
+        <span>
+            Details →
+        </span>
+
+    </div>
+
+
+    <div
+        class="pp-grid"
+        id="bagGrid">
+
+    </div>
+
+</div>
+
+
+
+<!-- ALERTS -->
+
+<div
+    class="card">
+
+    <div class="card-title">
+
+        <h2>
+            ⚠️ Alerts
+        </h2>
+
+        <span id="alertCount">
+            --
+        </span>
+
+    </div>
+
+
+    <div id="alerts">
+
+    </div>
+
+</div>
+
+
+</div>
+
+
+
+<!-- TRENDS -->
+
+<div class="card">
+
+    <div class="card-title">
+
+        <h2>
+            📊 Trends
+        </h2>
+
+        <span>
+            Swipe →
+        </span>
+
+    </div>
+
+
+    <div
+        class="trend-wrapper"
+        id="trendWrapper">
+
+
+        <!-- PRODUCTION TREND -->
+
+        <div class="trend-card">
+
+            <div class="trend-header">
+
+                <div>
+
+                    <h3>
+                        🏭 Production Trend
+                    </h3>
+
+                    <small>
+                        Last 7 Days
+                    </small>
+
+                </div>
+
+                <span>
+                    📈
+                </span>
+
+            </div>
+
+
+            <canvas
+                id="productionChart">
+            </canvas>
+
         </div>
 
-        <canvas id="productionChart"></canvas>
-
-      </div>
 
 
-      <!-- RAW MATERIAL TREND -->
+        <!-- RAW MATERIAL USAGE -->
 
-      <div class="trend-card">
+        <div class="trend-card">
 
-        <div class="trend-header">
+            <div class="trend-header">
 
-          <div>
-            <h3>📦 Raw Material Usage</h3>
-            <small>Last 7 Days</small>
-          </div>
+                <div>
 
-          <select id="materialSelect">
-            <option>SOYA DOC</option>
-            <option>MAIZE</option>
-            <option>DORB</option>
-            <option>RSM</option>
-          </select>
+                    <h3>
+                        📦 Raw Material Usage
+                    </h3>
+
+                    <small>
+                        Material Wise
+                    </small>
+
+                </div>
+
+
+                <select
+                    id="materialSelect">
+                </select>
+
+            </div>
+
+
+            <canvas
+                id="materialChart">
+            </canvas>
 
         </div>
 
-        <canvas id="materialChart"></canvas>
-
-      </div>
 
     </div>
 
 
     <div class="dots">
 
-      <div class="dot active" id="dot1"></div>
-      <div class="dot" id="dot2"></div>
+        <div
+            class="dot active"
+            id="dot1">
+        </div>
+
+        <div
+            class="dot"
+            id="dot2">
+        </div>
 
     </div>
 
-  </div>
+</div>
 
 
-  <!-- QUICK VIEW -->
 
-  <div class="card">
+<!-- QUICK VIEW -->
+
+<div class="card">
 
     <div class="card-title">
-      <h2>⚡ Quick View</h2>
+
+        <h2>
+            ⚡ Quick View
+        </h2>
+
     </div>
+
 
     <div class="quick-grid">
 
-      <div class="quick">
-        <p>Today's Consumption</p>
-        <strong>148.2 T</strong>
-      </div>
 
-      <div class="quick">
-        <p>Process Loss</p>
-        <strong>1.8%</strong>
-      </div>
+        <div class="quick">
 
-      <div class="quick">
-        <p>Output Efficiency</p>
-        <strong>90.3%</strong>
-      </div>
+            <p>
+                Today's Consumption
+            </p>
 
-      <div class="quick">
-        <p>Stock Coverage</p>
-        <strong>4.8 Days</strong>
-      </div>
+            <strong id="consumption">
+                --
+            </strong>
+
+        </div>
+
+
+        <div class="quick">
+
+            <p>
+                Process Loss
+            </p>
+
+            <strong id="processLoss">
+                --
+            </strong>
+
+        </div>
+
+
+        <div class="quick">
+
+            <p>
+                Output Efficiency
+            </p>
+
+            <strong id="efficiency">
+                --
+            </strong>
+
+        </div>
+
+
+        <div class="quick">
+
+            <p>
+                Stock Coverage
+            </p>
+
+            <strong>
+                —
+            </strong>
+
+        </div>
+
 
     </div>
 
-  </div>
+</div>
+
 
 </div>
+
 
 
 <!-- BOTTOM NAV -->
 
 <div class="bottom-nav">
 
-  <div class="nav-item active">
-    <div>⌂</div>
-    Home
-  </div>
 
-  <div class="nav-item">
-    <div>📦</div>
-    Stock
-  </div>
+    <div
+        class="nav-item active"
+        onclick="goHome()">
 
-  <div class="nav-item">
-    <div>🏭</div>
-    Production
-  </div>
+        <div>
+            ⌂
+        </div>
 
-  <div class="nav-item">
-    <div>🛍️</div>
-    PP Bags
-  </div>
+        Home
 
-  <div class="nav-item">
-    <div>📊</div>
-    Reports
-  </div>
+    </div>
+
+
+    <div
+        class="nav-item"
+        onclick="openStockDetails()">
+
+        <div>
+            📦
+        </div>
+
+        Stock
+
+    </div>
+
+
+    <div
+        class="nav-item"
+        onclick="openProductionDetails()">
+
+        <div>
+            🏭
+        </div>
+
+        Production
+
+    </div>
+
+
+    <div
+        class="nav-item"
+        onclick="openPPBagDetails()">
+
+        <div>
+            🛍️
+        </div>
+
+        PP Bags
+
+    </div>
+
+
+    <div
+        class="nav-item"
+        onclick="goTrend()">
+
+        <div>
+            📊
+        </div>
+
+        Reports
+
+    </div>
+
 
 </div>
 
 
+
+<!-- DETAIL MODAL -->
+
+<div
+    class="modal"
+    id="modal"
+    onclick="outsideClose(event)">
+
+    <div class="modal-box">
+
+        <div class="modal-head">
+
+            <h2 id="modalTitle">
+                Details
+            </h2>
+
+            <button
+                class="close"
+                onclick="closeModal()">
+
+                ×
+
+            </button>
+
+        </div>
+
+
+        <div id="modalContent">
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
 <script>
 
-/* =========================
-   PRODUCTION CHART
-========================= */
 
-const productionCanvas =
-  document.getElementById("productionChart");
+/* =====================================================
+   GOOGLE APPS SCRIPT URL
 
-const pctx =
-  productionCanvas.getContext("2d");
+   Later paste your deployed Web App URL here.
 
-function drawProductionChart(){
+   Example:
 
-  const w = productionCanvas.width =
-    productionCanvas.clientWidth * 2;
+   const API_URL =
+   "https://script.google.com/macros/s/XXXX/exec";
 
-  const h = productionCanvas.height =
-    productionCanvas.clientHeight * 2;
+===================================================== */
 
-  pctx.clearRect(0,0,w,h);
-
-  const data = [132,148,141,158,152,171,156];
-
-  const max = 190;
-
-  const padding = 25;
-
-  pctx.beginPath();
-
-  data.forEach((value,index)=>{
-
-    const x =
-      padding +
-      index *
-      ((w-padding*2)/(data.length-1));
-
-    const y =
-      h-padding -
-      (value/max)*(h-padding*2);
-
-    if(index===0){
-      pctx.moveTo(x,y);
-    }else{
-      pctx.lineTo(x,y);
-    }
-
-  });
-
-  pctx.lineWidth = 5;
-  pctx.strokeStyle = "#4f7cff";
-  pctx.lineCap = "round";
-  pctx.stroke();
-
-}
-
-drawProductionChart();
+const API_URL = "";
 
 
-/* =========================
-   MATERIAL CHART
-========================= */
 
-const materialCanvas =
-  document.getElementById("materialChart");
+/* =====================================================
+   DATA
 
-const mctx =
-  materialCanvas.getContext("2d");
+   This structure matches our Google Sheets data:
 
-const materialData = {
+   STOCK_DATA
+   ---------------------------------
+   report_date
+   material
+   transaction
+   for_day
+   for_month
+   for_year
 
-  "SOYA DOC":[
-    24,28,26,31,29,34,32
-  ],
+   PRODUCTION_DATA
+   ---------------------------------
+   report_date
+   product
+   standard_output
+   actual_output
+   output_percentage
+   process_loss
+   remarks
 
-  "MAIZE":[
-    38,42,40,44,41,45,43
-  ],
+   PP_BAGS_DATA
+   ---------------------------------
+   report_date
+   product
+   opening
+   received
+   issue
+   damage
+   closing
 
-  "DORB":[
-    12,15,14,16,13,17,15
-  ],
+===================================================== */
 
-  "RSM":[
-    7,9,8,10,9,11,10
-  ]
+
+let DATA = {
+
+    stock: [],
+
+    production: [],
+
+    bags: [],
+
+    productionTrend: [],
+
+    usage: {}
 
 };
 
-function drawMaterialChart(material){
 
-  const w = materialCanvas.width =
-    materialCanvas.clientWidth * 2;
 
-  const h = materialCanvas.height =
-    materialCanvas.clientHeight * 2;
+/* =====================================================
+   NUMBER FORMAT
+===================================================== */
 
-  mctx.clearRect(0,0,w,h);
+function fmt(value){
 
-  const data = materialData[material];
+    if(
+        value === null ||
+        value === undefined ||
+        value === ""
+    ){
 
-  const max =
-    Math.max(...data) * 1.2;
+        return "--";
 
-  const padding = 25;
-
-  mctx.beginPath();
-
-  data.forEach((value,index)=>{
-
-    const x =
-      padding +
-      index *
-      ((w-padding*2)/(data.length-1));
-
-    const y =
-      h-padding -
-      (value/max)*(h-padding*2);
-
-    if(index===0){
-      mctx.moveTo(x,y);
-    }else{
-      mctx.lineTo(x,y);
     }
 
-  });
+    const n = Number(value);
 
-  mctx.lineWidth = 5;
-  mctx.strokeStyle = "#35a66f";
-  mctx.lineCap = "round";
-  mctx.stroke();
+    if(!Number.isFinite(n))
+        return String(value);
+
+    return n.toLocaleString(
+        "en-IN",
+        {
+            maximumFractionDigits:2
+        }
+    );
 
 }
 
-drawMaterialChart("SOYA DOC");
 
 
-/* =========================
-   MATERIAL CHANGE
-========================= */
+/* =====================================================
+   TRANSACTION NAME
+===================================================== */
 
-document
-  .getElementById("materialSelect")
-  .addEventListener("change",function(){
+function transactionName(value){
 
-    drawMaterialChart(this.value);
+    return String(value || "")
+        .trim()
+        .replace(/\s+/g," ");
 
-  });
+}
 
 
-/* =========================
-   SWIPE DOTS
-========================= */
 
-const wrapper =
-  document.getElementById("trendWrapper");
+/* =====================================================
+   GET MATERIAL LIST
+===================================================== */
 
-wrapper.addEventListener("scroll",function(){
+function getMaterials(){
 
-  const index =
-    Math.round(
-      wrapper.scrollLeft /
-      wrapper.clientWidth
+    const set = new Set();
+
+    DATA.stock.forEach(row=>{
+
+        if(row.material){
+
+            set.add(
+                String(row.material).trim()
+            );
+
+        }
+
+    });
+
+    return [...set];
+
+}
+
+
+
+/* =====================================================
+   BUILD MATERIAL SUMMARY
+===================================================== */
+
+function getMaterialSummary(material){
+
+    const rows =
+        DATA.stock.filter(
+            row =>
+            String(row.material)
+            .trim()
+            ===
+            String(material)
+            .trim()
+        );
+
+
+    /*
+       Closing Stock is taken from
+       CL. STOCK transaction.
+    */
+
+    let closing = null;
+
+    const closingRow =
+        rows.find(
+            row =>
+            transactionName(
+                row.transaction
+            ).toUpperCase()
+            ===
+            "CL. STOCK"
+        );
+
+
+    if(closingRow){
+
+        closing =
+            closingRow.for_day;
+
+    }
+
+
+    /*
+       If CL. STOCK is not available,
+       don't invent a value.
+    */
+
+    return {
+
+        material:material,
+
+        closing:closing,
+
+        rows:rows
+
+    };
+
+}
+
+
+
+/* =====================================================
+   RENDER DASHBOARD
+===================================================== */
+
+function renderDashboard(){
+
+
+    const materials =
+        getMaterials();
+
+
+    document
+        .getElementById("materialCount")
+        .textContent =
+        materials.length;
+
+
+
+    /* STOCK LIST */
+
+    document
+        .getElementById("stockList")
+        .innerHTML =
+        materials.map(material=>{
+
+            const summary =
+                getMaterialSummary(
+                    material
+                );
+
+
+            return `
+
+                <div
+                    class="stock-row"
+                    onclick="
+                    openMaterialDetails(
+                    '${escapeQuotes(material)}'
+                    )">
+
+                    <div class="stock-name">
+
+                        ${material}
+
+                    </div>
+
+                    <div class="stock-value">
+
+                        <strong>
+
+                            ${
+                                summary.closing !== null
+                                ? fmt(summary.closing)+" T"
+                                : "--"
+                            }
+
+                        </strong>
+
+                        <small>
+                            View details →
+                        </small>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }).join("")
+        ||
+        "<div style='color:#888;font-size:12px'>No stock data</div>";
+
+
+
+    /* PRODUCTION */
+
+    const totalProduction =
+        DATA.production.reduce(
+            (total,row)=>
+            total +
+            Number(
+                row.actual_output || 0
+            ),
+            0
+        );
+
+
+    document
+        .getElementById(
+            "productionTotal"
+        )
+        .textContent =
+        fmt(totalProduction)+" T";
+
+
+    document
+        .getElementById(
+            "productionTotalMain"
+        )
+        .textContent =
+        fmt(totalProduction)+" T";
+
+
+
+    document
+        .getElementById(
+            "productionList"
+        )
+        .innerHTML =
+        DATA.production
+        .map(row=>`
+
+            <div
+                class="production-row"
+                onclick="
+                openProductDetails(
+                '${escapeQuotes(row.product)}'
+                )">
+
+                <span>
+                    ${row.product}
+                </span>
+
+                <strong>
+                    ${fmt(row.actual_output)} T
+                </strong>
+
+            </div>
+
+        `)
+        .join("")
+        ||
+        "<div style='color:#888;font-size:12px'>No production data</div>";
+
+
+
+    /* PP BAGS */
+
+    renderPPBags();
+
+
+
+    /* ALERTS */
+
+    renderAlerts();
+
+
+
+    /* TRENDS */
+
+    renderTrends();
+
+
+
+    /* QUICK VIEW */
+
+    renderQuickView();
+
+}
+
+
+
+/* =====================================================
+   PP BAGS
+===================================================== */
+
+function renderPPBags(){
+
+
+    if(!DATA.bags.length){
+
+        document
+            .getElementById("bagGrid")
+            .innerHTML =
+            "<div style='color:#888'>No PP Bag data</div>";
+
+        return;
+
+    }
+
+
+    /*
+       Show latest product.
+    */
+
+    const b =
+        DATA.bags[
+            DATA.bags.length-1
+        ];
+
+
+    document
+        .getElementById("bagClosing")
+        .textContent =
+        fmt(b.closing);
+
+
+
+    document
+        .getElementById("bagGrid")
+        .innerHTML = `
+
+            <div class="pp-item">
+
+                <p>
+                    Opening
+                </p>
+
+                <strong>
+                    ${fmt(b.opening)}
+                </strong>
+
+            </div>
+
+
+            <div class="pp-item">
+
+                <p>
+                    Received
+                </p>
+
+                <strong>
+                    ${fmt(b.received)}
+                </strong>
+
+            </div>
+
+
+            <div class="pp-item">
+
+                <p>
+                    Issue
+                </p>
+
+                <strong>
+                    ${fmt(b.issue)}
+                </strong>
+
+            </div>
+
+
+            <div class="pp-item">
+
+                <p>
+                    Damage
+                </p>
+
+                <strong>
+                    ${fmt(b.damage)}
+                </strong>
+
+            </div>
+
+
+            <div class="pp-item">
+
+                <p>
+                    Closing
+                </p>
+
+                <strong>
+                    ${fmt(b.closing)}
+                </strong>
+
+            </div>
+
+        `;
+
+}
+
+
+
+/* =====================================================
+   ALERTS
+===================================================== */
+
+function renderAlerts(){
+
+
+    /*
+       No artificial reorder threshold.
+
+       Only shows data problems / negative closing
+       if actual data contains them.
+    */
+
+    const alerts = [];
+
+
+    DATA.stock.forEach(row=>{
+
+        const value =
+            Number(row.for_day);
+
+
+        if(
+            Number.isFinite(value) &&
+            value < 0
+        ){
+
+            alerts.push({
+
+                title:
+                row.material,
+
+                text:
+                "Negative stock value: "
+                +fmt(value)
+
+            });
+
+        }
+
+    });
+
+
+
+    document
+        .getElementById("alertCount")
+        .textContent =
+        alerts.length+" Items";
+
+
+
+    if(!alerts.length){
+
+        document
+            .getElementById("alerts")
+            .innerHTML = `
+
+                <div class="alert">
+
+                    <div class="alert-icon">
+                        ✅
+                    </div>
+
+                    <div>
+
+                        <p>
+                            <b>
+                                No Data Alert
+                            </b>
+                        </p>
+
+                        <small>
+                            Current data has no
+                            negative stock values.
+                        </small>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        return;
+
+    }
+
+
+
+    document
+        .getElementById("alerts")
+        .innerHTML =
+        alerts.map(a=>`
+
+            <div class="alert">
+
+                <div class="alert-icon">
+                    ⚠️
+                </div>
+
+                <div>
+
+                    <p>
+                        <b>
+                            ${a.title}
+                        </b>
+                    </p>
+
+                    <small>
+                        ${a.text}
+                    </small>
+
+                </div>
+
+            </div>
+
+        `).join("");
+
+}
+
+
+
+/* =====================================================
+   MATERIAL DETAILS
+
+   THIS IS THE IMPORTANT PART.
+
+   ALL TRANSACTIONS FROM STOCK_DATA
+   ARE SHOWN HERE.
+===================================================== */
+
+function openMaterialDetails(material){
+
+
+    const rows =
+        DATA.stock.filter(
+            row =>
+            String(row.material)
+            .trim()
+            ===
+            String(material)
+            .trim()
+        );
+
+
+    if(!rows.length){
+
+        showModal(
+            "📦 "+material,
+            "<div class='detail-section'>No data found.</div>"
+        );
+
+        return;
+
+    }
+
+
+
+    let html = `
+
+        <div class="detail-section">
+
+            <h3>
+                ${material}
+            </h3>
+
+    `;
+
+
+
+    /*
+       Every transaction row is shown.
+
+       Therefore if tomorrow a new transaction
+       type is added to STOCK_DATA,
+       it will automatically appear here.
+    */
+
+
+    rows.forEach(row=>{
+
+        const transaction =
+            transactionName(
+                row.transaction
+            );
+
+
+        html += `
+
+            <div class="transaction">
+
+                <div class="transaction-title">
+
+                    <strong>
+                        ${transaction}
+                    </strong>
+
+                    <span class="badge">
+                        STOCK
+                    </span>
+
+                </div>
+
+
+                <div class="transaction-values">
+
+
+                    <div
+                        class="transaction-value">
+
+                        <span>
+                            FOR DAY
+                        </span>
+
+                        <strong>
+                            ${fmt(row.for_day)}
+                        </strong>
+
+                    </div>
+
+
+                    <div
+                        class="transaction-value">
+
+                        <span>
+                            FOR MONTH
+                        </span>
+
+                        <strong>
+                            ${fmt(row.for_month)}
+                        </strong>
+
+                    </div>
+
+
+                    <div
+                        class="transaction-value">
+
+                        <span>
+                            FOR YEAR
+                        </span>
+
+                        <strong>
+                            ${fmt(row.for_year)}
+                        </strong>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+
+
+    html += `
+
+        </div>
+
+    `;
+
+
+
+    showModal(
+        "📦 "+material,
+        html
     );
 
-  document
-    .getElementById("dot1")
-    .classList.toggle("active",index===0);
+}
 
-  document
-    .getElementById("dot2")
-    .classList.toggle("active",index===1);
 
-});
+
+/* =====================================================
+   STOCK DETAILS
+===================================================== */
+
+function openStockDetails(){
+
+
+    const materials =
+        getMaterials();
+
+
+    let html = `
+
+        <div class="detail-section">
+
+            <h3>
+                Material-wise Stock
+            </h3>
+
+    `;
+
+
+    materials.forEach(material=>{
+
+        const summary =
+            getMaterialSummary(
+                material
+            );
+
+
+        html += `
+
+            <div
+                class="detail-row"
+                onclick="
+                openMaterialDetails(
+                '${escapeQuotes(material)}'
+                )">
+
+                <span>
+                    ${material}
+                </span>
+
+                <strong>
+
+                    ${
+                        summary.closing !== null
+                        ? fmt(summary.closing)+" T"
+                        : "--"
+                    }
+
+                    →
+
+                </strong>
+
+            </div>
+
+        `;
+
+    });
+
+
+    html += "</div>";
+
+
+    showModal(
+        "📦 Raw Material Details",
+        html
+    );
+
+}
+
+
+
+/* =====================================================
+   PRODUCTION DETAILS
+===================================================== */
+
+function openProductionDetails(){
+
+
+    let html = "";
+
+
+    DATA.production.forEach(row=>{
+
+        html += `
+
+            <div class="detail-section">
+
+                <h3>
+                    ${row.product}
+                </h3>
+
+
+                <div class="detail-row">
+
+                    <span>
+                        Standard Output
+                    </span>
+
+                    <strong>
+                        ${fmt(row.standard_output)}
+                    </strong>
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span>
+                        Actual Output
+                    </span>
+
+                    <strong>
+                        ${fmt(row.actual_output)}
+                    </strong>
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span>
+                        Output %
+                    </span>
+
+                    <strong>
+                        ${fmt(row.output_percentage)} %
+                    </strong>
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span>
+                        Process Loss
+                    </span>
+
+                    <strong>
+                        ${fmt(row.process_loss)} %
+                    </strong>
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span>
+                        Remarks
+                    </span>
+
+                    <strong>
+                        ${row.remarks || "--"}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+
+    showModal(
+        "🏭 Production Details",
+        html ||
+        "<div class='detail-section'>No production data.</div>"
+    );
+
+}
+
+
+
+/* =====================================================
+   PRODUCT DETAILS
+===================================================== */
+
+function openProductDetails(product){
+
+
+    const rows =
+        DATA.production.filter(
+            row =>
+            String(row.product)
+            .trim()
+            ===
+            String(product)
+            .trim()
+        );
+
+
+    let html = "";
+
+
+    rows.forEach(row=>{
+
+        html += `
+
+            <div class="detail-section">
+
+                <h3>
+                    ${row.product}
+                </h3>
+
+
+                <div class="detail-row">
+
+                    <span>
+                        Standard Output
+                    </span>
+
+                    <strong>
+                        ${fmt(row.standard_output)}
+                    </strong>
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span>
+                        Actual Output
+                    </span>
+
+                    <strong>
+                        ${fmt(row.actual_output)}
+                    </strong>
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span>
+                        Output %
+                    </span>
+
+                    <strong>
+                        ${fmt(row.output_percentage)} %
+                    </strong>
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span>
+                        Process Loss
+                    </span>
+
+                    <strong>
+                        ${fmt(row.process_loss)} %
+                    </strong>
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span>
+                        Remarks
+                    </span>
+
+                    <strong>
+                        ${row.remarks || "--"}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+
+    showModal(
+        "🏭 "+product,
+        html ||
+        "<div class='detail-section'>No data.</div>"
+    );
+
+}
+
+
+
+/* =====================================================
+   PP BAG DETAILS
+===================================================== */
+
+function openPPBagDetails(){
+
+
+    let html = "";
+
+
+    DATA.bags.forEach(row=>{
+
+        html += `
+
+            <div class="detail-section">
+
+                <h3>
+                    ${row.product || "PP Bags"}
+                </h3>
+
+
+                <div class="detail-row">
+
+                    <span>
+                        Opening
+                    </span>
+
+                    <strong>
+                        ${fmt(row.opening)}
+                    </strong>
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span>
+                        Received
+                    </span>
+
+                    <strong>
+                        ${fmt(row.received)}
+                    </strong>
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span>
+                        Issue
+                    </span>
+
+                    <strong>
+                        ${fmt(row.issue)}
+                    </strong>
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span>
+                        Damage Bags
+                    </span>
+
+                    <strong>
+                        ${fmt(row.damage)}
+                    </strong>
+
+                </div>
+
+
+                <div class="detail-row">
+
+                    <span>
+                        Closing
+                    </span>
+
+                    <strong>
+                        ${fmt(row.closing)}
+                    </strong>
+
+                </div>
+
+            </div>
+
+        `;
+
+    });
+
+
+    showModal(
+        "🛍️ PP Bags Details",
+        html ||
+        "<div class='detail-section'>No PP Bag data.</div>"
+    );
+
+}
+
+
+
+/* =====================================================
+   TRENDS
+===================================================== */
+
+function renderTrends(){
+
+
+    const materials =
+        getMaterials();
+
+
+    const select =
+        document
+        .getElementById(
+            "materialSelect"
+        );
+
+
+    select.innerHTML =
+        materials.map(
+            material=>
+            `<option>${material}</option>`
+        ).join("");
+
+
+    if(materials.length){
+
+        select.onchange =
+        function(){
+
+            drawMaterialChart(
+                this.value
+            );
+
+        };
+
+        drawMaterialChart(
+            materials[0]
+        );
+
+    }
+
+
+    drawProductionChart(
+        DATA.productionTrend
+    );
+
+}
+
+
+
+/* =====================================================
+   RAW MATERIAL USAGE TREND
+===================================================== */
+
+function drawMaterialChart(material){
+
+
+    /*
+       Usage is taken from STOCK_DATA rows
+       where transaction = CONSUMPTION.
+
+       The API should provide:
+
+       usage: {
+          "SOYA DOC": [ ... ],
+          "MAIZE": [ ... ]
+       }
+    */
+
+
+    const values =
+        DATA.usage[material] || [];
+
+
+    drawChart(
+        "materialChart",
+        values,
+        "material"
+    );
+
+}
+
+
+
+/* =====================================================
+   PRODUCTION TREND
+===================================================== */
+
+function drawProductionChart(values){
+
+    drawChart(
+        "productionChart",
+        values,
+        "production"
+    );
+
+}
+
+
+
+/* =====================================================
+   CHART DRAW
+===================================================== */
+
+function drawChart(
+    canvasId,
+    values,
+    type
+){
+
+    const canvas =
+        document
+        .getElementById(
+            canvasId
+        );
+
+
+    const ctx =
+        canvas.getContext("2d");
+
+
+    const width =
+        canvas.width =
+        canvas.clientWidth * 2;
+
+
+    const height =
+        canvas.height =
+        canvas.clientHeight * 2;
+
+
+    ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    if(!values.length)
+        return;
+
+
+    const numbers =
+        values.map(Number)
+        .filter(
+            Number.isFinite
+        );
+
+
+    if(!numbers.length)
+        return;
+
+
+    const max =
+        Math.max(...numbers)*1.2 || 1;
+
+
+    const padding=24;
+
+
+    ctx.beginPath();
+
+
+    numbers.forEach(
+        (value,index)=>{
+
+            const x =
+                padding +
+                index *
+                (
+                    (width-padding*2) /
+                    Math.max(
+                        numbers.length-1,
+                        1
+                    )
+                );
+
+
+            const y =
+                height-padding -
+                (
+                    value/max
+                ) *
+                (
+                    height-padding*2
+                );
+
+
+            if(index===0){
+
+                ctx.moveTo(x,y);
+
+            }else{
+
+                ctx.lineTo(x,y);
+
+            }
+
+        }
+    );
+
+
+    ctx.lineWidth=5;
+
+    ctx.lineCap="round";
+
+
+    ctx.strokeStyle =
+        type === "material"
+        ? "#35a66f"
+        : "#4f7cff";
+
+
+    ctx.stroke();
+
+}
+
+
+
+/* =====================================================
+   QUICK VIEW
+===================================================== */
+
+function renderQuickView(){
+
+
+    const consumptionRows =
+        DATA.stock.filter(
+            row =>
+            transactionName(
+                row.transaction
+            ).toUpperCase()
+            ===
+            "CONSUMPTION"
+        );
+
+
+    const todayConsumption =
+        consumptionRows.reduce(
+            (sum,row)=>
+            sum +
+            Math.abs(
+                Number(
+                    row.for_day || 0
+                )
+            ),
+            0
+        );
+
+
+    document
+        .getElementById(
+            "consumption"
+        )
+        .textContent =
+        fmt(todayConsumption)+" T";
+
+
+
+    const productionRows =
+        DATA.production;
+
+
+    if(productionRows.length){
+
+        const totalActual =
+            productionRows.reduce(
+                (s,r)=>
+                s+
+                Number(
+                    r.actual_output||0
+                ),
+                0
+            );
+
+
+        const totalStandard =
+            productionRows.reduce(
+                (s,r)=>
+                s+
+                Number(
+                    r.standard_output||0
+                ),
+                0
+            );
+
+
+        const totalLoss =
+            productionRows.reduce(
+                (s,r)=>
+                s+
+                Number(
+                    r.process_loss||0
+                ),
+                0
+            );
+
+
+        document
+        .getElementById(
+            "efficiency"
+        )
+        .textContent =
+        totalStandard
+        ?
+        fmt(
+            totalActual /
+            totalStandard *
+            100
+        )+"%"
+        :
+        "--";
+
+
+        document
+        .getElementById(
+            "processLoss"
+        )
+        .textContent =
+        fmt(totalLoss)+"%";
+
+    }
+
+}
+
+
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+function showModal(
+    title,
+    content
+){
+
+    document
+    .getElementById(
+        "modalTitle"
+    )
+    .textContent =
+    title;
+
+
+    document
+    .getElementById(
+        "modalContent"
+    )
+    .innerHTML =
+    content;
+
+
+    document
+    .getElementById(
+        "modal"
+    )
+    .classList
+    .add("show");
+
+}
+
+
+function closeModal(){
+
+    document
+    .getElementById(
+        "modal"
+    )
+    .classList
+    .remove("show");
+
+}
+
+
+function outsideClose(event){
+
+    if(
+        event.target.id
+        ===
+        "modal"
+    ){
+
+        closeModal();
+
+    }
+
+}
+
+
+
+/* =====================================================
+   NAV
+===================================================== */
+
+function goHome(){
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+
+}
+
+
+function goTrend(){
+
+    document
+    .querySelector(".trend-wrapper")
+    .scrollIntoView({
+        behavior:"smooth"
+    });
+
+}
+
+
+
+/* =====================================================
+   ESCAPE
+===================================================== */
+
+function escapeQuotes(value){
+
+    return String(value)
+        .replace(/'/g,"\\'");
+
+}
+
+
+
+/* =====================================================
+   SWIPE DOTS
+===================================================== */
+
+document
+.getElementById(
+    "trendWrapper"
+)
+.addEventListener(
+    "scroll",
+    function(){
+
+        const index =
+            Math.round(
+                this.scrollLeft /
+                this.clientWidth
+            );
+
+
+        document
+        .getElementById("dot1")
+        .classList
+        .toggle(
+            "active",
+            index===0
+        );
+
+
+        document
+        .getElementById("dot2")
+        .classList
+        .toggle(
+            "active",
+            index===1
+        );
+
+    }
+);
+
+
+
+/* =====================================================
+   LOAD API
+===================================================== */
+
+async function loadDashboard(){
+
+
+    /*
+       API URL empty = no API yet.
+
+       Once Google Apps Script URL is added,
+       actual Google Sheet data will load.
+    */
+
+
+    if(!API_URL){
+
+        console.log(
+            "API_URL not connected yet."
+        );
+
+        renderDashboard();
+
+        return;
+
+    }
+
+
+    try{
+
+        const response =
+            await fetch(
+                API_URL,
+                {
+                    cache:"no-store"
+                }
+            );
+
+
+        const apiData =
+            await response.json();
+
+
+        DATA =
+            apiData;
+
+
+        renderDashboard();
+
+
+    }catch(error){
+
+        console.error(
+            "Dashboard API Error:",
+            error
+        );
+
+
+        alert(
+            "Unable to load dashboard data."
+        );
+
+    }
+
+}
+
+
+loadDashboard();
+
 
 </script>
 
 </body>
+
 </html>
