@@ -2747,70 +2747,227 @@ document
    LOAD API
 ===================================================== */
 
-async function loadDashboard(){
+/* =====================================================
+   LOAD API - JSONP
+===================================================== */
 
-
-    /*
-       API URL empty = no API yet.
-
-       Once Google Apps Script URL is added,
-       actual Google Sheet data will load.
-    */
-
+function loadDashboard(){
 
     if(!API_URL){
 
-        console.log(
-            "API_URL not connected yet."
-        );
+        console.log("API_URL not connected yet.");
 
         renderDashboard();
 
-        return;
+        return Promise.resolve();
 
     }
 
 
-    try{
+    return new Promise(function(resolve, reject){
 
-        const response =
-            await fetch(
-                API_URL,
-                {
-                    cache:"no-store"
+        const callbackName =
+            "dashboardCallback_" + Date.now();
+
+
+        let script =
+            document.createElement("script");
+
+
+        window[callbackName] =
+            function(apiData){
+
+                try{
+
+                    /*
+                     * Convert Apps Script API response
+                     * into dashboard DATA structure.
+                     */
+
+                    DATA = {
+
+                        stock:
+                            apiData.stock || [],
+
+                        production:
+                            apiData.production || [],
+
+                        bags:
+                            apiData.pp_bags ||
+                            apiData.bags ||
+                            [],
+
+                        productionTrend:
+                            apiData.productionTrend ||
+                            [],
+
+                        usage:
+                            apiData.usage ||
+                            {},
+
+                        reorder_items:
+                            apiData.reorder_items ||
+                            [],
+
+                        consumption:
+                            apiData.consumption,
+
+                        efficiency:
+                            apiData.efficiency,
+
+                        processLoss:
+                            apiData.processLoss,
+
+                        report_date:
+                            apiData.report_date
+
+                    };
+
+
+                    /*
+                     * Report Date
+                     */
+
+                    if(apiData.report_date){
+
+                        document
+                            .getElementById("reportDate")
+                            .textContent =
+                            apiData.report_date;
+
+                    }
+
+
+                    /*
+                     * Render complete dashboard
+                     */
+
+                    renderDashboard();
+
+
+                    /*
+                     * Remove script
+                     */
+
+                    delete window[callbackName];
+
+                    if(script){
+
+                        script.remove();
+
+                    }
+
+
+                    resolve(apiData);
+
                 }
-            );
+
+                catch(error){
+
+                    delete window[callbackName];
+
+                    if(script){
+
+                        script.remove();
+
+                    }
+
+                    reject(error);
+
+                }
+
+            };
 
 
-        const apiData =
-            await response.json();
+        /*
+         * JSONP URL
+         */
+
+        script.src =
+            API_URL +
+            "?callback=" +
+            callbackName +
+            "&t=" +
+            Date.now();
 
 
-        DATA =
-            apiData;
+        /*
+         * Error handling
+         */
+
+        script.onerror =
+            function(){
+
+                delete window[callbackName];
+
+                if(script){
+
+                    script.remove();
+
+                }
+
+                reject(
+                    new Error(
+                        "Unable to connect to Google Apps Script API."
+                    )
+                );
+
+            };
 
 
-        renderDashboard();
+        document
+            .body
+            .appendChild(script);
 
-
-    }catch(error){
-
-        console.error(
-            "Dashboard API Error:",
-            error
-        );
-
-
-        alert(
-            "Unable to load dashboard data."
-        );
-
-    }
+    });
 
 }
 
 
-loadDashboard();
+/*
+ * Start Dashboard
+ */
+
+loadDashboard()
+.catch(function(error){
+
+    console.error(
+        "Dashboard API Error:",
+        error
+    );
+
+
+    document
+        .getElementById("stockList")
+        .innerHTML = `
+            <div
+                style="
+                    color:#c0392b;
+                    font-size:13px;
+                    padding:10px 0;
+                "
+            >
+                ❌ Unable to load dashboard data.
+            </div>
+        `;
+
+
+    document
+        .getElementById("productionList")
+        .innerHTML = `
+            <div
+                style="
+                    color:#c0392b;
+                    font-size:13px;
+                    padding:10px 0;
+                "
+            >
+                ❌ API connection failed.
+            </div>
+        `;
+
+});
+
 
 
 </script>
