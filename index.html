@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+
+<meta name="viewport"
+      content="width=device-width,initial-scale=1,
+      maximum-scale=1,user-scalable=no">
+
 <meta name="theme-color" content="#f5f6f8">
+
 <title>Manager Dashboard</title>
 
 <style>
+
 *{
     box-sizing:border-box;
     margin:0;
@@ -14,7 +21,8 @@
 }
 
 body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    font-family:-apple-system,BlinkMacSystemFont,
+    "Segoe UI",Roboto,Arial,sans-serif;
     background:#f5f6f8;
     color:#202938;
     padding-bottom:82px;
@@ -39,18 +47,19 @@ body{
 }
 
 .header p{
-    font-size:13px;
     color:#777;
+    font-size:13px;
     margin-top:3px;
 }
 
 .plant{
     width:42px;
     height:42px;
-    border-radius:50%;
     background:#fff;
-    display:grid;
-    place-items:center;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     font-size:22px;
 }
 
@@ -69,10 +78,6 @@ body{
     cursor:pointer;
 }
 
-.summary-card:active{
-    transform:scale(.97);
-}
-
 .summary-card h3{
     font-size:18px;
     margin-top:6px;
@@ -81,6 +86,7 @@ body{
 .summary-card p{
     font-size:11px;
     color:#777;
+    margin-top:2px;
 }
 
 .card{
@@ -137,8 +143,8 @@ body{
 }
 
 .stock-value small{
-    font-size:11px;
     color:#888;
+    font-size:11px;
 }
 
 .production-total{
@@ -147,8 +153,8 @@ body{
 }
 
 .production-label{
-    font-size:12px;
     color:#777;
+    font-size:12px;
 }
 
 .production-row span,
@@ -172,8 +178,8 @@ body{
 
 .pp-item p,
 .quick p{
-    font-size:11px;
     color:#777;
+    font-size:11px;
 }
 
 .pp-item strong,
@@ -197,8 +203,8 @@ body{
 }
 
 .alert small{
-    display:block;
     color:#8a6d1d;
+    display:block;
     margin-top:3px;
     font-size:11px;
 }
@@ -245,7 +251,7 @@ select{
     border:1px solid #ddd;
     background:#fff;
     border-radius:9px;
-    padding:7px;
+    padding:7px 9px;
     font-size:12px;
     max-width:150px;
 }
@@ -413,8 +419,8 @@ canvas{
 
 .transaction-value strong{
     display:block;
-    font-size:12px;
     margin-top:3px;
+    font-size:12px;
 }
 
 .badge{
@@ -423,6 +429,15 @@ canvas{
     border-radius:20px;
     font-size:10px;
     background:#eef2ff;
+}
+
+.error-box{
+    padding:12px;
+    background:#fff1f1;
+    color:#c0392b;
+    border-radius:12px;
+    font-size:13px;
+    line-height:1.5;
 }
 
 @media(min-width:700px){
@@ -436,8 +451,11 @@ canvas{
         grid-template-columns:1fr 1fr;
         gap:13px;
     }
+
 }
+
 </style>
+
 </head>
 
 <body>
@@ -474,9 +492,7 @@ canvas{
         class="summary-card"
         onclick="openStockDetails()">
 
-        <div>
-            📦
-        </div>
+        <div>📦</div>
 
         <h3 id="materialCount">
             --
@@ -493,9 +509,7 @@ canvas{
         class="summary-card"
         onclick="openProductionDetails()">
 
-        <div>
-            🏭
-        </div>
+        <div>🏭</div>
 
         <h3 id="productionTotal">
             --
@@ -512,9 +526,7 @@ canvas{
         class="summary-card"
         onclick="openPPBagDetails()">
 
-        <div>
-            🛍️
-        </div>
+        <div>🛍️</div>
 
         <h3 id="bagClosing">
             --
@@ -805,9 +817,7 @@ canvas{
         class="nav-item active"
         onclick="goHome()">
 
-        <div>
-            ⌂
-        </div>
+        <div>⌂</div>
 
         Home
 
@@ -818,9 +828,7 @@ canvas{
         class="nav-item"
         onclick="openStockDetails()">
 
-        <div>
-            📦
-        </div>
+        <div>📦</div>
 
         Stock
 
@@ -831,9 +839,7 @@ canvas{
         class="nav-item"
         onclick="openProductionDetails()">
 
-        <div>
-            🏭
-        </div>
+        <div>🏭</div>
 
         Production
 
@@ -844,9 +850,7 @@ canvas{
         class="nav-item"
         onclick="openPPBagDetails()">
 
-        <div>
-            🛍️
-        </div>
+        <div>🛍️</div>
 
         PP Bags
 
@@ -857,9 +861,7 @@ canvas{
         class="nav-item"
         onclick="goTrend()">
 
-        <div>
-            📊
-        </div>
+        <div>📊</div>
 
         Reports
 
@@ -902,9 +904,17 @@ canvas{
 <script>
 
 
+/* =====================================================
+   GOOGLE APPS SCRIPT WEB APP
+===================================================== */
+
 const API_URL =
 "https://script.google.com/macros/s/AKfycbw4Z4aNx2RJQOWfLmIxiD6dFeVZ3beeIL6VdWLXg2DoR8OMROSYXYPXyd7-QPdlTTYK/exec";
 
+
+/* =====================================================
+   DATA
+===================================================== */
 
 let DATA = {
 
@@ -931,35 +941,9 @@ let DATA = {
 };
 
 
-function fmt(value){
-
-    if(
-        value === null ||
-        value === undefined ||
-        value === ""
-    ){
-
-        return "--";
-
-    }
-
-    const n = Number(value);
-
-    if(!Number.isFinite(n)){
-
-        return String(value);
-
-    }
-
-    return n.toLocaleString(
-        "en-IN",
-        {
-            maximumFractionDigits:2
-        }
-    );
-
-}
-
+/* =====================================================
+   HELPERS
+===================================================== */
 
 function clean(value){
 
@@ -978,9 +962,43 @@ function transactionName(value){
 }
 
 
+function fmt(value){
+
+    if(
+        value === null ||
+        value === undefined ||
+        value === ""
+    ){
+
+        return "--";
+
+    }
+
+    const n =
+        Number(value);
+
+    if(
+        !Number.isFinite(n)
+    ){
+
+        return String(value);
+
+    }
+
+    return n.toLocaleString(
+        "en-IN",
+        {
+            maximumFractionDigits:2
+        }
+    );
+
+}
+
+
 function escapeQuotes(value){
 
     return clean(value)
+        .replace(/\\/g,"\\\\")
         .replace(/'/g,"\\'");
 
 }
@@ -998,20 +1016,35 @@ function escapeHtml(value){
 }
 
 
+/* =====================================================
+   MATERIALS
+===================================================== */
+
 function getMaterials(){
 
     return [
         ...new Set(
+
             DATA.stock
-            .map(row => clean(row.material))
+            .map(
+                row =>
+                clean(row.material)
+            )
             .filter(Boolean)
+
         )
     ];
 
 }
 
 
-function getMaterialSummary(material){
+/* =====================================================
+   MATERIAL SUMMARY
+===================================================== */
+
+function getMaterialSummary(
+    material
+){
 
     const rows =
         DATA.stock.filter(
@@ -1022,13 +1055,8 @@ function getMaterialSummary(material){
         );
 
 
-    const item =
-        DATA.stock.find(
-            row =>
-            clean(row.material)
-            ===
-            material
-        );
+    const first =
+        rows[0];
 
 
     const closingRow =
@@ -1050,16 +1078,19 @@ function getMaterialSummary(material){
             : null,
 
         unit:
-            item?.unit || "MT",
+            first?.unit ||
+            "MT",
 
         reorderLevel:
-            item?.reorder_level ?? null,
+            first?.reorder_level ??
+            null,
 
         reorderRequired:
-            !!item?.reorder_required,
+            !!first?.reorder_required,
 
         shortage:
-            item?.shortage ?? null,
+            first?.shortage ??
+            null,
 
         rows:
             rows
@@ -1068,6 +1099,10 @@ function getMaterialSummary(material){
 
 }
 
+
+/* =====================================================
+   DASHBOARD
+===================================================== */
 
 function renderDashboard(){
 
@@ -1107,21 +1142,30 @@ function renderDashboard(){
                         '${escapeQuotes(material)}'
                         )">
 
-                        <div class="stock-name">
+                        <div
+                            class="stock-name">
 
                             ${escapeHtml(material)}
 
                         </div>
 
-                        <div class="stock-value">
+
+                        <div
+                            class="stock-value">
 
                             <strong>
 
                                 ${
                                     summary.closing !== null
-                                    ? fmt(summary.closing)
+
+                                    ? fmt(
+                                        summary.closing
+                                      )
                                       +" "
-                                      +escapeHtml(summary.unit)
+                                      +escapeHtml(
+                                        summary.unit
+                                      )
+
                                     : "--"
                                 }
 
@@ -1129,8 +1173,7 @@ function renderDashboard(){
 
 
                             <small
-                                style="
-                                ${
+                                style="${
                                     summary.reorderRequired
                                     ? "color:#c0392b;font-weight:600"
                                     : ""
@@ -1138,7 +1181,9 @@ function renderDashboard(){
 
                                 ${
                                     summary.reorderRequired
+
                                     ? "REORDER REQUIRED"
+
                                     : "View details →"
                                 }
 
@@ -1161,12 +1206,16 @@ function renderDashboard(){
 
     const totalProduction =
         DATA.production.reduce(
+
             (total,row) =>
+
             total +
             Number(
                 row.actual_output || 0
             ),
+
             0
+
         );
 
 
@@ -1201,15 +1250,21 @@ function renderDashboard(){
                     class="production-row"
                     onclick="
                     openProductDetails(
-                    '${escapeQuotes(row.product)}'
+                    '${escapeQuotes(
+                        row.product
+                    )}'
                     )">
 
                     <span>
-                        ${escapeHtml(row.product)}
+                        ${escapeHtml(
+                            row.product
+                        )}
                     </span>
 
                     <strong>
-                        ${fmt(row.actual_output)} T
+                        ${fmt(
+                            row.actual_output
+                        )} T
                     </strong>
 
                 </div>
@@ -1233,9 +1288,16 @@ function renderDashboard(){
 }
 
 
+/* =====================================================
+   PP BAGS
+===================================================== */
+
 function renderPPBags(){
 
-    if(!DATA.bags.length){
+    if(
+        !DATA.bags ||
+        !DATA.bags.length
+    ){
 
         document
             .getElementById(
@@ -1243,6 +1305,7 @@ function renderPPBags(){
             )
             .innerHTML =
             "<div style='color:#888'>No PP Bag data</div>";
+
 
         document
             .getElementById(
@@ -1256,7 +1319,7 @@ function renderPPBags(){
     }
 
 
-    const b =
+    const bag =
         DATA.bags[
             DATA.bags.length - 1
         ];
@@ -1267,7 +1330,9 @@ function renderPPBags(){
             "bagClosing"
         )
         .textContent =
-        fmt(b.closing);
+        fmt(
+            bag.closing
+        );
 
 
     document
@@ -1283,7 +1348,7 @@ function renderPPBags(){
                 </p>
 
                 <strong>
-                    ${fmt(b.opening)}
+                    ${fmt(bag.opening)}
                 </strong>
 
             </div>
@@ -1296,7 +1361,7 @@ function renderPPBags(){
                 </p>
 
                 <strong>
-                    ${fmt(b.received)}
+                    ${fmt(bag.received)}
                 </strong>
 
             </div>
@@ -1309,7 +1374,7 @@ function renderPPBags(){
                 </p>
 
                 <strong>
-                    ${fmt(b.issue)}
+                    ${fmt(bag.issue)}
                 </strong>
 
             </div>
@@ -1322,7 +1387,7 @@ function renderPPBags(){
                 </p>
 
                 <strong>
-                    ${fmt(b.damage)}
+                    ${fmt(bag.damage)}
                 </strong>
 
             </div>
@@ -1335,7 +1400,7 @@ function renderPPBags(){
                 </p>
 
                 <strong>
-                    ${fmt(b.closing)}
+                    ${fmt(bag.closing)}
                 </strong>
 
             </div>
@@ -1345,37 +1410,48 @@ function renderPPBags(){
 }
 
 
+/* =====================================================
+   ALERTS
+===================================================== */
+
 function renderAlerts(){
 
     const alerts = [];
 
 
-    DATA.reorder_items.forEach(
-        item => {
+    if(
+        DATA.reorder_items &&
+        DATA.reorder_items.length
+    ){
 
-            alerts.push({
+        DATA.reorder_items.forEach(
+            item => {
 
-                title:
-                    item.material,
+                alerts.push({
 
-                text:
-                    "Reorder required • Closing "
-                    +fmt(item.closing)
-                    +" "
-                    +(item.unit || "MT")
-                    +" • Level "
-                    +fmt(item.reorder_level)
-                    +" "
-                    +(item.unit || "MT")
-                    +" • Shortage "
-                    +fmt(item.shortage)
-                    +" "
-                    +(item.unit || "MT")
+                    title:
+                        item.material,
 
-            });
+                    text:
+                        "Reorder required • Closing "
+                        +fmt(item.closing)
+                        +" "
+                        +(item.unit || "MT")
+                        +" • Level "
+                        +fmt(item.reorder_level)
+                        +" "
+                        +(item.unit || "MT")
+                        +" • Shortage "
+                        +fmt(item.shortage)
+                        +" "
+                        +(item.unit || "MT")
 
-        }
-    );
+                });
+
+            }
+        );
+
+    }
 
 
     DATA.stock.forEach(
@@ -1417,7 +1493,9 @@ function renderAlerts(){
         +" Items";
 
 
-    if(!alerts.length){
+    if(
+        !alerts.length
+    ){
 
         document
             .getElementById(
@@ -1474,12 +1552,16 @@ function renderAlerts(){
 
                         <p>
                             <b>
-                                ${escapeHtml(alert.title)}
+                                ${escapeHtml(
+                                    alert.title
+                                )}
                             </b>
                         </p>
 
                         <small>
-                            ${escapeHtml(alert.text)}
+                            ${escapeHtml(
+                                alert.text
+                            )}
                         </small>
 
                     </div>
@@ -1492,24 +1574,18 @@ function renderAlerts(){
 }
 
 
-function openMaterialDetails(material){
+/* =====================================================
+   MATERIAL DETAILS
+===================================================== */
+
+function openMaterialDetails(
+    material
+){
 
     const summary =
         getMaterialSummary(
             material
         );
-
-
-    if(!summary.rows.length){
-
-        showModal(
-            "📦 "+material,
-            "<div class='detail-section'>No data found.</div>"
-        );
-
-        return;
-
-    }
 
 
     let content = `
@@ -1531,9 +1607,15 @@ function openMaterialDetails(material){
 
                     ${
                         summary.closing !== null
-                        ? fmt(summary.closing)
+
+                        ? fmt(
+                            summary.closing
+                          )
                           +" "
-                          +escapeHtml(summary.unit)
+                          +escapeHtml(
+                            summary.unit
+                          )
+
                         : "--"
                     }
 
@@ -1552,9 +1634,15 @@ function openMaterialDetails(material){
 
                     ${
                         summary.reorderLevel !== null
-                        ? fmt(summary.reorderLevel)
+
+                        ? fmt(
+                            summary.reorderLevel
+                          )
                           +" "
-                          +escapeHtml(summary.unit)
+                          +escapeHtml(
+                            summary.unit
+                          )
+
                         : "--"
                     }
 
@@ -1573,7 +1661,9 @@ function openMaterialDetails(material){
 
                     ${
                         summary.reorderRequired
+
                         ? "REORDER REQUIRED"
+
                         : "NORMAL"
                     }
 
@@ -1596,11 +1686,13 @@ function openMaterialDetails(material){
                     <div class="transaction-title">
 
                         <strong>
+
                             ${escapeHtml(
                                 transactionName(
                                     row.transaction
                                 )
                             )}
+
                         </strong>
 
                         <span class="badge">
@@ -1616,6 +1708,7 @@ function openMaterialDetails(material){
 
                     <div class="transaction-values">
 
+
                         <div class="transaction-value">
 
                             <span>
@@ -1623,7 +1716,9 @@ function openMaterialDetails(material){
                             </span>
 
                             <strong>
-                                ${fmt(row.for_day)}
+                                ${fmt(
+                                    row.for_day
+                                )}
                             </strong>
 
                         </div>
@@ -1636,7 +1731,9 @@ function openMaterialDetails(material){
                             </span>
 
                             <strong>
-                                ${fmt(row.for_month)}
+                                ${fmt(
+                                    row.for_month
+                                )}
                             </strong>
 
                         </div>
@@ -1649,7 +1746,9 @@ function openMaterialDetails(material){
                             </span>
 
                             <strong>
-                                ${fmt(row.for_year)}
+                                ${fmt(
+                                    row.for_year
+                                )}
                             </strong>
 
                         </div>
@@ -1671,6 +1770,10 @@ function openMaterialDetails(material){
 
 }
 
+
+/* =====================================================
+   STOCK DETAILS
+===================================================== */
 
 function openStockDetails(){
 
@@ -1704,7 +1807,9 @@ function openStockDetails(){
                     class="detail-row"
                     onclick="
                     openMaterialDetails(
-                    '${escapeQuotes(material)}'
+                    '${escapeQuotes(
+                        material
+                    )}'
                     )">
 
                     <span>
@@ -1715,9 +1820,15 @@ function openStockDetails(){
 
                         ${
                             summary.closing !== null
-                            ? fmt(summary.closing)
+
+                            ? fmt(
+                                summary.closing
+                              )
                               +" "
-                              +escapeHtml(summary.unit)
+                              +escapeHtml(
+                                summary.unit
+                              )
+
                             : "--"
                         }
 
@@ -1745,6 +1856,10 @@ function openStockDetails(){
 }
 
 
+/* =====================================================
+   PRODUCTION DETAILS
+===================================================== */
+
 function openProductionDetails(){
 
     let content = "";
@@ -1758,7 +1873,9 @@ function openProductionDetails(){
                 <div class="detail-section">
 
                     <h3>
-                        ${escapeHtml(row.product)}
+                        ${escapeHtml(
+                            row.product
+                        )}
                     </h3>
 
 
@@ -1769,7 +1886,9 @@ function openProductionDetails(){
                         </span>
 
                         <strong>
-                            ${fmt(row.standard_output)}
+                            ${fmt(
+                                row.standard_output
+                            )}
                         </strong>
 
                     </div>
@@ -1782,7 +1901,9 @@ function openProductionDetails(){
                         </span>
 
                         <strong>
-                            ${fmt(row.actual_output)}
+                            ${fmt(
+                                row.actual_output
+                            )}
                         </strong>
 
                     </div>
@@ -1795,7 +1916,10 @@ function openProductionDetails(){
                         </span>
 
                         <strong>
-                            ${fmt(row.output_percentage)} %
+                            ${fmt(
+                                row.output_percentage
+                            )} %
+
                         </strong>
 
                     </div>
@@ -1808,7 +1932,10 @@ function openProductionDetails(){
                         </span>
 
                         <strong>
-                            ${fmt(row.process_loss)} %
+                            ${fmt(
+                                row.process_loss
+                            )} %
+
                         </strong>
 
                     </div>
@@ -1822,7 +1949,8 @@ function openProductionDetails(){
 
                         <strong>
                             ${escapeHtml(
-                                row.remarks || "--"
+                                row.remarks ||
+                                "--"
                             )}
                         </strong>
 
@@ -1845,7 +1973,13 @@ function openProductionDetails(){
 }
 
 
-function openProductDetails(product){
+/* =====================================================
+   PRODUCT DETAILS
+===================================================== */
+
+function openProductDetails(
+    product
+){
 
     const rows =
         DATA.production.filter(
@@ -1867,7 +2001,9 @@ function openProductDetails(product){
                 <div class="detail-section">
 
                     <h3>
-                        ${escapeHtml(row.product)}
+                        ${escapeHtml(
+                            row.product
+                        )}
                     </h3>
 
 
@@ -1878,7 +2014,9 @@ function openProductDetails(product){
                         </span>
 
                         <strong>
-                            ${fmt(row.standard_output)}
+                            ${fmt(
+                                row.standard_output
+                            )}
                         </strong>
 
                     </div>
@@ -1891,7 +2029,9 @@ function openProductDetails(product){
                         </span>
 
                         <strong>
-                            ${fmt(row.actual_output)}
+                            ${fmt(
+                                row.actual_output
+                            )}
                         </strong>
 
                     </div>
@@ -1904,7 +2044,10 @@ function openProductDetails(product){
                         </span>
 
                         <strong>
-                            ${fmt(row.output_percentage)} %
+                            ${fmt(
+                                row.output_percentage
+                            )} %
+
                         </strong>
 
                     </div>
@@ -1917,7 +2060,10 @@ function openProductDetails(product){
                         </span>
 
                         <strong>
-                            ${fmt(row.process_loss)} %
+                            ${fmt(
+                                row.process_loss
+                            )} %
+
                         </strong>
 
                     </div>
@@ -1931,7 +2077,8 @@ function openProductDetails(product){
 
                         <strong>
                             ${escapeHtml(
-                                row.remarks || "--"
+                                row.remarks ||
+                                "--"
                             )}
                         </strong>
 
@@ -1953,6 +2100,10 @@ function openProductDetails(product){
 
 }
 
+
+/* =====================================================
+   PP BAG DETAILS
+===================================================== */
 
 function openPPBagDetails(){
 
@@ -1981,7 +2132,9 @@ function openPPBagDetails(){
                         </span>
 
                         <strong>
-                            ${fmt(row.opening)}
+                            ${fmt(
+                                row.opening
+                            )}
                         </strong>
 
                     </div>
@@ -1994,7 +2147,9 @@ function openPPBagDetails(){
                         </span>
 
                         <strong>
-                            ${fmt(row.received)}
+                            ${fmt(
+                                row.received
+                            )}
                         </strong>
 
                     </div>
@@ -2007,7 +2162,9 @@ function openPPBagDetails(){
                         </span>
 
                         <strong>
-                            ${fmt(row.issue)}
+                            ${fmt(
+                                row.issue
+                            )}
                         </strong>
 
                     </div>
@@ -2020,7 +2177,9 @@ function openPPBagDetails(){
                         </span>
 
                         <strong>
-                            ${fmt(row.damage)}
+                            ${fmt(
+                                row.damage
+                            )}
                         </strong>
 
                     </div>
@@ -2033,7 +2192,9 @@ function openPPBagDetails(){
                         </span>
 
                         <strong>
-                            ${fmt(row.closing)}
+                            ${fmt(
+                                row.closing
+                            )}
                         </strong>
 
                     </div>
@@ -2055,6 +2216,10 @@ function openPPBagDetails(){
 }
 
 
+/* =====================================================
+   TRENDS
+===================================================== */
+
 function renderTrends(){
 
     const materials =
@@ -2069,14 +2234,22 @@ function renderTrends(){
 
     select.innerHTML =
         materials.map(
-            material =>
-            `<option value="${escapeHtml(material)}">
-                ${escapeHtml(material)}
-             </option>`
+            material => `
+
+                <option
+                    value="${escapeHtml(material)}">
+
+                    ${escapeHtml(material)}
+
+                </option>
+
+            `
         ).join("");
 
 
-    if(materials.length){
+    if(
+        materials.length
+    ){
 
         select.onchange =
             function(){
@@ -2107,10 +2280,14 @@ function renderTrends(){
 }
 
 
-function drawMaterialChart(material){
+function drawMaterialChart(
+    material
+){
 
     const values =
-        DATA.usage[material] || [];
+        DATA.usage[
+            material
+        ] || [];
 
 
     drawChart(
@@ -2122,7 +2299,9 @@ function drawMaterialChart(material){
 }
 
 
-function drawProductionChart(values){
+function drawProductionChart(
+    values
+){
 
     drawChart(
         "productionChart",
@@ -2146,7 +2325,9 @@ function drawChart(
 
 
     const ctx =
-        canvas.getContext("2d");
+        canvas.getContext(
+            "2d"
+        );
 
 
     canvas.width =
@@ -2164,25 +2345,41 @@ function drawChart(
     );
 
 
-    if(!values.length)
+    if(
+        !values ||
+        !values.length
+    ){
+
         return;
+
+    }
 
 
     const numbers =
         values
         .map(Number)
-        .filter(Number.isFinite);
+        .filter(
+            Number.isFinite
+        );
 
 
-    if(!numbers.length)
+    if(
+        !numbers.length
+    ){
+
         return;
 
+    }
 
-    const padding = 24;
+
+    const padding =
+        24;
 
 
     const max =
-        Math.max(...numbers) * 1.2 || 1;
+        Math.max(
+            ...numbers
+        ) * 1.2 || 1;
 
 
     ctx.beginPath();
@@ -2195,8 +2392,11 @@ function drawChart(
                 padding +
                 index *
                 (
-                    (canvas.width -
-                    padding * 2) /
+                    (
+                        canvas.width -
+                        padding * 2
+                    )
+                    /
                     Math.max(
                         numbers.length - 1,
                         1
@@ -2210,14 +2410,17 @@ function drawChart(
                 (
                     value /
                     max
-                ) *
+                )
+                *
                 (
                     canvas.height -
                     padding * 2
                 );
 
 
-            if(index === 0){
+            if(
+                index === 0
+            ){
 
                 ctx.moveTo(
                     x,
@@ -2238,9 +2441,12 @@ function drawChart(
     );
 
 
-    ctx.lineWidth = 5;
+    ctx.lineWidth =
+        5;
 
-    ctx.lineCap = "round";
+
+    ctx.lineCap =
+        "round";
 
 
     ctx.strokeStyle =
@@ -2254,6 +2460,10 @@ function drawChart(
 }
 
 
+/* =====================================================
+   QUICK VIEW
+===================================================== */
+
 function renderQuickView(){
 
     document
@@ -2265,7 +2475,10 @@ function renderQuickView(){
         DATA.consumption !== null &&
         DATA.consumption !== undefined
 
-        ? fmt(DATA.consumption)+" T"
+        ? fmt(
+            DATA.consumption
+          )
+          +" T"
 
         : "--";
 
@@ -2279,7 +2492,10 @@ function renderQuickView(){
         DATA.efficiency !== null &&
         DATA.efficiency !== undefined
 
-        ? fmt(DATA.efficiency)+"%"
+        ? fmt(
+            DATA.efficiency
+          )
+          +"%"
 
         : "--";
 
@@ -2293,12 +2509,19 @@ function renderQuickView(){
         DATA.processLoss !== null &&
         DATA.processLoss !== undefined
 
-        ? fmt(DATA.processLoss)+"%"
+        ? fmt(
+            DATA.processLoss
+          )
+          +"%"
 
         : "--";
 
 }
 
+
+/* =====================================================
+   MODAL
+===================================================== */
 
 function showModal(
     title,
@@ -2343,7 +2566,9 @@ function closeModal(){
 }
 
 
-function outsideClose(event){
+function outsideClose(
+    event
+){
 
     if(
         event.target.id ===
@@ -2356,6 +2581,10 @@ function outsideClose(event){
 
 }
 
+
+/* =====================================================
+   NAVIGATION
+===================================================== */
 
 function goHome(){
 
@@ -2384,6 +2613,10 @@ function goTrend(){
 
 }
 
+
+/* =====================================================
+   TREND SWIPE DOTS
+===================================================== */
 
 document
     .getElementById(
@@ -2426,18 +2659,22 @@ document
 
 
 /* =====================================================
-   LOAD DASHBOARD
-   JSONP is used to avoid GitHub Pages CORS issue.
+   FINAL API LOAD
+   JSONP - NO FETCH / NO CORS PROBLEM
 ===================================================== */
 
 function loadDashboard(){
 
     return new Promise(
-        function(resolve,reject){
+        function(
+            resolve,
+            reject
+        ){
 
             const callbackName =
-                "dashboardCallback_"
-                +Date.now();
+                "managerDashboardCallback_"
+                +
+                Date.now();
 
 
             const script =
@@ -2446,131 +2683,227 @@ function loadDashboard(){
                 );
 
 
-            window[callbackName] =
-                function(apiData){
-
-                    try{
-
-                        DATA = {
-
-                            stock:
-                                apiData.stock || [],
-
-                            production:
-                                apiData.production || [],
-
-                            bags:
-                                apiData.pp_bags ||
-                                apiData.bags ||
-                                [],
-
-                            productionTrend:
-                                apiData.productionTrend ||
-                                [],
-
-                            usage:
-                                apiData.usage ||
-                                {},
-
-                            reorder_items:
-                                apiData.reorder_items ||
-                                [],
-
-                            consumption:
-                                apiData.consumption,
-
-                            efficiency:
-                                apiData.efficiency,
-
-                            processLoss:
-                                apiData.processLoss,
-
-                            report_date:
-                                apiData.report_date
-
-                        };
+            let finished =
+                false;
 
 
-                        if(
-                            apiData.report_date
-                        ){
+            function cleanup(){
 
-                            document
-                                .getElementById(
-                                    "reportDate"
-                                )
-                                .textContent =
-                                apiData.report_date;
+                if(
+                    script.parentNode
+                ){
 
-                        }
-
-
-                        renderDashboard();
-
-
-                        delete window[
-                            callbackName
-                        ];
-
-
-                        script.remove();
-
-
-                        resolve(
-                            apiData
+                    script.parentNode
+                        .removeChild(
+                            script
                         );
 
-                    }
-                    catch(error){
-
-                        delete window[
-                            callbackName
-                        ];
+                }
 
 
-                        script.remove();
-
-
-                        reject(error);
-
-                    }
-
-                };
-
-
-            script.src =
-                API_URL
-                +"?callback="
-                +callbackName
-                +"&t="
-                +Date.now();
-
-
-            script.onerror =
-                function(){
+                try{
 
                     delete window[
                         callbackName
                     ];
 
+                }
+                catch(e){}
 
-                    script.remove();
+            }
 
 
-                    reject(
-                        new Error(
-                            "API connection failed"
-                        )
+            window[
+                callbackName
+            ] =
+            function(apiData){
+
+                if(
+                    finished
+                ){
+
+                    return;
+
+                }
+
+
+                finished =
+                    true;
+
+
+                try{
+
+                    if(
+                        !apiData ||
+                        apiData.status !==
+                        "success"
+                    ){
+
+                        throw new Error(
+                            "Invalid API response"
+                        );
+
+                    }
+
+
+                    DATA = {
+
+                        stock:
+                            Array.isArray(
+                                apiData.stock
+                            )
+                            ? apiData.stock
+                            : [],
+
+
+                        production:
+                            Array.isArray(
+                                apiData.production
+                            )
+                            ? apiData.production
+                            : [],
+
+
+                        bags:
+                            Array.isArray(
+                                apiData.pp_bags
+                            )
+                            ? apiData.pp_bags
+                            : [],
+
+
+                        productionTrend:
+                            Array.isArray(
+                                apiData.productionTrend
+                            )
+                            ? apiData.productionTrend
+                            : [],
+
+
+                        usage:
+                            apiData.usage &&
+                            typeof apiData.usage ===
+                            "object"
+                            ? apiData.usage
+                            : {},
+
+
+                        reorder_items:
+                            Array.isArray(
+                                apiData.reorder_items
+                            )
+                            ? apiData.reorder_items
+                            : [],
+
+
+                        consumption:
+                            apiData.consumption ??
+                            null,
+
+
+                        efficiency:
+                            apiData.efficiency ??
+                            null,
+
+
+                        processLoss:
+                            apiData.processLoss ??
+                            null,
+
+
+                        report_date:
+                            apiData.report_date ??
+                            null
+
+                    };
+
+
+                    if(
+                        DATA.report_date
+                    ){
+
+                        document
+                            .getElementById(
+                                "reportDate"
+                            )
+                            .textContent =
+                            DATA.report_date;
+
+                    }
+
+
+                    renderDashboard();
+
+
+                    cleanup();
+
+
+                    resolve(
+                        apiData
                     );
 
-                };
+                }
+                catch(error){
+
+                    cleanup();
+
+                    reject(
+                        error
+                    );
+
+                }
+
+            };
+
+
+            script.onerror =
+            function(){
+
+                if(
+                    finished
+                ){
+
+                    return;
+
+                }
+
+
+                finished =
+                    true;
+
+
+                cleanup();
+
+
+                reject(
+                    new Error(
+                        "Google Apps Script connection failed"
+                    )
+                );
+
+            };
+
+
+            script.src =
+                API_URL
+                +
+                "?callback="
+                +
+                encodeURIComponent(
+                    callbackName
+                )
+                +
+                "&t="
+                +
+                Date.now();
 
 
             document
-                .body
+                .head
                 .appendChild(
                     script
                 );
+
 
         }
     );
@@ -2578,12 +2911,16 @@ function loadDashboard(){
 }
 
 
+/* =====================================================
+   START
+===================================================== */
+
 loadDashboard()
 .catch(
     function(error){
 
         console.error(
-            "Dashboard API Error:",
+            "Dashboard Error:",
             error
         );
 
@@ -2594,14 +2931,14 @@ loadDashboard()
             )
             .innerHTML = `
 
-                <div
-                    style="
-                    color:#c0392b;
-                    padding:10px 0;
-                    font-size:13px;">
+                <div class="error-box">
 
-                    ❌ Unable to load
-                    dashboard data.
+                    ❌ Unable to load dashboard data.
+
+                    <br><br>
+
+                    API is reachable, but GitHub
+                    could not read the response.
 
                 </div>
 
@@ -2614,11 +2951,7 @@ loadDashboard()
             )
             .innerHTML = `
 
-                <div
-                    style="
-                    color:#c0392b;
-                    padding:10px 0;
-                    font-size:13px;">
+                <div class="error-box">
 
                     ❌ API connection failed.
 
