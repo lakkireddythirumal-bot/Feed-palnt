@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
@@ -458,9 +459,13 @@ canvas{
 
 </head>
 
+
 <body>
 
 <div class="container">
+
+
+<!-- HEADER -->
 
 <div class="header">
 
@@ -485,6 +490,8 @@ canvas{
 
 </div>
 
+
+<!-- SUMMARY -->
 
 <div class="summary">
 
@@ -544,6 +551,8 @@ canvas{
 <div class="dashboard-grid">
 
 
+<!-- RAW MATERIAL -->
+
 <div class="card">
 
     <div class="card-title">
@@ -564,6 +573,8 @@ canvas{
 
 </div>
 
+
+<!-- PRODUCTION -->
 
 <div class="card">
 
@@ -597,6 +608,8 @@ canvas{
 </div>
 
 
+<!-- PP BAGS -->
+
 <div
     class="card"
     onclick="openPPBagDetails()">
@@ -621,6 +634,8 @@ canvas{
 </div>
 
 
+<!-- ALERTS -->
+
 <div class="card">
 
     <div class="card-title">
@@ -642,6 +657,8 @@ canvas{
 
 </div>
 
+
+<!-- TRENDS -->
 
 <div class="card">
 
@@ -740,6 +757,8 @@ canvas{
 </div>
 
 
+<!-- QUICK VIEW -->
+
 <div class="card">
 
     <div class="card-title">
@@ -808,8 +827,11 @@ canvas{
 
 </div>
 
+
 </div>
 
+
+<!-- BOTTOM NAV -->
 
 <div class="bottom-nav">
 
@@ -870,6 +892,8 @@ canvas{
 </div>
 
 
+<!-- MODAL -->
+
 <div
     class="modal"
     id="modal"
@@ -905,7 +929,7 @@ canvas{
 
 
 /* =====================================================
-   GOOGLE APPS SCRIPT WEB APP
+   GOOGLE APPS SCRIPT
 ===================================================== */
 
 const API_URL =
@@ -950,6 +974,15 @@ function clean(value){
     return String(
         value ?? ""
     ).trim();
+
+}
+
+
+function normalize(value){
+
+    return clean(value)
+        .replace(/\s+/g," ")
+        .toUpperCase();
 
 }
 
@@ -1039,61 +1072,87 @@ function getMaterials(){
 
 
 /* =====================================================
-   MATERIAL SUMMARY
+   FIXED MATERIAL SUMMARY
 ===================================================== */
 
-function getMaterialSummary(
-    material
-){
+function getMaterialSummary(material){
 
-    const rows =
-        DATA.stock.filter(
+    /*
+       IMPORTANT:
+
+       Apps Script already sends:
+
+       {
+           material: "SOYA DOC",
+           closing: 1.0022,
+           reorder_level: 2,
+           unit: "MT",
+           reorder_required: true,
+           shortage: 0.9978,
+           transactions: [...]
+       }
+
+       Therefore closing must be taken
+       directly from item.closing.
+    */
+
+
+    const item =
+        DATA.stock.find(
             row =>
-            clean(row.material)
-            ===
-            material
+            normalize(row.material) ===
+            normalize(material)
         );
 
 
-    const first =
-        rows[0];
+    if(!item){
 
+        return {
 
-    const closingRow =
-        rows.find(
-            row =>
-            transactionName(
-                row.transaction
-            ).toUpperCase()
-            ===
-            "CL. STOCK"
-        );
+            closing: null,
+
+            unit: "MT",
+
+            reorderLevel: null,
+
+            reorderRequired: false,
+
+            shortage: null,
+
+            rows: []
+
+        };
+
+    }
 
 
     return {
 
         closing:
-            closingRow
-            ? closingRow.for_day
-            : null,
+            item.closing ??
+            null,
 
         unit:
-            first?.unit ||
+            item.unit ||
             "MT",
 
         reorderLevel:
-            first?.reorder_level ??
+            item.reorder_level ??
             null,
 
         reorderRequired:
-            !!first?.reorder_required,
+            !!item.reorder_required,
 
         shortage:
-            first?.shortage ??
+            item.shortage ??
             null,
 
         rows:
-            rows
+            Array.isArray(
+                item.transactions
+            )
+            ? item.transactions
+            : []
 
     };
 
@@ -1203,6 +1262,8 @@ function renderDashboard(){
 
         "<div style='color:#888'>No stock data</div>";
 
+
+    /* PRODUCTION */
 
     const totalProduction =
         DATA.production.reduce(
@@ -1462,8 +1523,8 @@ function renderAlerts(){
                 &&
                 !alerts.some(
                     a =>
-                    a.title ===
-                    item.material
+                    normalize(a.title) ===
+                    normalize(item.material)
                 )
             ){
 
@@ -1578,9 +1639,7 @@ function renderAlerts(){
    MATERIAL DETAILS
 ===================================================== */
 
-function openMaterialDetails(
-    material
-){
+function openMaterialDetails(material){
 
     const summary =
         getMaterialSummary(
@@ -1637,6 +1696,33 @@ function openMaterialDetails(
 
                         ? fmt(
                             summary.reorderLevel
+                          )
+                          +" "
+                          +escapeHtml(
+                            summary.unit
+                          )
+
+                        : "--"
+                    }
+
+                </strong>
+
+            </div>
+
+
+            <div class="detail-row">
+
+                <span>
+                    Shortage
+                </span>
+
+                <strong>
+
+                    ${
+                        summary.shortage !== null
+
+                        ? fmt(
+                            summary.shortage
                           )
                           +" "
                           +escapeHtml(
@@ -1977,16 +2063,13 @@ function openProductionDetails(){
    PRODUCT DETAILS
 ===================================================== */
 
-function openProductDetails(
-    product
-){
+function openProductDetails(product){
 
     const rows =
         DATA.production.filter(
             row =>
-            clean(row.product)
-            ===
-            clean(product)
+            normalize(row.product) ===
+            normalize(product)
         );
 
 
@@ -2247,9 +2330,7 @@ function renderTrends(){
         ).join("");
 
 
-    if(
-        materials.length
-    ){
+    if(materials.length){
 
         select.onchange =
             function(){
@@ -2280,9 +2361,11 @@ function renderTrends(){
 }
 
 
-function drawMaterialChart(
-    material
-){
+/* =====================================================
+   MATERIAL CHART
+===================================================== */
+
+function drawMaterialChart(material){
 
     const values =
         DATA.usage[
@@ -2299,9 +2382,11 @@ function drawMaterialChart(
 }
 
 
-function drawProductionChart(
-    values
-){
+/* =====================================================
+   PRODUCTION CHART
+===================================================== */
+
+function drawProductionChart(values){
 
     drawChart(
         "productionChart",
@@ -2311,6 +2396,10 @@ function drawProductionChart(
 
 }
 
+
+/* =====================================================
+   CHART
+===================================================== */
 
 function drawChart(
     canvasId,
@@ -2324,17 +2413,32 @@ function drawChart(
         );
 
 
+    if(!canvas){
+
+        return;
+
+    }
+
+
     const ctx =
         canvas.getContext(
             "2d"
         );
 
 
+    const width =
+        canvas.clientWidth || 300;
+
+
+    const height =
+        canvas.clientHeight || 160;
+
+
     canvas.width =
-        canvas.clientWidth * 2;
+        width * 2;
 
     canvas.height =
-        canvas.clientHeight * 2;
+        height * 2;
 
 
     ctx.clearRect(
@@ -2350,6 +2454,15 @@ function drawChart(
         !values.length
     ){
 
+        ctx.font =
+            "24px Arial";
+
+        ctx.fillText(
+            "No trend data",
+            30,
+            60
+        );
+
         return;
 
     }
@@ -2363,9 +2476,7 @@ function drawChart(
         );
 
 
-    if(
-        !numbers.length
-    ){
+    if(!numbers.length){
 
         return;
 
@@ -2418,9 +2529,7 @@ function drawChart(
                 );
 
 
-            if(
-                index === 0
-            ){
+            if(index === 0){
 
                 ctx.moveTo(
                     x,
@@ -2566,9 +2675,7 @@ function closeModal(){
 }
 
 
-function outsideClose(
-    event
-){
+function outsideClose(event){
 
     if(
         event.target.id ===
@@ -2659,8 +2766,7 @@ document
 
 
 /* =====================================================
-   FINAL API LOAD
-   JSONP - NO FETCH / NO CORS PROBLEM
+   JSONP API LOAD
 ===================================================== */
 
 function loadDashboard(){
@@ -2718,9 +2824,7 @@ function loadDashboard(){
             ] =
             function(apiData){
 
-                if(
-                    finished
-                ){
+                if(finished){
 
                     return;
 
@@ -2859,9 +2963,7 @@ function loadDashboard(){
             script.onerror =
             function(){
 
-                if(
-                    finished
-                ){
+                if(finished){
 
                     return;
 
@@ -2904,7 +3006,6 @@ function loadDashboard(){
                     script
                 );
 
-
         }
     );
 
@@ -2916,6 +3017,7 @@ function loadDashboard(){
 ===================================================== */
 
 loadDashboard()
+
 .catch(
     function(error){
 
