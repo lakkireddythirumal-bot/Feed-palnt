@@ -2,206 +2,905 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0f172a">
-<title>Feed Plant Inventory</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f7f8fa">
+
+<title>Manager Dashboard</title>
+
 <style>
-:root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#64748b;--line:#e5e7eb;--primary:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706;--shadow:0 8px 28px #0f172a12}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,-apple-system,Segoe UI,Roboto,Arial}
-button,input,select{font:inherit}button{cursor:pointer;border:0}.top{position:sticky;top:0;z-index:10;background:#0f172a;color:#fff;padding:14px 16px;box-shadow:0 4px 18px #0002}
-.topin{max-width:1200px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:12px}.brand{font-size:19px;font-weight:800}.sub{font-size:11px;color:#cbd5e1}.bell{background:#1e293b;color:white;border-radius:12px;padding:10px 12px;position:relative}.badge{position:absolute;right:-4px;top:-5px;background:#ef4444;border-radius:99px;font-size:10px;padding:2px 6px}
-.wrap{max-width:1200px;margin:auto;padding:16px}.nav{display:flex;gap:8px;overflow:auto;padding-bottom:12px}.nav button{background:var(--card);border:1px solid var(--line);padding:10px 14px;border-radius:11px;color:var(--muted);white-space:nowrap}.nav button.active{background:var(--primary);color:#fff;border-color:var(--primary)}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}.stat{font-size:25px;font-weight:800;margin-top:4px}.label{color:var(--muted);font-size:12px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.toolbar>*{min-height:42px}.input,.select{border:1px solid var(--line);background:#fff;border-radius:11px;padding:10px 12px;outline:none}.input:focus,.select:focus{border-color:var(--primary)}.grow{flex:1;min-width:190px}.btn{border-radius:11px;padding:10px 14px;font-weight:700}.primary{background:var(--primary);color:white}.success{background:var(--green);color:white}.danger{background:var(--red);color:white}.secondary{background:#e2e8f0;color:#172033}.warn{background:var(--amber);color:white}
-.tablewrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:14px}.table{width:100%;border-collapse:collapse;min-width:760px}.table th,.table td{padding:11px 12px;border-bottom:1px solid var(--line);text-align:left}.table th{font-size:12px;color:var(--muted);background:#f8fafc;position:sticky;top:0}.pill{display:inline-block;padding:4px 8px;border-radius:99px;font-size:11px;font-weight:700}.ok{background:#dcfce7;color:#166534}.low{background:#fef3c7;color:#92400e}.out{background:#fee2e2;color:#991b1b}
-.page{display:none}.page.active{display:block}.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.field label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px}.field .input,.field .select{width:100%}.modal{position:fixed;inset:0;background:#0f172a88;display:none;align-items:center;justify-content:center;padding:16px;z-index:30}.modal.show{display:flex}.modalbox{background:#fff;border-radius:18px;padding:18px;max-width:620px;width:100%;max-height:90vh;overflow:auto}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.x{background:#f1f5f9;border-radius:10px;padding:8px}.empty{padding:30px;text-align:center;color:var(--muted)}.toast{position:fixed;right:16px;bottom:16px;background:#111827;color:#fff;padding:12px 16px;border-radius:12px;display:none;z-index:50;max-width:330px}.toast.show{display:block}
-@media(max-width:800px){.grid{grid-template-columns:repeat(2,1fr)}.formgrid{grid-template-columns:1fr}.wrap{padding:12px}.card{padding:13px}.stat{font-size:22px}}
-@media(max-width:480px){.grid{grid-template-columns:1fr 1fr}.brand{font-size:16px}.nav button{padding:9px 11px}.btn{width:100%}.toolbar .btn{width:auto}}
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:#f5f6f8;
+  color:#1f2937;
+  padding-bottom:80px;
+}
+
+.container{
+  width:100%;
+  max-width:600px;
+  margin:auto;
+  padding:16px;
+}
+
+/* HEADER */
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+}
+
+.header h1{
+  font-size:22px;
+  font-weight:700;
+}
+
+.header p{
+  font-size:13px;
+  color:#777;
+  margin-top:3px;
+}
+
+.status{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  background:#ffffff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 2px 10px rgba(0,0,0,.05);
+}
+
+/* SUMMARY */
+
+.summary{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.summary-card{
+  background:white;
+  border-radius:16px;
+  padding:14px 10px;
+  box-shadow:0 2px 10px rgba(0,0,0,.04);
+}
+
+.summary-card .icon{
+  font-size:20px;
+}
+
+.summary-card h3{
+  font-size:18px;
+  margin-top:7px;
+}
+
+.summary-card p{
+  font-size:11px;
+  color:#777;
+  margin-top:2px;
+}
+
+/* CARD */
+
+.card{
+  background:white;
+  border-radius:18px;
+  padding:17px;
+  margin-bottom:14px;
+  box-shadow:0 2px 12px rgba(0,0,0,.04);
+}
+
+.card-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
+}
+
+.card-title h2{
+  font-size:16px;
+}
+
+.card-title span{
+  font-size:12px;
+  color:#777;
+}
+
+/* STOCK */
+
+.stock-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:11px 0;
+  border-bottom:1px solid #f0f0f0;
+}
+
+.stock-row:last-child{
+  border-bottom:none;
+}
+
+.stock-name{
+  font-size:14px;
+  font-weight:500;
+}
+
+.stock-value{
+  text-align:right;
+}
+
+.stock-value strong{
+  display:block;
+  font-size:14px;
+}
+
+.stock-value small{
+  color:#888;
+  font-size:11px;
+}
+
+/* PRODUCTION */
+
+.production-main{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.production-number{
+  font-size:28px;
+  font-weight:700;
+}
+
+.production-label{
+  color:#777;
+  font-size:12px;
+}
+
+.progress{
+  height:8px;
+  background:#edf0f3;
+  border-radius:10px;
+  margin-top:14px;
+  overflow:hidden;
+}
+
+.progress-bar{
+  height:100%;
+  width:82%;
+  background:#4f7cff;
+  border-radius:10px;
+}
+
+/* PP BAGS */
+
+.pp-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+
+.pp-item{
+  background:#f7f8fa;
+  padding:13px;
+  border-radius:13px;
+}
+
+.pp-item p{
+  color:#777;
+  font-size:11px;
+}
+
+.pp-item strong{
+  display:block;
+  font-size:18px;
+  margin-top:5px;
+}
+
+/* ALERT */
+
+.alert{
+  background:#fff8e7;
+  border-radius:14px;
+  padding:13px;
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+}
+
+.alert-icon{
+  font-size:20px;
+}
+
+.alert p{
+  font-size:13px;
+  line-height:1.4;
+}
+
+.alert small{
+  color:#8a6d1d;
+}
+
+/* TRENDS */
+
+.trend-wrapper{
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  display:flex;
+  gap:12px;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+
+.trend-wrapper::-webkit-scrollbar{
+  display:none;
+}
+
+.trend-card{
+  min-width:100%;
+  scroll-snap-align:start;
+  background:#fafbfc;
+  border-radius:15px;
+  padding:14px;
+}
+
+.trend-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+
+.trend-header h3{
+  font-size:14px;
+}
+
+.trend-header small{
+  color:#777;
+}
+
+canvas{
+  width:100%;
+  height:170px;
+}
+
+/* SELECT */
+
+select{
+  border:1px solid #e1e4e8;
+  background:white;
+  padding:7px 10px;
+  border-radius:9px;
+  font-size:12px;
+  outline:none;
+}
+
+/* DOTS */
+
+.dots{
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  margin-top:10px;
+}
+
+.dot{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#d5d8dd;
+}
+
+.dot.active{
+  width:18px;
+  border-radius:10px;
+  background:#4f7cff;
+}
+
+/* QUICK VIEW */
+
+.quick-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+
+.quick{
+  background:#f7f8fa;
+  padding:14px;
+  border-radius:14px;
+}
+
+.quick p{
+  font-size:11px;
+  color:#777;
+}
+
+.quick strong{
+  display:block;
+  font-size:17px;
+  margin-top:5px;
+}
+
+/* BOTTOM NAV */
+
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  height:66px;
+  background:rgba(255,255,255,.96);
+  border-top:1px solid #e9eaec;
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  z-index:100;
+}
+
+.nav-item{
+  text-align:center;
+  font-size:10px;
+  color:#888;
+  min-width:55px;
+}
+
+.nav-item div{
+  font-size:20px;
+  margin-bottom:2px;
+}
+
+.nav-item.active{
+  color:#315efb;
+  font-weight:600;
+}
+
+/* DESKTOP */
+
+@media(min-width:700px){
+
+  .container{
+    max-width:900px;
+  }
+
+  .summary{
+    grid-template-columns:repeat(3,1fr);
+  }
+
+  .dashboard-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+
+  .dashboard-grid .card{
+    margin-bottom:0;
+  }
+}
 </style>
 </head>
+
 <body>
-<header class="top"><div class="topin"><div><div class="brand">🔧 Feed Plant Inventory</div><div class="sub">Live Google Sheet Inventory System</div></div><button class="bell" onclick="showAlerts()">🔔 <span id="alertCount" class="badge" style="display:none">0</span></button></div></header>
 
-<main class="wrap">
-<nav class="nav">
-<button class="active" onclick="page('dashboard',this)">Dashboard</button>
-<button onclick="page('inventory',this)">Spare Parts</button>
-<button onclick="page('transaction',this)">Stock Transaction</button>
-<button onclick="page('history',this)">History</button>
-</nav>
+<div class="container">
 
-<section id="dashboard" class="page active">
-<div class="grid">
-<div class="card"><div class="label">Total Parts</div><div id="sParts" class="stat">—</div></div>
-<div class="card"><div class="label">Total Stock</div><div id="sStock" class="stat">—</div></div>
-<div class="card"><div class="label">Low Stock</div><div id="sLow" class="stat">—</div></div>
-<div class="card"><div class="label">Out of Stock</div><div id="sOut" class="stat">—</div></div>
-</div>
-<div class="card" style="margin-top:12px"><h3>⚠️ Stock Alerts</h3><div id="dashAlerts" class="empty">Loading…</div></div>
-<div class="card" style="margin-top:12px"><h3>🕒 Recent Transactions</h3><div id="dashRecent" class="empty">Loading…</div></div>
-</section>
+  <!-- HEADER -->
 
-<section id="inventory" class="page">
-<div class="card">
-<h2 style="margin-top:0">Spare Parts</h2>
-<div class="toolbar">
-<input id="search" class="input grow" placeholder="🔎 Search part name / code / location…" oninput="renderInventory()">
-<select id="catFilter" class="select" onchange="renderInventory()"><option value="">All Categories</option></select>
-<button class="btn primary" onclick="openAdd()">＋ Add Part</button>
-</div>
-<div id="inventoryTable"></div>
-</div>
-</section>
+  <div class="header">
+    <div>
+      <h1>Manager Dashboard</h1>
+      <p>Feed Plant • Today</p>
+    </div>
 
-<section id="transaction" class="page">
-<div class="card">
-<h2 style="margin-top:0">Stock Transaction</h2>
-<div class="formgrid">
-<div class="field"><label>Employee</label><select id="employee" class="select"></select></div>
-<div class="field"><label>Transaction Type</label><select id="txType" class="select"><option>Add</option><option>Issue</option><option>Return</option><option>Adjustment</option></select></div>
-<div class="field" style="grid-column:1/-1"><label>Part</label><input id="partSearch" class="input" list="partList" placeholder="Type to search part…"><datalist id="partList"></datalist></div>
-<div class="field"><label>Quantity</label><input id="qty" class="input" type="number" min="1" step="1" placeholder="Enter quantity"></div>
-<div class="field"><label>Current Stock</label><input id="currentStock" class="input" readonly></div>
-</div>
-<div class="toolbar" style="margin-top:16px"><button class="btn success" onclick="submitTx()">Save Transaction</button><button class="btn secondary" onclick="clearTx()">Clear</button></div>
-<div id="txResult"></div>
-</div>
-</section>
+    <div class="status">
+      🏭
+    </div>
+  </div>
 
-<section id="history" class="page">
-<div class="card">
-<h2 style="margin-top:0">Complete History</h2>
-<div class="toolbar">
-<input id="hSearch" class="input grow" placeholder="🔎 Search employee / part…" oninput="renderHistory()">
-<select id="hType" class="select" onchange="renderHistory()"><option value="">All Types</option><option>Add</option><option>Issue</option><option>Return</option><option>Adjustment</option></select>
-</div>
-<div id="historyTable"></div>
-</div>
-</section>
-</main>
 
-<div id="modal" class="modal"><div class="modalbox"><div class="modalhead"><h3 id="modalTitle">Add Part</h3><button class="x" onclick="closeModal()">✕</button></div>
-<div class="formgrid">
-<div class="field"><label>Part Name *</label><input id="fName" class="input"></div>
-<div class="field"><label>Part Code</label><input id="fCode" class="input"></div>
-<div class="field"><label>Category</label><input id="fCategory" class="input"></div>
-<div class="field"><label>Location / Rack</label><input id="fLocation" class="input"></div>
-<div class="field"><label>Unit</label><input id="fUnit" class="input" value="Nos"></div>
-<div class="field"><label>Current Stock</label><input id="fStock" class="input" type="number" min="0" value="0"></div>
-<div class="field"><label>Reorder Level</label><input id="fReorder" class="input" type="number" min="0" value="0"></div>
-<div class="field"><label>Unit Price</label><input id="fPrice" class="input" type="number" min="0" value="0"></div>
+  <!-- SUMMARY -->
+
+  <div class="summary">
+
+    <div class="summary-card">
+      <div class="icon">📦</div>
+      <h3>28</h3>
+      <p>Materials</p>
+    </div>
+
+    <div class="summary-card">
+      <div class="icon">🏭</div>
+      <h3>156 T</h3>
+      <p>Production</p>
+    </div>
+
+    <div class="summary-card">
+      <div class="icon">🛍️</div>
+      <h3>13,604</h3>
+      <p>PP Bags</p>
+    </div>
+
+  </div>
+
+
+  <!-- MAIN GRID -->
+
+  <div class="dashboard-grid">
+
+    <!-- STOCK -->
+
+    <div class="card">
+
+      <div class="card-title">
+        <h2>📦 Raw Material Stock</h2>
+        <span>Today</span>
+      </div>
+
+      <div class="stock-row">
+        <div class="stock-name">SOYA DOC</div>
+        <div class="stock-value">
+          <strong>142.5 T</strong>
+          <small>Good</small>
+        </div>
+      </div>
+
+      <div class="stock-row">
+        <div class="stock-name">MAIZE</div>
+        <div class="stock-value">
+          <strong>86.2 T</strong>
+          <small>Good</small>
+        </div>
+      </div>
+
+      <div class="stock-row">
+        <div class="stock-name">DORB</div>
+        <div class="stock-value">
+          <strong>42.8 T</strong>
+          <small>Normal</small>
+        </div>
+      </div>
+
+      <div class="stock-row">
+        <div class="stock-name">RSM</div>
+        <div class="stock-value">
+          <strong>18.4 T</strong>
+          <small>Low</small>
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- PRODUCTION -->
+
+    <div class="card">
+
+      <div class="card-title">
+        <h2>🏭 Production</h2>
+        <span>Today</span>
+      </div>
+
+      <div class="production-main">
+
+        <div>
+          <div class="production-number">156.4 T</div>
+          <div class="production-label">Actual Production</div>
+        </div>
+
+        <div style="font-size:26px;">
+          📈
+        </div>
+
+      </div>
+
+      <div class="progress">
+        <div class="progress-bar"></div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:11px;color:#777;">
+        <span>Target: 190 T</span>
+        <span>82.3%</span>
+      </div>
+
+    </div>
+
+
+    <!-- PP BAGS -->
+
+    <div class="card">
+
+      <div class="card-title">
+        <h2>🛍️ PP Bags</h2>
+        <span>Closing</span>
+      </div>
+
+      <div class="pp-grid">
+
+        <div class="pp-item">
+          <p>Opening</p>
+          <strong>16,784</strong>
+        </div>
+
+        <div class="pp-item">
+          <p>Received</p>
+          <strong>0</strong>
+        </div>
+
+        <div class="pp-item">
+          <p>Issue</p>
+          <strong>3,166</strong>
+        </div>
+
+        <div class="pp-item">
+          <p>Closing</p>
+          <strong>13,604</strong>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ALERTS -->
+
+    <div class="card">
+
+      <div class="card-title">
+        <h2>⚠️ Alerts</h2>
+        <span>2 Items</span>
+      </div>
+
+      <div class="alert">
+
+        <div class="alert-icon">⚠️</div>
+
+        <div>
+          <p><b>RSM Stock is Low</b></p>
+          <small>Current stock: 18.4 T</small>
+        </div>
+
+      </div>
+
+      <div style="height:8px;"></div>
+
+      <div class="alert">
+
+        <div class="alert-icon">📦</div>
+
+        <div>
+          <p><b>Reorder Required</b></p>
+          <small>Check today's requirement</small>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- TRENDS -->
+
+  <div class="card">
+
+    <div class="card-title">
+      <h2>📊 Trends</h2>
+      <span>Swipe →</span>
+    </div>
+
+    <div class="trend-wrapper" id="trendWrapper">
+
+
+      <!-- PRODUCTION TREND -->
+
+      <div class="trend-card">
+
+        <div class="trend-header">
+          <div>
+            <h3>🏭 Production Trend</h3>
+            <small>Last 7 Days</small>
+          </div>
+
+          <span style="font-size:20px;">📈</span>
+        </div>
+
+        <canvas id="productionChart"></canvas>
+
+      </div>
+
+
+      <!-- RAW MATERIAL TREND -->
+
+      <div class="trend-card">
+
+        <div class="trend-header">
+
+          <div>
+            <h3>📦 Raw Material Usage</h3>
+            <small>Last 7 Days</small>
+          </div>
+
+          <select id="materialSelect">
+            <option>SOYA DOC</option>
+            <option>MAIZE</option>
+            <option>DORB</option>
+            <option>RSM</option>
+          </select>
+
+        </div>
+
+        <canvas id="materialChart"></canvas>
+
+      </div>
+
+    </div>
+
+
+    <div class="dots">
+
+      <div class="dot active" id="dot1"></div>
+      <div class="dot" id="dot2"></div>
+
+    </div>
+
+  </div>
+
+
+  <!-- QUICK VIEW -->
+
+  <div class="card">
+
+    <div class="card-title">
+      <h2>⚡ Quick View</h2>
+    </div>
+
+    <div class="quick-grid">
+
+      <div class="quick">
+        <p>Today's Consumption</p>
+        <strong>148.2 T</strong>
+      </div>
+
+      <div class="quick">
+        <p>Process Loss</p>
+        <strong>1.8%</strong>
+      </div>
+
+      <div class="quick">
+        <p>Output Efficiency</p>
+        <strong>90.3%</strong>
+      </div>
+
+      <div class="quick">
+        <p>Stock Coverage</p>
+        <strong>4.8 Days</strong>
+      </div>
+
+    </div>
+
+  </div>
+
 </div>
-<div class="toolbar" style="margin-top:16px"><button class="btn primary" onclick="savePart()">Save</button><button class="btn secondary" onclick="closeModal()">Cancel</button></div>
-</div></div>
-<div id="toast" class="toast"></div>
+
+
+<!-- BOTTOM NAV -->
+
+<div class="bottom-nav">
+
+  <div class="nav-item active">
+    <div>⌂</div>
+    Home
+  </div>
+
+  <div class="nav-item">
+    <div>📦</div>
+    Stock
+  </div>
+
+  <div class="nav-item">
+    <div>🏭</div>
+    Production
+  </div>
+
+  <div class="nav-item">
+    <div>🛍️</div>
+    PP Bags
+  </div>
+
+  <div class="nav-item">
+    <div>📊</div>
+    Reports
+  </div>
+
+</div>
+
 
 <script>
-const API="https://script.google.com/macros/s/AKfycbxBUvYtsbVY4c2MRYGoSfiiTXCzFiOvE44_tsNQ2_bvNlo1K3B8zbveckI08iws7iY/exec";
-let parts=[],employees=[],history=[],editMode=false,oldName="";
 
-async function api(action,params={}){
- const q=new URLSearchParams({action,...params});
- const r=await fetch(API+"?"+q.toString(),{cache:"no-store"});
- return await r.json();
+/* =========================
+   PRODUCTION CHART
+========================= */
+
+const productionCanvas =
+  document.getElementById("productionChart");
+
+const pctx =
+  productionCanvas.getContext("2d");
+
+function drawProductionChart(){
+
+  const w = productionCanvas.width =
+    productionCanvas.clientWidth * 2;
+
+  const h = productionCanvas.height =
+    productionCanvas.clientHeight * 2;
+
+  pctx.clearRect(0,0,w,h);
+
+  const data = [132,148,141,158,152,171,156];
+
+  const max = 190;
+
+  const padding = 25;
+
+  pctx.beginPath();
+
+  data.forEach((value,index)=>{
+
+    const x =
+      padding +
+      index *
+      ((w-padding*2)/(data.length-1));
+
+    const y =
+      h-padding -
+      (value/max)*(h-padding*2);
+
+    if(index===0){
+      pctx.moveTo(x,y);
+    }else{
+      pctx.lineTo(x,y);
+    }
+
+  });
+
+  pctx.lineWidth = 5;
+  pctx.strokeStyle = "#4f7cff";
+  pctx.lineCap = "round";
+  pctx.stroke();
+
 }
-function page(id,btn){
- document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
- document.getElementById(id).classList.add('active');
- document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));
- btn.classList.add('active');
- if(id==='dashboard') refreshDashboard();
- if(id==='inventory') renderInventory();
- if(id==='history') renderHistory();
+
+drawProductionChart();
+
+
+/* =========================
+   MATERIAL CHART
+========================= */
+
+const materialCanvas =
+  document.getElementById("materialChart");
+
+const mctx =
+  materialCanvas.getContext("2d");
+
+const materialData = {
+
+  "SOYA DOC":[
+    24,28,26,31,29,34,32
+  ],
+
+  "MAIZE":[
+    38,42,40,44,41,45,43
+  ],
+
+  "DORB":[
+    12,15,14,16,13,17,15
+  ],
+
+  "RSM":[
+    7,9,8,10,9,11,10
+  ]
+
+};
+
+function drawMaterialChart(material){
+
+  const w = materialCanvas.width =
+    materialCanvas.clientWidth * 2;
+
+  const h = materialCanvas.height =
+    materialCanvas.clientHeight * 2;
+
+  mctx.clearRect(0,0,w,h);
+
+  const data = materialData[material];
+
+  const max =
+    Math.max(...data) * 1.2;
+
+  const padding = 25;
+
+  mctx.beginPath();
+
+  data.forEach((value,index)=>{
+
+    const x =
+      padding +
+      index *
+      ((w-padding*2)/(data.length-1));
+
+    const y =
+      h-padding -
+      (value/max)*(h-padding*2);
+
+    if(index===0){
+      mctx.moveTo(x,y);
+    }else{
+      mctx.lineTo(x,y);
+    }
+
+  });
+
+  mctx.lineWidth = 5;
+  mctx.strokeStyle = "#35a66f";
+  mctx.lineCap = "round";
+  mctx.stroke();
+
 }
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
-function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function status(p){if(p.stock<=0)return '<span class="pill out">OUT OF STOCK</span>';if(p.stock<=p.reorder)return '<span class="pill low">LOW STOCK</span>';return '<span class="pill ok">OK</span>'}
-async function loadAll(){
- try{
-  const [a,b,c]=await Promise.all([api('inventory'),api('employees'),api('history')]);
-  if(!a.success)throw Error(a.error||'Inventory error');
-  parts=a.parts||[]; employees=b.employees||[]; history=c.history||[];
-  fillEmployees();fillParts();fillCategories();refreshDashboard();renderInventory();renderHistory();updateAlerts();
- }catch(e){toast('Connection error: '+e.message)}
-}
-function fillEmployees(){
- const s=document.getElementById('employee');
- s.innerHTML='<option value="">Select employee</option>'+employees.map(x=>`<option>${esc(x)}</option>`).join('');
-}
-function fillParts(){
- document.getElementById('partList').innerHTML=parts.map(p=>`<option value="${esc(p.name)}">${esc(p.code||'')} — ${esc(p.location||'')}</option>`).join('');
-}
-function fillCategories(){
- const cats=[...new Set(parts.map(p=>p.category).filter(Boolean))].sort();
- document.getElementById('catFilter').innerHTML='<option value="">All Categories</option>'+cats.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');
-}
-function refreshDashboard(){
- const low=parts.filter(p=>p.stock>0&&p.stock<=p.reorder),out=parts.filter(p=>p.stock<=0);
- document.getElementById('sParts').textContent=parts.length;
- document.getElementById('sStock').textContent=parts.reduce((a,p)=>a+p.stock,0);
- document.getElementById('sLow').textContent=low.length;
- document.getElementById('sOut').textContent=out.length;
- const alerts=[...out.map(p=>`<div style="padding:8px 0">🔴 <b>${esc(p.name)}</b> — Out of stock</div>`),...low.map(p=>`<div style="padding:8px 0">🟠 <b>${esc(p.name)}</b> — ${p.stock} ${esc(p.unit||'Nos')} left</div>`)];
- document.getElementById('dashAlerts').innerHTML=alerts.length?alerts.slice(0,12).join(''):'<div class="empty">No stock alerts 🎉</div>';
- const rec=history.slice(0,8);
- document.getElementById('dashRecent').innerHTML=rec.length?`<div class="tablewrap"><table class="table"><thead><tr><th>Time</th><th>Employee</th><th>Type</th><th>Part</th><th>Qty</th></tr></thead><tbody>${rec.map(h=>`<tr><td>${esc(h.timestamp)}</td><td>${esc(h.employee)}</td><td>${esc(h.type)}</td><td>${esc(h.part)}</td><td>${h.quantity}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No transactions yet</div>';
-}
-function renderInventory(){
- const q=document.getElementById('search').value.toLowerCase(),cat=document.getElementById('catFilter').value;
- const rows=parts.filter(p=>(!q||[p.name,p.code,p.location,p.category].join(' ').toLowerCase().includes(q))&&(!cat||p.category===cat));
- document.getElementById('inventoryTable').innerHTML=rows.length?`<div class="tablewrap"><table class="table"><thead><tr><th>Part</th><th>Code</th><th>Category</th><th>Location</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead><tbody>${rows.map(p=>`<tr><td><b>${esc(p.name)}</b></td><td>${esc(p.code)}</td><td>${esc(p.category)}</td><td>${esc(p.location)}</td><td>${p.stock} ${esc(p.unit||'')}</td><td>${status(p)}</td><td><button class="btn secondary" onclick="openEdit('${encodeURIComponent(p.name)}')">Edit</button> <button class="btn danger" onclick="deactivatePart('${encodeURIComponent(p.name)}')">Delete</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No parts found</div>';
-}
-function renderHistory(){
- const q=document.getElementById('hSearch').value.toLowerCase(),type=document.getElementById('hType').value;
- const rows=history.filter(h=>(!q||[h.employee,h.part].join(' ').toLowerCase().includes(q))&&(!type||h.type===type));
- document.getElementById('historyTable').innerHTML=rows.length?`<div class="tablewrap"><table class="table"><thead><tr><th>Timestamp</th><th>Employee</th><th>Type</th><th>Part</th><th>Qty</th><th>Old</th><th>New</th><th>Status</th></tr></thead><tbody>${rows.map(h=>`<tr><td>${esc(h.timestamp)}</td><td>${esc(h.employee)}</td><td>${esc(h.type)}</td><td>${esc(h.part)}</td><td>${h.quantity}</td><td>${h.oldStock}</td><td>${h.newStock}</td><td>${esc(h.status)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No history found</div>';
-}
-function openAdd(){
- editMode=false;oldName='';
- document.getElementById('modalTitle').textContent='Add Part';
- ['fName','fCode','fCategory','fLocation'].forEach(id=>document.getElementById(id).value='');
- document.getElementById('fUnit').value='Nos';document.getElementById('fStock').value=0;document.getElementById('fReorder').value=0;document.getElementById('fPrice').value=0;
- document.getElementById('modal').classList.add('show');
-}
-function openEdit(encoded){
- const name=decodeURIComponent(encoded),p=parts.find(x=>x.name===name);if(!p)return;
- editMode=true;oldName=p.name;document.getElementById('modalTitle').textContent='Edit Part';
- document.getElementById('fName').value=p.name;document.getElementById('fCode').value=p.code;document.getElementById('fCategory').value=p.category;document.getElementById('fLocation').value=p.location;document.getElementById('fUnit').value=p.unit||'Nos';document.getElementById('fStock').value=p.stock;document.getElementById('fReorder').value=p.reorder;document.getElementById('fPrice').value=p.price;
- document.getElementById('modal').classList.add('show');
-}
-function closeModal(){document.getElementById('modal').classList.remove('show')}
-async function savePart(){
- const p={name:document.getElementById('fName').value.trim(),code:document.getElementById('fCode').value.trim(),category:document.getElementById('fCategory').value.trim(),location:document.getElementById('fLocation').value.trim(),unit:document.getElementById('fUnit').value.trim()||'Nos',stock:document.getElementById('fStock').value,reorder:document.getElementById('fReorder').value,price:document.getElementById('fPrice').value};
- if(!p.name)return toast('Part Name is required');
- const r=editMode?await api('editPart',{...p,oldName}):await api('addPart',p);
- if(!r.success)return toast(r.error||'Save failed');
- closeModal();toast(editMode?'Part updated':'Part added');await loadAll();
-}
-async function deactivatePart(encoded){
- const name=decodeURIComponent(encoded);
- if(!confirm('Deactivate '+name+'?'))return;
- const r=await api('deletePart',{name});
- if(!r.success)return toast(r.error||'Delete failed');
- toast('Part deactivated');await loadAll();
-}
-document.getElementById('partSearch').addEventListener('input',function(){
- const p=parts.find(x=>x.name.toLowerCase()===this.value.trim().toLowerCase());
- document.getElementById('currentStock').value=p?`${p.stock} ${p.unit||''}`:'';
+
+drawMaterialChart("SOYA DOC");
+
+
+/* =========================
+   MATERIAL CHANGE
+========================= */
+
+document
+  .getElementById("materialSelect")
+  .addEventListener("change",function(){
+
+    drawMaterialChart(this.value);
+
+  });
+
+
+/* =========================
+   SWIPE DOTS
+========================= */
+
+const wrapper =
+  document.getElementById("trendWrapper");
+
+wrapper.addEventListener("scroll",function(){
+
+  const index =
+    Math.round(
+      wrapper.scrollLeft /
+      wrapper.clientWidth
+    );
+
+  document
+    .getElementById("dot1")
+    .classList.toggle("active",index===0);
+
+  document
+    .getElementById("dot2")
+    .classList.toggle("active",index===1);
+
 });
-function clearTx(){document.getElementById('partSearch').value='';document.getElementById('qty').value='';document.getElementById('currentStock').value='';document.getElementById('txResult').innerHTML=''}
-async function submitTx(){
- const employee=document.getElementById('employee').value,type=document.getElementById('txType').value,part=document.getElementById('partSearch').value.trim(),qty=Number(document.getElementById('qty').value);
- if(!employee)return toast('Select employee');if(!part)return toast('Select/type a part');if(!qty||qty<=0)return toast('Enter valid quantity');
- const r=await api('transaction',{employee,type,part,qty});
- if(!r.success)return toast(r.error||'Transaction failed');
- document.getElementById('txResult').innerHTML=`<div class="card" style="margin-top:12px;background:#f0fdf4;border-color:#bbf7d0">✅ <b>${esc(r.type)}</b> saved — ${esc(r.part)}: ${r.oldStock} → <b>${r.newStock}</b> (${esc(r.status)})</div>`;
- clearTx();await loadAll();
-}
-function updateAlerts(){
- const n=parts.filter(p=>p.stock<=p.reorder).length;
- const b=document.getElementById('alertCount');b.textContent=n;b.style.display=n?'inline-block':'none';
-}
-function showAlerts(){page('dashboard',document.querySelector('.nav button'));document.getElementById('dashboard').scrollIntoView({behavior:'smooth'})}
-loadAll();
+
 </script>
+
 </body>
 </html>
