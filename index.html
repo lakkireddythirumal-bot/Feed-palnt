@@ -33,83 +33,69 @@ body{
     width:100%;
     max-width:620px;
     margin:auto;
-    padding:15px;
+    padding:16px;
 }
-
-/* ================= HEADER ================= */
 
 .header{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    margin-bottom:15px;
+    margin-bottom:16px;
 }
 
 .header h1{
     font-size:23px;
-    font-weight:700;
-    letter-spacing:-.3px;
 }
 
 .header p{
     color:#777;
-    font-size:12px;
-    margin-top:4px;
+    font-size:13px;
+    margin-top:3px;
 }
 
 .plant{
-    width:43px;
-    height:43px;
+    width:42px;
+    height:42px;
     background:#fff;
     border-radius:50%;
     display:flex;
     align-items:center;
     justify-content:center;
     font-size:22px;
-    box-shadow:0 2px 10px rgba(0,0,0,.05);
 }
-
-/* ================= SUMMARY ================= */
 
 .summary{
     display:grid;
-    grid-template-columns:repeat(2,1fr);
+    grid-template-columns:repeat(3,1fr);
     gap:9px;
     margin-bottom:13px;
 }
 
 .summary-card{
     background:#fff;
-    border-radius:18px;
-    padding:14px;
-    box-shadow:0 2px 12px rgba(0,0,0,.045);
+    border-radius:17px;
+    padding:13px 10px;
+    box-shadow:0 2px 10px rgba(0,0,0,.04);
     cursor:pointer;
 }
 
-.summary-icon{
-    font-size:20px;
-}
-
 .summary-card h3{
-    font-size:20px;
-    margin-top:7px;
-    font-weight:700;
+    font-size:18px;
+    margin-top:6px;
 }
 
 .summary-card p{
     font-size:11px;
     color:#777;
-    margin-top:3px;
+    margin-top:2px;
 }
-
-/* ================= CARDS ================= */
 
 .card{
     background:#fff;
     border-radius:19px;
     padding:16px;
     margin-bottom:13px;
-    box-shadow:0 2px 12px rgba(0,0,0,.045);
+    box-shadow:0 2px 12px rgba(0,0,0,.04);
 }
 
 .card-title{
@@ -121,33 +107,31 @@ body{
 
 .card-title h2{
     font-size:16px;
-    font-weight:700;
 }
 
 .card-title span{
-    font-size:11px;
+    font-size:12px;
     color:#777;
 }
 
-/* ================= STOCK ================= */
-
-.stock-row{
+.stock-row,
+.production-row{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    padding:13px 0;
+    padding:12px 0;
     border-bottom:1px solid #f0f0f0;
     cursor:pointer;
 }
 
-.stock-row:last-child{
+.stock-row:last-child,
+.production-row:last-child{
     border-bottom:0;
 }
 
 .stock-name{
     font-size:14px;
-    font-weight:600;
-    max-width:65%;
+    font-weight:500;
 }
 
 .stock-value{
@@ -161,37 +145,17 @@ body{
 
 .stock-value small{
     color:#888;
-    font-size:10px;
-    margin-top:3px;
-    display:block;
+    font-size:11px;
 }
-
-/* ================= PRODUCTION ================= */
 
 .production-total{
     font-size:30px;
-    font-weight:750;
-    letter-spacing:-.5px;
+    font-weight:700;
 }
 
 .production-label{
     color:#777;
     font-size:12px;
-    margin-top:2px;
-    margin-bottom:5px;
-}
-
-.production-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:12px 0;
-    border-bottom:1px solid #f0f0f0;
-    cursor:pointer;
-}
-
-.production-row:last-child{
-    border-bottom:0;
 }
 
 .production-row span,
@@ -199,36 +163,32 @@ body{
     font-size:13px;
 }
 
-.production-row span{
-    max-width:65%;
-}
-
-/* ================= PP BAGS ================= */
-
-.pp-grid{
+.pp-grid,
+.quick-grid{
     display:grid;
     grid-template-columns:repeat(2,1fr);
     gap:9px;
 }
 
-.pp-item{
+.pp-item,
+.quick{
     background:#f7f8fa;
-    padding:13px;
-    border-radius:14px;
+    padding:12px;
+    border-radius:13px;
 }
 
-.pp-item p{
+.pp-item p,
+.quick p{
     color:#777;
     font-size:11px;
 }
 
-.pp-item strong{
+.pp-item strong,
+.quick strong{
     display:block;
-    font-size:18px;
-    margin-top:5px;
+    font-size:17px;
+    margin-top:4px;
 }
-
-/* ================= ALERT ================= */
 
 .alert{
     background:#fff8e7;
@@ -239,10 +199,6 @@ body{
     margin-bottom:8px;
 }
 
-.alert:last-child{
-    margin-bottom:0;
-}
-
 .alert p{
     font-size:13px;
 }
@@ -250,37 +206,9 @@ body{
 .alert small{
     color:#8a6d1d;
     display:block;
-    margin-top:4px;
-    font-size:11px;
-    line-height:1.4;
-}
-
-/* ================= QUICK VIEW ================= */
-
-.quick-grid{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:9px;
-}
-
-.quick{
-    background:#f7f8fa;
-    padding:13px;
-    border-radius:14px;
-}
-
-.quick p{
-    color:#777;
+    margin-top:3px;
     font-size:11px;
 }
-
-.quick strong{
-    display:block;
-    font-size:18px;
-    margin-top:5px;
-}
-
-/* ================= TRENDS ================= */
 
 .trend-wrapper{
     overflow-x:auto;
@@ -317,7 +245,7 @@ body{
 .trend-header small{
     display:block;
     color:#777;
-    margin-top:3px;
+    margin-top:2px;
 }
 
 select{
@@ -355,8 +283,6 @@ canvas{
     background:#4f7cff;
 }
 
-/* ================= BOTTOM NAV ================= */
-
 .bottom-nav{
     position:fixed;
     left:0;
@@ -380,15 +306,12 @@ canvas{
 
 .nav-item div{
     font-size:19px;
-    margin-bottom:2px;
 }
 
 .nav-item.active{
     color:#315efb;
     font-weight:600;
 }
-
-/* ================= MODAL ================= */
 
 .modal{
     position:fixed;
@@ -462,8 +385,6 @@ canvas{
     color:#777;
 }
 
-/* ================= TRANSACTIONS ================= */
-
 .transaction{
     background:#fff;
     border:1px solid #eceef1;
@@ -511,8 +432,6 @@ canvas{
     background:#eef2ff;
 }
 
-/* ================= ERROR ================= */
-
 .error-box{
     padding:12px;
     background:#fff1f1;
@@ -522,16 +441,10 @@ canvas{
     line-height:1.5;
 }
 
-/* ================= DESKTOP ================= */
-
 @media(min-width:700px){
 
     .container{
         max-width:900px;
-    }
-
-    .summary{
-        grid-template-columns:repeat(4,1fr);
     }
 
     .dashboard-grid{
@@ -543,11 +456,14 @@ canvas{
 }
 
 </style>
+
 </head>
+
 
 <body>
 
 <div class="container">
+
 
 <!-- HEADER -->
 
@@ -583,9 +499,7 @@ canvas{
         class="summary-card"
         onclick="openStockDetails()">
 
-        <div class="summary-icon">
-            📦
-        </div>
+        <div>📦</div>
 
         <h3 id="materialCount">
             --
@@ -602,9 +516,7 @@ canvas{
         class="summary-card"
         onclick="openProductionDetails()">
 
-        <div class="summary-icon">
-            🏭
-        </div>
+        <div>🏭</div>
 
         <h3 id="productionTotal">
             --
@@ -618,30 +530,10 @@ canvas{
 
 
     <div
-        class="summary-card">
-
-        <div class="summary-icon">
-            🔥
-        </div>
-
-        <h3 id="consumptionTop">
-            --
-        </h3>
-
-        <p>
-            Today's Consumption
-        </p>
-
-    </div>
-
-
-    <div
         class="summary-card"
         onclick="openPPBagDetails()">
 
-        <div class="summary-icon">
-            🛍️
-        </div>
+        <div>🛍️</div>
 
         <h3 id="bagClosing">
             --
@@ -657,28 +549,6 @@ canvas{
 
 
 <div class="dashboard-grid">
-
-
-<!-- ALERTS -->
-
-<div class="card">
-
-    <div class="card-title">
-
-        <h2>
-            ⚠️ Alerts
-        </h2>
-
-        <span id="alertCount">
-            --
-        </span>
-
-    </div>
-
-    <div id="alerts">
-    </div>
-
-</div>
 
 
 <!-- RAW MATERIAL -->
@@ -763,6 +633,28 @@ canvas{
 
 </div>
 
+
+<!-- ALERTS -->
+
+<div class="card">
+
+    <div class="card-title">
+
+        <h2>
+            ⚠️ Alerts
+        </h2>
+
+        <span id="alertCount">
+            --
+        </span>
+
+    </div>
+
+    <div id="alerts">
+    </div>
+
+</div>
+
 </div>
 
 
@@ -781,6 +673,7 @@ canvas{
         </span>
 
     </div>
+
 
     <div
         class="trend-wrapper"
@@ -946,9 +839,7 @@ canvas{
         class="nav-item active"
         onclick="goHome()">
 
-        <div>
-            ⌂
-        </div>
+        <div>⌂</div>
 
         Home
 
@@ -959,9 +850,7 @@ canvas{
         class="nav-item"
         onclick="openStockDetails()">
 
-        <div>
-            📦
-        </div>
+        <div>📦</div>
 
         Stock
 
@@ -972,9 +861,7 @@ canvas{
         class="nav-item"
         onclick="openProductionDetails()">
 
-        <div>
-            🏭
-        </div>
+        <div>🏭</div>
 
         Production
 
@@ -985,9 +872,7 @@ canvas{
         class="nav-item"
         onclick="openPPBagDetails()">
 
-        <div>
-            🛍️
-        </div>
+        <div>🛍️</div>
 
         PP Bags
 
@@ -998,9 +883,7 @@ canvas{
         class="nav-item"
         onclick="goTrend()">
 
-        <div>
-            📊
-        </div>
+        <div>📊</div>
 
         Reports
 
@@ -1040,11 +923,13 @@ canvas{
     </div>
 
 </div>
+
+
 <script>
+
 
 /* =====================================================
    GOOGLE APPS SCRIPT
-   🔒 LOCKED DATA / API LOGIC
 ===================================================== */
 
 const API_URL =
@@ -1188,10 +1073,29 @@ function getMaterials(){
 
 /* =====================================================
    FIXED MATERIAL SUMMARY
-   🔒 DO NOT CHANGE
 ===================================================== */
 
 function getMaterialSummary(material){
+
+    /*
+       IMPORTANT:
+
+       Apps Script already sends:
+
+       {
+           material: "SOYA DOC",
+           closing: 1.0022,
+           reorder_level: 2,
+           unit: "MT",
+           reorder_required: true,
+           shortage: 0.9978,
+           transactions: [...]
+       }
+
+       Therefore closing must be taken
+       directly from item.closing.
+    */
+
 
     const item =
         DATA.stock.find(
@@ -1358,83 +1262,97 @@ function renderDashboard(){
 
         "<div style='color:#888'>No stock data</div>";
 
-/* PRODUCTION */
 
-const totalProduction =
-    DATA.production.reduce(
+    /* PRODUCTION */
 
-        (total,row) =>
+    const totalProduction =
+        DATA.production.reduce(
 
-        total +
-        Number(
-            row.actual_output || 0
-        ),
+            (total,row) =>
 
-        0
+            total +
+            Number(
+                row.actual_output || 0
+            ),
 
-    );
+            0
 
-
-document
-    .getElementById(
-        "productionTotal"
-    )
-    .textContent =
-    fmt(totalProduction)
-    +" T";
+        );
 
 
-document
-    .getElementById(
-        "productionTotalMain"
-    )
-    .textContent =
-    fmt(totalProduction)
-    +" T";
+    document
+        .getElementById(
+            "productionTotal"
+        )
+        .textContent =
+        fmt(totalProduction)
+        +" T";
 
 
-document
-    .getElementById(
-        "productionList"
-    )
-    .innerHTML =
+    document
+        .getElementById(
+            "productionTotalMain"
+        )
+        .textContent =
+        fmt(totalProduction)
+        +" T";
 
-    DATA.production.map(
-        row => `
 
-            <div
-                class="production-row"
-                onclick="
-                openProductDetails(
-                '${escapeQuotes(
-                    row.product
-                )}'
-                )">
+    document
+        .getElementById(
+            "productionList"
+        )
+        .innerHTML =
 
-                <span>
-                    ${escapeHtml(
+        DATA.production.map(
+            row => `
+
+                <div
+                    class="production-row"
+                    onclick="
+                    openProductDetails(
+                    '${escapeQuotes(
                         row.product
-                    )}
-                </span>
+                    )}'
+                    )">
 
-                <strong>
-                    ${fmt(
-                        row.actual_output
-                    )} T
-                </strong>
+                    <span>
+                        ${escapeHtml(
+                            row.product
+                        )}
+                    </span>
 
-            </div>
+                    <strong>
+                        ${fmt(
+                            row.actual_output
+                        )} T
+                    </strong>
 
-        `
-    ).join("")
+                </div>
 
-    ||
+            `
+        ).join("")
 
-    "<div style='color:#888'>No production data</div>";
+        ||
+
+        "<div style='color:#888'>No production data</div>";
+
+
+    renderPPBags();
+
+    renderAlerts();
+
+    renderTrends();
+
+    renderQuickView();
+
+}
+
 
 /* =====================================================
    PP BAGS
 ===================================================== */
+
 function renderPPBags(){
 
     if(
@@ -1449,6 +1367,7 @@ function renderPPBags(){
             .innerHTML =
             "<div style='color:#888'>No PP Bag data</div>";
 
+
         document
             .getElementById(
                 "bagClosing"
@@ -1461,52 +1380,11 @@ function renderPPBags(){
     }
 
 
-    /* =========================================
-       TOTAL ALL PP BAG PRODUCTS
-       ========================================= */
+    const bag =
+        DATA.bags[
+            DATA.bags.length - 1
+        ];
 
-    let totalOpening = 0;
-    let totalReceived = 0;
-    let totalIssue = 0;
-    let totalDamage = 0;
-    let totalClosing = 0;
-
-
-    DATA.bags.forEach(
-        row => {
-
-            totalOpening +=
-                Number(
-                    row.opening || 0
-                );
-
-            totalReceived +=
-                Number(
-                    row.received || 0
-                );
-
-            totalIssue +=
-                Number(
-                    row.issue || 0
-                );
-
-            totalDamage +=
-                Number(
-                    row.damage || 0
-                );
-
-            totalClosing +=
-                Number(
-                    row.closing || 0
-                );
-
-        }
-    );
-
-
-    /* =========================================
-       TOP PP BAG TOTAL
-       ========================================= */
 
     document
         .getElementById(
@@ -1514,13 +1392,9 @@ function renderPPBags(){
         )
         .textContent =
         fmt(
-            totalClosing
+            bag.closing
         );
 
-
-    /* =========================================
-       PP BAG CARD
-       ========================================= */
 
     document
         .getElementById(
@@ -1535,9 +1409,7 @@ function renderPPBags(){
                 </p>
 
                 <strong>
-                    ${fmt(
-                        totalOpening
-                    )}
+                    ${fmt(bag.opening)}
                 </strong>
 
             </div>
@@ -1550,9 +1422,7 @@ function renderPPBags(){
                 </p>
 
                 <strong>
-                    ${fmt(
-                        totalReceived
-                    )}
+                    ${fmt(bag.received)}
                 </strong>
 
             </div>
@@ -1565,9 +1435,7 @@ function renderPPBags(){
                 </p>
 
                 <strong>
-                    ${fmt(
-                        totalIssue
-                    )}
+                    ${fmt(bag.issue)}
                 </strong>
 
             </div>
@@ -1580,9 +1448,7 @@ function renderPPBags(){
                 </p>
 
                 <strong>
-                    ${fmt(
-                        totalDamage
-                    )}
+                    ${fmt(bag.damage)}
                 </strong>
 
             </div>
@@ -1595,9 +1461,7 @@ function renderPPBags(){
                 </p>
 
                 <strong>
-                    ${fmt(
-                        totalClosing
-                    )}
+                    ${fmt(bag.closing)}
                 </strong>
 
             </div>
@@ -1605,6 +1469,7 @@ function renderPPBags(){
         `;
 
 }
+
 
 /* =====================================================
    ALERTS
@@ -2727,29 +2592,6 @@ function renderQuickView(){
         : "--";
 
 
-    const topConsumption =
-        document.getElementById(
-            "consumptionTop"
-        );
-
-
-    if(topConsumption){
-
-        topConsumption.textContent =
-
-            DATA.consumption !== null &&
-            DATA.consumption !== undefined
-
-            ? fmt(
-                DATA.consumption
-              )
-              +" T"
-
-            : "--";
-
-    }
-
-
     document
         .getElementById(
             "efficiency"
@@ -2925,7 +2767,6 @@ document
 
 /* =====================================================
    JSONP API LOAD
-   🔒 LOCKED
 ===================================================== */
 
 function loadDashboard(){
