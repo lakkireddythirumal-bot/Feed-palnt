@@ -3148,8 +3148,67 @@ function renderFeedUnit() {
         ? DATA.feedUnitTotals
         : [];
 
-    console.log("FEED UNIT DATA:", data);
-    console.log("FEED UNIT TOTALS:", totals);
+    // Latest report date
+    const latestDate =
+        data.length > 0
+            ? data[data.length - 1].Report_Date
+            : null;
+
+    // Latest date products
+    const latestData = data.filter(
+        row => row.Report_Date === latestDate
+    );
+
+    // Totals from product data
+    const closingTotal = latestData.reduce(
+        (sum, row) =>
+            sum + Number(row.Closing_Day_MT || 0),
+        0
+    );
+
+    const productionTotal = latestData.reduce(
+        (sum, row) =>
+            sum + Number(row.Production_Day_MT || 0),
+        0
+    );
+
+    const dispatchTotal = latestData.reduce(
+        (sum, row) =>
+            sum + Number(row.Dispatch_Day_MT || 0),
+        0
+    );
+
+    // Show summary
+    document.getElementById(
+        "feedClosingTotal"
+    ).textContent =
+        closingTotal.toFixed(2) + " MT";
+
+    document.getElementById(
+        "feedProductionTotal"
+    ).textContent =
+        productionTotal.toFixed(2) + " MT";
+
+    document.getElementById(
+        "feedDispatchTotal"
+    ).textContent =
+        dispatchTotal.toFixed(2) + " MT";
+
+    // Date
+    document.getElementById(
+        "feedUnitDate"
+    ).textContent =
+        latestDate || "";
+
+    console.log(
+        "FEED UNIT DATA:",
+        data
+    );
+
+    console.log(
+        "FEED UNIT TOTALS:",
+        totals
+    );
 }
 
 </script>
