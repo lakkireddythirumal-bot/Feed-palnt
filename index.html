@@ -441,6 +441,145 @@ canvas{
     line-height:1.5;
 }
 
+
+/* =====================================================
+   FEED UNIT
+===================================================== */
+
+.feed-unit-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+}
+
+.feed-unit-title h2{
+    font-size:18px;
+}
+
+.feed-unit-date{
+    color:#777;
+    font-size:11px;
+}
+
+.feed-summary-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:9px;
+    margin-bottom:13px;
+}
+
+.feed-summary-card{
+    background:#fff;
+    border-radius:17px;
+    padding:13px 10px;
+    box-shadow:0 2px 10px rgba(0,0,0,.04);
+}
+
+.feed-summary-icon{
+    font-size:20px;
+}
+
+.feed-summary-label{
+    color:#777;
+    font-size:11px;
+    margin-top:5px;
+}
+
+.feed-summary-value{
+    font-size:17px;
+    font-weight:700;
+    margin-top:3px;
+}
+
+.feed-list-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    padding:12px 0;
+    border-bottom:1px solid #f0f0f0;
+}
+
+.feed-list-row:last-child{
+    border-bottom:0;
+}
+
+.feed-product{
+    font-size:13px;
+    font-weight:500;
+    line-height:1.3;
+}
+
+.feed-value{
+    font-size:13px;
+    font-weight:600;
+    white-space:nowrap;
+}
+
+.feed-empty{
+    color:#888;
+    font-size:13px;
+    padding:8px 0;
+}
+
+.feed-section-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+}
+
+.feed-section-title h2{
+    font-size:16px;
+}
+
+.feed-section-title span{
+    color:#777;
+    font-size:11px;
+}
+
+.feed-trend{
+    min-height:180px;
+}
+
+.feed-trend-summary{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:9px;
+    margin-bottom:12px;
+}
+
+.feed-trend-box{
+    background:#f7f8fa;
+    border-radius:13px;
+    padding:12px;
+}
+
+.feed-trend-box p{
+    color:#777;
+    font-size:11px;
+}
+
+.feed-trend-box strong{
+    display:block;
+    font-size:18px;
+    margin-top:4px;
+}
+
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media(max-width:480px){
+
+    .feed-summary-grid{
+        grid-template-columns:1fr;
+    }
+
+}
+
 @media(min-width:700px){
 
     .container{
@@ -451,6 +590,10 @@ canvas{
         display:grid;
         grid-template-columns:1fr 1fr;
         gap:13px;
+    }
+
+    .feed-summary-grid{
+        grid-template-columns:repeat(3,1fr);
     }
 
 }
@@ -465,7 +608,9 @@ canvas{
 <div class="container">
 
 
-<!-- HEADER -->
+<!-- =====================================================
+     HEADER
+===================================================== -->
 
 <div class="header">
 
@@ -491,7 +636,9 @@ canvas{
 </div>
 
 
-<!-- SUMMARY -->
+<!-- =====================================================
+     SUMMARY
+===================================================== -->
 
 <div class="summary">
 
@@ -551,7 +698,9 @@ canvas{
 <div class="dashboard-grid">
 
 
-<!-- RAW MATERIAL -->
+<!-- =====================================================
+     RAW MATERIAL
+===================================================== -->
 
 <div class="card">
 
@@ -574,7 +723,9 @@ canvas{
 </div>
 
 
-<!-- PRODUCTION -->
+<!-- =====================================================
+     PRODUCTION
+===================================================== -->
 
 <div class="card">
 
@@ -608,7 +759,9 @@ canvas{
 </div>
 
 
-<!-- PP BAGS -->
+<!-- =====================================================
+     PP BAGS
+===================================================== -->
 
 <div
     class="card"
@@ -634,7 +787,9 @@ canvas{
 </div>
 
 
-<!-- ALERTS -->
+<!-- =====================================================
+     ALERTS
+===================================================== -->
 
 <div class="card">
 
@@ -658,7 +813,9 @@ canvas{
 </div>
 
 
-<!-- TRENDS -->
+<!-- =====================================================
+     TRENDS
+===================================================== -->
 
 <div class="card">
 
@@ -757,7 +914,9 @@ canvas{
 </div>
 
 
-<!-- QUICK VIEW -->
+<!-- =====================================================
+     QUICK VIEW
+===================================================== -->
 
 <div class="card">
 
@@ -828,10 +987,253 @@ canvas{
 </div>
 
 
+<!-- =====================================================
+     FEED UNIT
+===================================================== -->
+
+<div class="feed-unit-title">
+
+    <h2>
+        🏭 FEED UNIT
+    </h2>
+
+    <span
+        class="feed-unit-date"
+        id="feedUnitDate">
+    </span>
+
 </div>
 
 
-<!-- BOTTOM NAV -->
+<!-- FEED UNIT SUMMARY -->
+
+<div class="feed-summary-grid">
+
+    <div class="feed-summary-card">
+
+        <div class="feed-summary-icon">
+            📦
+        </div>
+
+        <div class="feed-summary-label">
+            Closing Stock
+        </div>
+
+        <div
+            class="feed-summary-value"
+            id="feedClosingTotal">
+
+            0 MT
+
+        </div>
+
+    </div>
+
+
+    <div class="feed-summary-card">
+
+        <div class="feed-summary-icon">
+            ⚙️
+        </div>
+
+        <div class="feed-summary-label">
+            Production
+        </div>
+
+        <div
+            class="feed-summary-value"
+            id="feedProductionTotal">
+
+            0 MT
+
+        </div>
+
+    </div>
+
+
+    <div class="feed-summary-card">
+
+        <div class="feed-summary-icon">
+            🚚
+        </div>
+
+        <div class="feed-summary-label">
+            Dispatch
+        </div>
+
+        <div
+            class="feed-summary-value"
+            id="feedDispatchTotal">
+
+            0 MT
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     FEED CLOSING
+===================================================== -->
+
+<div class="card">
+
+    <div class="feed-section-title">
+
+        <h2>
+            📦 Material-wise Closing Stock
+        </h2>
+
+        <span>
+            Latest Day
+        </span>
+
+    </div>
+
+    <div id="feedClosingList">
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     FEED PRODUCTION
+===================================================== -->
+
+<div class="card">
+
+    <div class="feed-section-title">
+
+        <h2>
+            ⚙️ Material-wise Production
+        </h2>
+
+        <span>
+            Day
+        </span>
+
+    </div>
+
+    <div id="feedProductionList">
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     FEED DISPATCH
+===================================================== -->
+
+<div class="card">
+
+    <div class="feed-section-title">
+
+        <h2>
+            🚚 Material-wise Dispatch
+        </h2>
+
+        <span>
+            Day
+        </span>
+
+    </div>
+
+    <div id="feedDispatchList">
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     FEED TRANSFER
+===================================================== -->
+
+<div class="card">
+
+    <div class="feed-section-title">
+
+        <h2>
+            🔄 Material-wise Transfer
+        </h2>
+
+        <span>
+            Day
+        </span>
+
+    </div>
+
+    <div id="feedTransferList">
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     FEED TREND
+===================================================== -->
+
+<div class="card">
+
+    <div class="feed-section-title">
+
+        <h2>
+            📈 Production vs Dispatch
+        </h2>
+
+        <span>
+            Latest
+        </span>
+
+    </div>
+
+    <div class="feed-trend">
+
+        <div class="feed-trend-summary">
+
+            <div class="feed-trend-box">
+
+                <p>
+                    Production
+                </p>
+
+                <strong id="feedTrendProduction">
+                    0 MT
+                </strong>
+
+            </div>
+
+
+            <div class="feed-trend-box">
+
+                <p>
+                    Dispatch
+                </p>
+
+                <strong id="feedTrendDispatch">
+                    0 MT
+                </strong>
+
+            </div>
+
+        </div>
+
+        <canvas
+            id="feedTrendChart">
+        </canvas>
+
+    </div>
+
+</div>
+
+
+</div>
+
+
+<!-- =====================================================
+     BOTTOM NAV
+===================================================== -->
 
 <div class="bottom-nav">
 
@@ -892,7 +1294,9 @@ canvas{
 </div>
 
 
-<!-- MODAL -->
+<!-- =====================================================
+     MODAL
+===================================================== -->
 
 <div
     class="modal"
@@ -947,11 +1351,11 @@ let DATA = {
     production: [],
 
     bags: [],
-        
+
     feedUnitData: [],
 
     feedUnitTotals: [],
-    
+
     productionTrend: [],
 
     usage: {},
@@ -1080,26 +1484,6 @@ function getMaterials(){
 ===================================================== */
 
 function getMaterialSummary(material){
-
-    /*
-       IMPORTANT:
-
-       Apps Script already sends:
-
-       {
-           material: "SOYA DOC",
-           closing: 1.0022,
-           reorder_level: 2,
-           unit: "MT",
-           reorder_required: true,
-           shortage: 0.9978,
-           transactions: [...]
-       }
-
-       Therefore closing must be taken
-       directly from item.closing.
-    */
-
 
     const item =
         DATA.stock.find(
@@ -1348,14 +1732,13 @@ function renderDashboard(){
 
     renderTrends();
 
-    renderQuickView();
-
 }
 
 
 /* =====================================================
    PP BAGS
 ===================================================== */
+
 function renderPPBags(){
 
     if(
@@ -1381,10 +1764,6 @@ function renderPPBags(){
 
     }
 
-
-    /* =========================================
-       TOTAL ALL PP BAG PRODUCTS
-       ========================================= */
 
     let totalOpening = 0;
     let totalReceived = 0;
@@ -1425,10 +1804,6 @@ function renderPPBags(){
     );
 
 
-    /* =========================================
-       TOP PP BAG TOTAL
-       ========================================= */
-
     document
         .getElementById(
             "bagClosing"
@@ -1438,10 +1813,6 @@ function renderPPBags(){
             totalClosing
         );
 
-
-    /* =========================================
-       PP BAG CARD
-       ========================================= */
 
     document
         .getElementById(
@@ -1526,6 +1897,7 @@ function renderPPBags(){
         `;
 
 }
+
 
 /* =====================================================
    ALERTS
@@ -2914,22 +3286,9 @@ function loadDashboard(){
                             )
                             ? apiData.stock
                             : [],
-                            
-                       feedUnitData:
-                              Array.isArray(
-                                  apiData.feedUnitData
-    )
-    ? apiData.feedUnitData
-    : [],
 
-                       feedUnitTotals:
-    Array.isArray(
-        apiData.feedUnitTotals
-    )
-    ? apiData.feedUnitTotals
-    : [],
 
-                       production:
+                        production:
                             Array.isArray(
                                 apiData.production
                             )
@@ -2942,6 +3301,22 @@ function loadDashboard(){
                                 apiData.pp_bags
                             )
                             ? apiData.pp_bags
+                            : [],
+
+
+                        feedUnitData:
+                            Array.isArray(
+                                apiData.feedUnitData
+                            )
+                            ? apiData.feedUnitData
+                            : [],
+
+
+                        feedUnitTotals:
+                            Array.isArray(
+                                apiData.feedUnitTotals
+                            )
+                            ? apiData.feedUnitTotals
                             : [],
 
 
@@ -3006,6 +3381,8 @@ function loadDashboard(){
 
 
                     renderDashboard();
+
+                    renderFeedUnit();
 
 
                     cleanup();
@@ -3082,16 +3459,676 @@ function loadDashboard(){
 
 
 /* =====================================================
+   FEED UNIT
+===================================================== */
+
+function renderFeedUnit(){
+
+    const data =
+        Array.isArray(
+            DATA.feedUnitData
+        )
+        ? DATA.feedUnitData
+        : [];
+
+
+    const totals =
+        Array.isArray(
+            DATA.feedUnitTotals
+        )
+        ? DATA.feedUnitTotals
+        : [];
+
+
+    if(!data.length){
+
+        document
+            .getElementById(
+                "feedClosingList"
+            )
+            .innerHTML =
+            "<div class='feed-empty'>No FEED UNIT data available.</div>";
+
+        document
+            .getElementById(
+                "feedProductionList"
+            )
+            .innerHTML =
+            "<div class='feed-empty'>No FEED UNIT data available.</div>";
+
+        document
+            .getElementById(
+                "feedDispatchList"
+            )
+            .innerHTML =
+            "<div class='feed-empty'>No FEED UNIT data available.</div>";
+
+        document
+            .getElementById(
+                "feedTransferList"
+            )
+            .innerHTML =
+            "<div class='feed-empty'>No FEED UNIT data available.</div>";
+
+        return;
+
+    }
+
+
+    /* =================================================
+       LATEST REPORT DATE
+    ================================================= */
+
+    const latestDate =
+        data[data.length - 1].Report_Date;
+
+
+    const latestData =
+        data.filter(
+            row =>
+            row.Report_Date ===
+            latestDate
+        );
+
+
+    /* =================================================
+       OFFICIAL TOTAL ROW
+    ================================================= */
+
+    let officialTotal = null;
+
+
+    if(totals.length){
+
+        officialTotal =
+            totals[totals.length - 1];
+
+    }
+
+
+    /* =================================================
+       SUMMARY
+    ================================================= */
+
+    const closingTotal =
+        latestData.reduce(
+            (sum,row) =>
+
+            sum +
+            Number(
+                row.Closing_Day_MT || 0
+            ),
+
+            0
+        );
+
+
+    let productionTotal =
+        officialTotal
+        ? Number(
+            officialTotal.Production_Day_MT || 0
+          )
+        : 0;
+
+
+    let dispatchTotal =
+        officialTotal
+        ? Number(
+            officialTotal.Dispatch_Day_MT || 0
+          )
+        : 0;
+
+
+    /*
+       Fallback only if official total
+       is unavailable.
+    */
+
+    if(
+        productionTotal === 0
+    ){
+
+        productionTotal =
+            latestData.reduce(
+                (sum,row) =>
+
+                sum +
+                Number(
+                    row.Production_Day_MT || 0
+                ),
+
+                0
+            );
+
+    }
+
+
+    if(
+        dispatchTotal === 0
+    ){
+
+        dispatchTotal =
+            latestData.reduce(
+                (sum,row) =>
+
+                sum +
+                Number(
+                    row.Dispatch_Day_MT || 0
+                ),
+
+                0
+            );
+
+    }
+
+
+    document
+        .getElementById(
+            "feedClosingTotal"
+        )
+        .textContent =
+        closingTotal.toFixed(2)
+        +" MT";
+
+
+    document
+        .getElementById(
+            "feedProductionTotal"
+        )
+        .textContent =
+        productionTotal.toFixed(2)
+        +" MT";
+
+
+    document
+        .getElementById(
+            "feedDispatchTotal"
+        )
+        .textContent =
+        dispatchTotal.toFixed(2)
+        +" MT";
+
+
+    document
+        .getElementById(
+            "feedUnitDate"
+        )
+        .textContent =
+        latestDate || "";
+
+
+    /* =================================================
+       MATERIAL-WISE CLOSING
+    ================================================= */
+
+    const closingList =
+        latestData.filter(
+            row =>
+            Number(
+                row.Closing_Day_MT || 0
+            ) !== 0
+        );
+
+
+    document
+        .getElementById(
+            "feedClosingList"
+        )
+        .innerHTML =
+
+        closingList.map(
+            row => `
+
+                <div class="feed-list-row">
+
+                    <div class="feed-product">
+
+                        ${escapeHtml(
+                            row.Product
+                        )}
+
+                    </div>
+
+                    <div class="feed-value">
+
+                        ${fmt(
+                            row.Closing_Day_MT
+                        )}
+                        MT
+
+                    </div>
+
+                </div>
+
+            `
+        ).join("")
+
+        ||
+
+        "<div class='feed-empty'>No closing stock data.</div>";
+
+
+    /* =================================================
+       MATERIAL-WISE PRODUCTION
+    ================================================= */
+
+    const productionList =
+        latestData.filter(
+            row =>
+            Number(
+                row.Production_Day_MT || 0
+            ) !== 0
+        );
+
+
+    document
+        .getElementById(
+            "feedProductionList"
+        )
+        .innerHTML =
+
+        productionList.map(
+            row => `
+
+                <div class="feed-list-row">
+
+                    <div class="feed-product">
+
+                        ${escapeHtml(
+                            row.Product
+                        )}
+
+                    </div>
+
+                    <div class="feed-value">
+
+                        ${fmt(
+                            row.Production_Day_MT
+                        )}
+                        MT
+
+                    </div>
+
+                </div>
+
+            `
+        ).join("")
+
+        ||
+
+        "<div class='feed-empty'>No production data.</div>";
+
+
+    /* =================================================
+       MATERIAL-WISE DISPATCH
+    ================================================= */
+
+    const dispatchList =
+        latestData.filter(
+            row =>
+            Number(
+                row.Dispatch_Day_MT || 0
+            ) !== 0
+        );
+
+
+    document
+        .getElementById(
+            "feedDispatchList"
+        )
+        .innerHTML =
+
+        dispatchList.map(
+            row => `
+
+                <div class="feed-list-row">
+
+                    <div class="feed-product">
+
+                        ${escapeHtml(
+                            row.Product
+                        )}
+
+                    </div>
+
+                    <div class="feed-value">
+
+                        ${fmt(
+                            row.Dispatch_Day_MT
+                        )}
+                        MT
+
+                    </div>
+
+                </div>
+
+            `
+        ).join("")
+
+        ||
+
+        "<div class='feed-empty'>No dispatch data.</div>";
+
+
+    /* =================================================
+       MATERIAL-WISE TRANSFER
+    ================================================= */
+
+    const transferList =
+        latestData.filter(
+            row =>
+            Number(
+                row.Transfer_Day_MT || 0
+            ) !== 0
+        );
+
+
+    document
+        .getElementById(
+            "feedTransferList"
+        )
+        .innerHTML =
+
+        transferList.map(
+            row => `
+
+                <div class="feed-list-row">
+
+                    <div class="feed-product">
+
+                        ${escapeHtml(
+                            row.Product
+                        )}
+
+                    </div>
+
+                    <div class="feed-value">
+
+                        ${fmt(
+                            row.Transfer_Day_MT
+                        )}
+                        MT
+
+                    </div>
+
+                </div>
+
+            `
+        ).join("")
+
+        ||
+
+        "<div class='feed-empty'>No transfer data.</div>";
+
+
+    /* =================================================
+       PRODUCTION VS DISPATCH
+    ================================================= */
+
+    document
+        .getElementById(
+            "feedTrendProduction"
+        )
+        .textContent =
+        productionTotal.toFixed(2)
+        +" MT";
+
+
+    document
+        .getElementById(
+            "feedTrendDispatch"
+        )
+        .textContent =
+        dispatchTotal.toFixed(2)
+        +" MT";
+
+
+    drawFeedTrend(
+        productionTotal,
+        dispatchTotal
+    );
+
+
+    console.log(
+        "FEED UNIT DATA:",
+        data
+    );
+
+
+    console.log(
+        "FEED UNIT TOTALS:",
+        totals
+    );
+
+}
+
+
+/* =====================================================
+   FEED UNIT TREND
+===================================================== */
+
+function drawFeedTrend(
+    production,
+    dispatch
+){
+
+    const canvas =
+        document.getElementById(
+            "feedTrendChart"
+        );
+
+
+    if(!canvas){
+
+        return;
+
+    }
+
+
+    const ctx =
+        canvas.getContext(
+            "2d"
+        );
+
+
+    const width =
+        canvas.clientWidth || 300;
+
+
+    const height =
+        canvas.clientHeight || 180;
+
+
+    canvas.width =
+        width * 2;
+
+
+    canvas.height =
+        height * 2;
+
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    const max =
+        Math.max(
+            production,
+            dispatch,
+            1
+        );
+
+
+    const padding =
+        45;
+
+
+    const barWidth =
+        Math.min(
+            90,
+            canvas.width / 5
+        );
+
+
+    const chartHeight =
+        canvas.height -
+        padding * 2;
+
+
+    const productionHeight =
+        (
+            production /
+            max
+        )
+        *
+        chartHeight;
+
+
+    const dispatchHeight =
+        (
+            dispatch /
+            max
+        )
+        *
+        chartHeight;
+
+
+    const center =
+        canvas.width / 2;
+
+
+    /* Production bar */
+
+    ctx.fillStyle =
+        "#4f7cff";
+
+
+    ctx.fillRect(
+
+        center -
+        barWidth -
+        10,
+
+        canvas.height -
+        padding -
+        productionHeight,
+
+        barWidth,
+
+        productionHeight
+
+    );
+
+
+    /* Dispatch bar */
+
+    ctx.fillStyle =
+        "#35a66f";
+
+
+    ctx.fillRect(
+
+        center +
+        10,
+
+        canvas.height -
+        padding -
+        dispatchHeight,
+
+        barWidth,
+
+        dispatchHeight
+
+    );
+
+
+    ctx.fillStyle =
+        "#202938";
+
+
+    ctx.font =
+        "bold 13px Arial";
+
+
+    ctx.textAlign =
+        "center";
+
+
+    ctx.fillText(
+
+        production.toFixed(2),
+
+        center -
+        barWidth / 2 -
+        10,
+
+        canvas.height -
+        padding -
+        productionHeight -
+        8
+
+    );
+
+
+    ctx.fillText(
+
+        dispatch.toFixed(2),
+
+        center +
+        barWidth / 2 +
+        10,
+
+        canvas.height -
+        padding -
+        dispatchHeight -
+        8
+
+    );
+
+
+    ctx.font =
+        "11px Arial";
+
+
+    ctx.fillText(
+
+        "Production",
+
+        center -
+        barWidth / 2 -
+        10,
+
+        canvas.height -
+        18
+
+    );
+
+
+    ctx.fillText(
+
+        "Dispatch",
+
+        center +
+        barWidth / 2 +
+        10,
+
+        canvas.height -
+        18
+
+    );
+
+}
+
+
+/* =====================================================
    START
 ===================================================== */
 
 loadDashboard()
-
-.then(
-    function(){
-        renderFeedUnit();
-    }
-)
 
 .catch(
     function(error){
@@ -3138,194 +4175,9 @@ loadDashboard()
 
     }
 );
-function renderFeedUnit() {
-
-    const data = Array.isArray(DATA.feedUnitData)
-        ? DATA.feedUnitData
-        : [];
-
-    const totals = Array.isArray(DATA.feedUnitTotals)
-        ? DATA.feedUnitTotals
-        : [];
-
-    // Latest report date
-    const latestDate =
-        data.length > 0
-            ? data[data.length - 1].Report_Date
-            : null;
-
-    // Latest date products
-    const latestData = data.filter(
-        row => row.Report_Date === latestDate
-    );
-
-    // Totals from product data
-    const closingTotal = latestData.reduce(
-        (sum, row) =>
-            sum + Number(row.Closing_Day_MT || 0),
-        0
-    );
-
- const officialTotal =
-    totals.length > 0
-        ? totals[totals.length - 1]
-        : {};
-
-const productionTotal =
-    Number(
-        officialTotal.Production_Day_MT || 0
-    );
-
-const dispatchTotal =
-    Number(
-        officialTotal.Dispatch_Day_MT || 0
-    );
-
-    const dispatchTotal = latestData.reduce(
-        (sum, row) =>
-            sum + Number(row.Dispatch_Day_MT || 0),
-        0
-    );
-
-    // Show summary
-    document.getElementById(
-        "feedClosingTotal"
-    ).textContent =
-        closingTotal.toFixed(2) + " MT";
-
-    document.getElementById(
-        "feedProductionTotal"
-    ).textContent =
-        productionTotal.toFixed(2) + " MT";
-
-    document.getElementById(
-        "feedDispatchTotal"
-    ).textContent =
-        dispatchTotal.toFixed(2) + " MT";
-
-    // Date
-    document.getElementById(
-        "feedUnitDate"
-    ).textContent =
-        latestDate || "";
-
-    console.log(
-        "FEED UNIT DATA:",
-        data
-    );
-
-    console.log(
-        "FEED UNIT TOTALS:",
-        totals
-    );
-}
 
 </script>
-<!-- =====================================================
-     FEED UNIT SECTION
-     ===================================================== -->
 
-<section class="section" id="feedUnitSection">
-
-    <div class="section-title">
-        <span>🏭 FEED UNIT</span>
-        <span id="feedUnitDate"></span>
-    </div>
-
-    <!-- FEED UNIT SUMMARY -->
-    <div class="summary-grid">
-
-        <div class="summary-card">
-            <div class="summary-icon">📦</div>
-            <div>
-                <div class="summary-label">Closing Stock</div>
-                <div class="summary-value" id="feedClosingTotal">0 MT</div>
-            </div>
-        </div>
-
-        <div class="summary-card">
-            <div class="summary-icon">⚙️</div>
-            <div>
-                <div class="summary-label">Production</div>
-                <div class="summary-value" id="feedProductionTotal">0 MT</div>
-            </div>
-        </div>
-
-        <div class="summary-card">
-            <div class="summary-icon">🚚</div>
-            <div>
-                <div class="summary-label">Dispatch</div>
-                <div class="summary-value" id="feedDispatchTotal">0 MT</div>
-            </div>
-        </div>
-
-    </div>
-
-
-    <!-- MATERIAL WISE CLOSING STOCK -->
-
-    <div class="card">
-
-        <div class="card-header">
-            <span>📦 Material-wise Closing Stock</span>
-        </div>
-
-        <div id="feedClosingList"></div>
-
-    </div>
-
-
-    <!-- MATERIAL WISE PRODUCTION -->
-
-    <div class="card">
-
-        <div class="card-header">
-            <span>⚙️ Material-wise Production</span>
-        </div>
-
-        <div id="feedProductionList"></div>
-
-    </div>
-
-
-    <!-- MATERIAL WISE DISPATCH -->
-
-    <div class="card">
-
-        <div class="card-header">
-            <span>🚚 Material-wise Dispatch</span>
-        </div>
-
-        <div id="feedDispatchList"></div>
-
-    </div>
-
-
-    <!-- MATERIAL WISE TRANSFER -->
-
-    <div class="card">
-
-        <div class="card-header">
-            <span>🔄 Material-wise Transfer</span>
-        </div>
-
-        <div id="feedTransferList"></div>
-
-    </div>
-
-
-    <!-- TOTAL TREND -->
-
-    <div class="card">
-
-        <div class="card-header">
-            <span>📈 Production vs Dispatch Trend</span>
-        </div>
-
-        <div id="feedTotalTrend"></div>
-
-    </div>
-
-</section>
 </body>
+
 </html>
