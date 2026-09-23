@@ -1,3068 +1,3293 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-<meta name="viewport"
-      content="width=device-width,initial-scale=1,
-      maximum-scale=1,user-scalable=no">
-
-<meta name="theme-color" content="#f5f6f8">
-
-<title>Manager Dashboard</title>
+<title>Feed Plant Manager</title>
 
 <style>
-
 *{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
 }
 
 body{
-    font-family:-apple-system,BlinkMacSystemFont,
-    "Segoe UI",Roboto,Arial,sans-serif;
-    background:#f5f6f8;
-    color:#202938;
-    padding-bottom:82px;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+  background:#f5f7fb;
+  color:#172033;
+  padding-bottom:82px;
 }
 
-.container{
-    width:100%;
-    max-width:620px;
-    margin:auto;
-    padding:16px;
+button{font-family:inherit}
+
+.app{
+  width:100%;
+  max-width:720px;
+  margin:auto;
 }
+
+/* HEADER */
 
 .header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:16px;
+  background:#fff;
+  padding:20px 18px 14px;
+  border-bottom:1px solid #e8ebf0;
+  position:sticky;
+  top:0;
+  z-index:20;
 }
 
-.header h1{
-    font-size:23px;
+.header-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 }
 
-.header p{
-    color:#777;
-    font-size:13px;
-    margin-top:3px;
+.title{
+  font-size:21px;
+  font-weight:800;
 }
 
-.plant{
-    width:42px;
-    height:42px;
-    background:#fff;
-    border-radius:50%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:22px;
+.subtitle{
+  font-size:12px;
+  color:#7b8494;
+  margin-top:3px;
 }
 
-.summary{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:9px;
-    margin-bottom:13px;
+.bell{
+  width:42px;
+  height:42px;
+  border-radius:14px;
+  background:#f1f5ff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
 }
 
-.summary-card{
-    background:#fff;
-    border-radius:17px;
-    padding:13px 10px;
-    box-shadow:0 2px 10px rgba(0,0,0,.04);
-    cursor:pointer;
+/* CONTENT */
+
+.content{
+  padding:16px;
 }
 
-.summary-card h3{
-    font-size:18px;
-    margin-top:6px;
+.section-title{
+  font-size:17px;
+  font-weight:800;
+  margin:22px 2px 11px;
 }
 
-.summary-card p{
-    font-size:11px;
-    color:#777;
-    margin-top:2px;
+.report-info{
+  font-size:12px;
+  color:#7c8594;
+  margin-top:10px;
 }
 
-.card{
-    background:#fff;
-    border-radius:19px;
-    padding:16px;
-    margin-bottom:13px;
-    box-shadow:0 2px 12px rgba(0,0,0,.04);
+/* ALERT */
+
+.alert-card{
+  background:#fff;
+  border-radius:18px;
+  padding:15px;
+  margin-bottom:14px;
+  box-shadow:0 3px 15px rgba(25,35,55,.06);
 }
 
-.card-title{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:12px;
+.alert-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
 }
 
-.card-title h2{
-    font-size:16px;
+.alert-title{
+  font-weight:800;
 }
 
-.card-title span{
-    font-size:12px;
-    color:#777;
+.alert-normal{
+  color:#159447;
+  background:#eaf8ef;
+  padding:5px 9px;
+  border-radius:10px;
+  font-size:11px;
+  font-weight:700;
 }
 
-.stock-row,
-.production-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:12px 0;
-    border-bottom:1px solid #f0f0f0;
-    cursor:pointer;
+.alert-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:9px 0;
+  border-top:1px solid #f0f1f4;
+  font-size:13px;
 }
 
-.stock-row:last-child,
-.production-row:last-child{
-    border-bottom:0;
+.alert-dot{
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:#ef4444;
 }
 
-.stock-name{
-    font-size:14px;
-    font-weight:500;
+.alert-text{flex:1}
+
+.alert-value{
+  color:#e53935;
+  font-weight:700;
 }
 
-.stock-value{
-    text-align:right;
+/* KPI */
+
+.kpi-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
 }
 
-.stock-value strong{
-    display:block;
-    font-size:14px;
+.kpi{
+  background:#fff;
+  border-radius:18px;
+  padding:17px 15px;
+  box-shadow:0 3px 15px rgba(25,35,55,.06);
 }
 
-.stock-value small{
-    color:#888;
-    font-size:11px;
+.kpi-icon{font-size:23px}
+
+.kpi-label{
+  color:#747e8f;
+  font-size:12px;
+  margin-top:10px;
 }
 
-.production-total{
-    font-size:30px;
-    font-weight:700;
+.kpi-value{
+  font-size:22px;
+  font-weight:800;
+  margin-top:3px;
 }
 
-.production-label{
-    color:#777;
-    font-size:12px;
+.kpi-unit{
+  font-size:11px;
+  color:#7d8695;
+  font-weight:500;
 }
 
-.production-row span,
-.production-row strong{
-    font-size:13px;
+/* BIG KPI */
+
+.big-kpi{
+  background:#fff;
+  border-radius:20px;
+  padding:20px;
+  box-shadow:0 3px 15px rgba(25,35,55,.06);
 }
 
-.pp-grid,
-.quick-grid{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:9px;
+.big-kpi-icon{font-size:25px}
+
+.big-kpi-title{
+  color:#737d8d;
+  font-size:13px;
+  margin-top:7px;
 }
 
-.pp-item,
-.quick{
-    background:#f7f8fa;
-    padding:12px;
-    border-radius:13px;
+.big-kpi-value{
+  font-size:31px;
+  font-weight:850;
+  margin-top:2px;
 }
 
-.pp-item p,
-.quick p{
-    color:#777;
-    font-size:11px;
+/* PERIOD */
+
+.period{
+  display:flex;
+  background:#e9edf3;
+  padding:4px;
+  border-radius:13px;
+  margin-bottom:13px;
 }
 
-.pp-item strong,
-.quick strong{
-    display:block;
-    font-size:17px;
-    margin-top:4px;
+.period button{
+  flex:1;
+  border:0;
+  background:transparent;
+  padding:10px 4px;
+  border-radius:10px;
+  color:#667085;
+  font-weight:700;
+  font-size:12px;
 }
 
-.alert{
-    background:#fff8e7;
-    border-radius:14px;
-    padding:12px;
-    display:flex;
-    gap:10px;
-    margin-bottom:8px;
+.period button.active{
+  background:#fff;
+  color:#2563eb;
+  box-shadow:0 2px 7px rgba(0,0,0,.08);
 }
 
-.alert p{
-    font-size:13px;
+/* SEARCH */
+
+.search{
+  background:#fff;
+  border-radius:14px;
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:12px;
+  border:1px solid #edf0f4;
 }
 
-.alert small{
-    color:#8a6d1d;
-    display:block;
-    margin-top:3px;
-    font-size:11px;
+.search input{
+  border:0;
+  outline:none;
+  width:100%;
+  font-size:14px;
+  background:transparent;
 }
 
-.trend-wrapper{
-    overflow-x:auto;
-    scroll-snap-type:x mandatory;
-    display:flex;
-    gap:10px;
-    scrollbar-width:none;
-    -webkit-overflow-scrolling:touch;
+/* MATERIAL */
+
+.material-card{
+  background:#fff;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:10px;
+  box-shadow:0 3px 13px rgba(25,35,55,.05);
+  cursor:pointer;
 }
 
-.trend-wrapper::-webkit-scrollbar{
-    display:none;
+.material-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
 }
 
-.trend-card{
-    min-width:100%;
-    scroll-snap-align:start;
-    background:#fafbfc;
-    border-radius:15px;
-    padding:13px;
+.material-name{
+  font-size:15px;
+  font-weight:800;
 }
 
-.trend-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:8px;
+.material-stock{
+  font-size:21px;
+  font-weight:800;
+  margin-top:3px;
 }
 
-.trend-header h3{
-    font-size:14px;
+.material-unit{
+  font-size:11px;
+  color:#7c8492;
 }
 
-.trend-header small{
-    display:block;
-    color:#777;
-    margin-top:2px;
+.material-status{
+  font-size:10px;
+  font-weight:800;
+  padding:6px 8px;
+  border-radius:9px;
 }
 
-select{
-    border:1px solid #ddd;
-    background:#fff;
-    border-radius:9px;
-    padding:7px 9px;
-    font-size:12px;
-    max-width:150px;
+.status-ok{
+  color:#138a42;
+  background:#e9f8ef;
 }
 
-canvas{
-    width:100%;
-    height:160px;
-    display:block;
+.status-reorder{
+  color:#d92d20;
+  background:#fff0ef;
 }
 
-.dots{
-    display:flex;
-    justify-content:center;
-    gap:6px;
-    margin-top:9px;
+.material-stats{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:13px;
 }
 
-.dot{
-    width:6px;
-    height:6px;
-    border-radius:50%;
-    background:#d5d8dd;
+.stat-box{
+  background:#f7f8fa;
+  border-radius:11px;
+  padding:9px;
 }
 
-.dot.active{
-    width:18px;
-    border-radius:10px;
-    background:#4f7cff;
+.stat-label{
+  font-size:10px;
+  color:#7d8695;
 }
 
-.bottom-nav{
-    position:fixed;
-    left:0;
-    right:0;
-    bottom:0;
-    height:68px;
-    background:rgba(255,255,255,.97);
-    border-top:1px solid #e9eaec;
-    display:flex;
-    justify-content:space-around;
-    align-items:center;
-    z-index:100;
+.stat-value{
+  font-size:13px;
+  font-weight:750;
+  margin-top:3px;
 }
 
-.nav-item{
-    text-align:center;
-    font-size:10px;
-    color:#888;
-    cursor:pointer;
+/* PRODUCT */
+
+.product-card{
+  background:#fff;
+  border-radius:17px;
+  padding:15px;
+  margin-bottom:9px;
+  box-shadow:0 3px 13px rgba(25,35,55,.05);
 }
 
-.nav-item div{
-    font-size:19px;
+.product-row{
+  display:flex;
+  align-items:center;
+  gap:11px;
 }
 
-.nav-item.active{
-    color:#315efb;
-    font-weight:600;
+.product-icon{
+  width:40px;
+  height:40px;
+  border-radius:13px;
+  background:#f0f5ff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:19px;
 }
 
-.modal{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,.38);
-    display:none;
-    align-items:flex-end;
-    z-index:500;
+.product-info{flex:1}
+
+.product-name{
+  font-size:14px;
+  font-weight:800;
 }
 
-.modal.show{
-    display:flex;
+.product-weight{
+  font-size:10px;
+  color:#808998;
+  margin-top:2px;
 }
 
-.modal-box{
-    width:100%;
-    max-width:620px;
-    max-height:88vh;
-    overflow-y:auto;
-    background:#fff;
-    border-radius:24px 24px 0 0;
-    padding:18px;
+.product-bags{
+  text-align:right;
+  font-size:16px;
+  font-weight:800;
 }
 
-.modal-head{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:15px;
+.product-bags small{
+  display:block;
+  font-size:9px;
+  color:#7e8795;
+  font-weight:500;
 }
 
-.modal-head h2{
-    font-size:19px;
+/* PP BAG */
+
+.bag-card{
+  background:#fff;
+  border-radius:18px;
+  padding:17px;
+  margin-bottom:10px;
+  box-shadow:0 3px 13px rgba(25,35,55,.05);
 }
 
-.close{
-    width:34px;
-    height:34px;
-    border:0;
-    border-radius:50%;
-    background:#f2f3f5;
-    font-size:20px;
+.bag-title{
+  font-size:14px;
+  font-weight:800;
+  margin-bottom:12px;
 }
 
-.detail-section{
-    background:#f7f8fa;
-    border-radius:14px;
-    padding:13px;
-    margin-bottom:10px;
+.bag-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
 }
 
-.detail-section h3{
-    font-size:13px;
-    margin-bottom:8px;
+.bag-stat{
+  background:#f7f8fa;
+  padding:11px;
+  border-radius:11px;
 }
 
-.detail-row{
-    display:flex;
-    justify-content:space-between;
-    gap:15px;
-    padding:9px 0;
-    border-bottom:1px solid #e7e8ea;
-    font-size:13px;
+.bag-stat span{
+  display:block;
+  color:#7c8594;
+  font-size:10px;
 }
 
-.detail-row:last-child{
-    border-bottom:0;
+.bag-stat strong{
+  display:block;
+  font-size:15px;
+  margin-top:3px;
 }
 
-.detail-row span:first-child{
-    color:#777;
+/* CHART */
+
+.chart-card{
+  background:#fff;
+  border-radius:19px;
+  padding:17px;
+  box-shadow:0 3px 15px rgba(25,35,55,.06);
 }
+
+.chart-title{
+  font-size:15px;
+  font-weight:800;
+}
+
+.chart-subtitle{
+  font-size:11px;
+  color:#7d8695;
+  margin-top:3px;
+}
+
+.chart{
+  width:100%;
+  height:190px;
+  margin-top:14px;
+}
+
+/* TABS */
+
+.detail-tabs{
+  display:flex;
+  background:#edf0f4;
+  border-radius:12px;
+  padding:4px;
+  margin:15px 0;
+}
+
+.detail-tabs button{
+  flex:1;
+  border:0;
+  background:transparent;
+  padding:10px 4px;
+  border-radius:9px;
+  font-size:11px;
+  font-weight:750;
+  color:#697384;
+}
+
+.detail-tabs button.active{
+  background:#fff;
+  color:#2563eb;
+}
+
+/* TRANSACTION */
 
 .transaction{
-    background:#fff;
-    border:1px solid #eceef1;
-    border-radius:13px;
-    padding:12px;
-    margin-bottom:8px;
+  background:#fff;
+  border-radius:14px;
+  padding:13px;
+  margin-bottom:8px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  box-shadow:0 2px 9px rgba(25,35,55,.04);
 }
 
-.transaction-title{
-    display:flex;
-    justify-content:space-between;
-    font-size:13px;
-    margin-bottom:8px;
+.transaction-left{
+  display:flex;
+  gap:10px;
+  align-items:center;
 }
 
-.transaction-values{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:6px;
+.transaction-icon{
+  width:35px;
+  height:35px;
+  border-radius:11px;
+  background:#f2f5f8;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.transaction-name{
+  font-size:12px;
+  font-weight:750;
+}
+
+.transaction-date{
+  font-size:10px;
+  color:#818a98;
+  margin-top:2px;
 }
 
 .transaction-value{
-    background:#f7f8fa;
-    border-radius:9px;
-    padding:8px;
+  font-size:13px;
+  font-weight:800;
 }
 
-.transaction-value span{
-    display:block;
-    font-size:9px;
-    color:#888;
+.received{color:#148a45}
+.consumption{color:#d64545}
+
+/* MODAL */
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,.42);
+  z-index:100;
+  display:none;
+  align-items:flex-end;
 }
 
-.transaction-value strong{
-    display:block;
-    margin-top:3px;
-    font-size:12px;
+.modal.show{display:flex}
+
+.modal-box{
+  width:100%;
+  max-width:720px;
+  margin:auto;
+  background:#f5f7fb;
+  border-radius:25px 25px 0 0;
+  max-height:92vh;
+  overflow:auto;
+  padding:18px 16px 30px;
 }
 
-.badge{
-    display:inline-block;
-    padding:4px 8px;
-    border-radius:20px;
-    font-size:10px;
-    background:#eef2ff;
+.modal-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:10px;
 }
 
-.error-box{
-    padding:12px;
-    background:#fff1f1;
-    color:#c0392b;
-    border-radius:12px;
-    font-size:13px;
-    line-height:1.5;
+.modal-title{
+  font-size:20px;
+  font-weight:850;
+}
+
+.close{
+  width:38px;
+  height:38px;
+  border:0;
+  background:#e9edf2;
+  border-radius:12px;
+  font-size:20px;
+}
+
+/* BOTTOM NAV */
+
+.bottom-nav{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:rgba(255,255,255,.97);
+  border-top:1px solid #e7eaf0;
+  display:flex;
+  justify-content:center;
+  z-index:50;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+
+.nav-inner{
+  width:100%;
+  max-width:720px;
+  display:flex;
+}
+
+.nav-btn{
+  flex:1;
+  border:0;
+  background:transparent;
+  padding:10px 3px 9px;
+  color:#7b8494;
+  font-size:10px;
+  font-weight:650;
+}
+
+.nav-btn span{
+  display:block;
+  font-size:20px;
+  margin-bottom:2px;
+}
+
+.nav-btn.active{color:#2563eb}
+
+/* LOADING */
+
+.loading{
+  text-align:center;
+  padding:45px 10px;
+  color:#778191;
+  font-size:13px;
+}
+
+.error{
+  background:#fff0ef;
+  color:#c62828;
+  border-radius:15px;
+  padding:15px;
+  font-size:13px;
+}
+
+.empty{
+  text-align:center;
+  padding:25px;
+  color:#858e9d;
+  font-size:13px;
 }
 
 @media(min-width:700px){
 
-    .container{
-        max-width:900px;
-    }
+  .content{padding:22px}
 
-    .dashboard-grid{
-        display:grid;
-        grid-template-columns:1fr 1fr;
-        gap:13px;
-    }
+  .kpi-grid{
+    grid-template-columns:repeat(4,1fr);
+  }
+
+  .bottom-nav{
+    border-radius:18px 18px 0 0;
+  }
 
 }
-
 </style>
-
 </head>
-
 
 <body>
 
-<div class="container">
+<div class="app">
 
+<header class="header">
 
-<!-- HEADER -->
-
-<div class="header">
+  <div class="header-top">
 
     <div>
-
-        <h1>
-            Manager Dashboard
-        </h1>
-
-        <p>
-            Feed Plant •
-            <span id="reportDate">
-                Latest
-            </span>
-        </p>
-
+      <div class="title">🌿 Feed Plant Manager</div>
+      <div class="subtitle">Manager Dashboard</div>
     </div>
 
-    <div class="plant">
-        🏭
-    </div>
+    <div class="bell">🔔</div>
 
-</div>
+  </div>
 
+  <div class="report-info" id="reportInfo">
+    Loading MIS data...
+  </div>
 
-<!-- SUMMARY -->
+</header>
 
-<div class="summary">
 
-    <div
-        class="summary-card"
-        onclick="openStockDetails()">
+<main class="content" id="app">
 
-        <div>📦</div>
+  <div class="loading">
+    Loading dashboard...
+  </div>
 
-        <h3 id="materialCount">
-            --
-        </h3>
-
-        <p>
-            Materials
-        </p>
-
-    </div>
-
-
-    <div
-        class="summary-card"
-        onclick="openProductionDetails()">
-
-        <div>🏭</div>
-
-        <h3 id="productionTotal">
-            --
-        </h3>
-
-        <p>
-            Production
-        </p>
-
-    </div>
-
-
-    <div
-        class="summary-card"
-        onclick="openPPBagDetails()">
-
-        <div>🛍️</div>
-
-        <h3 id="bagClosing">
-            --
-        </h3>
-
-        <p>
-            PP Bags
-        </p>
-
-    </div>
-
-</div>
-
-
-<div class="dashboard-grid">
-
-
-<!-- RAW MATERIAL -->
-
-<div class="card">
-
-    <div class="card-title">
-
-        <h2>
-            📦 Raw Material Stock
-        </h2>
-
-        <span>
-            Tap material
-        </span>
-
-    </div>
-
-    <div id="stockList">
-        Loading...
-    </div>
-
-</div>
-
-
-<!-- PRODUCTION -->
-
-<div class="card">
-
-    <div class="card-title">
-
-        <h2>
-            🏭 Production
-        </h2>
-
-        <span>
-            Tap product
-        </span>
-
-    </div>
-
-    <div
-        class="production-total"
-        id="productionTotalMain">
-
-        --
-
-    </div>
-
-    <div class="production-label">
-        Actual Production
-    </div>
-
-    <div id="productionList">
-    </div>
-
-</div>
-
-
-<!-- PP BAGS -->
-
-<div
-    class="card"
-    onclick="openPPBagDetails()">
-
-    <div class="card-title">
-
-        <h2>
-            🛍️ PP Bags
-        </h2>
-
-        <span>
-            Details →
-        </span>
-
-    </div>
-
-    <div
-        class="pp-grid"
-        id="bagGrid">
-    </div>
-
-</div>
-
-
-<!-- ALERTS -->
-
-<div class="card">
-
-    <div class="card-title">
-
-        <h2>
-            ⚠️ Alerts
-        </h2>
-
-        <span id="alertCount">
-            --
-        </span>
-
-    </div>
-
-    <div id="alerts">
-    </div>
-
-</div>
-
-</div>
-
-
-<!-- TRENDS -->
-
-<div class="card">
-
-    <div class="card-title">
-
-        <h2>
-            📊 Trends
-        </h2>
-
-        <span>
-            Swipe →
-        </span>
-
-    </div>
-
-
-    <div
-        class="trend-wrapper"
-        id="trendWrapper">
-
-
-        <div class="trend-card">
-
-            <div class="trend-header">
-
-                <div>
-
-                    <h3>
-                        🏭 Production Trend
-                    </h3>
-
-                    <small>
-                        Last 7 Days
-                    </small>
-
-                </div>
-
-                <span>
-                    📈
-                </span>
-
-            </div>
-
-            <canvas
-                id="productionChart">
-            </canvas>
-
-        </div>
-
-
-        <div class="trend-card">
-
-            <div class="trend-header">
-
-                <div>
-
-                    <h3>
-                        📦 Raw Material Usage
-                    </h3>
-
-                    <small>
-                        Material Wise • Last 7 Days
-                    </small>
-
-                </div>
-
-                <select
-                    id="materialSelect">
-                </select>
-
-            </div>
-
-            <canvas
-                id="materialChart">
-            </canvas>
-
-        </div>
-
-    </div>
-
-
-    <div class="dots">
-
-        <div
-            class="dot active"
-            id="dot1">
-        </div>
-
-        <div
-            class="dot"
-            id="dot2">
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- QUICK VIEW -->
-
-<div class="card">
-
-    <div class="card-title">
-
-        <h2>
-            ⚡ Quick View
-        </h2>
-
-    </div>
-
-
-    <div class="quick-grid">
-
-        <div class="quick">
-
-            <p>
-                Today's Consumption
-            </p>
-
-            <strong id="consumption">
-                --
-            </strong>
-
-        </div>
-
-
-        <div class="quick">
-
-            <p>
-                Process Loss
-            </p>
-
-            <strong id="processLoss">
-                --
-            </strong>
-
-        </div>
-
-
-        <div class="quick">
-
-            <p>
-                Output Efficiency
-            </p>
-
-            <strong id="efficiency">
-                --
-            </strong>
-
-        </div>
-
-
-        <div class="quick">
-
-            <p>
-                Stock Coverage
-            </p>
-
-            <strong>
-                —
-            </strong>
-
-        </div>
-
-    </div>
-
-</div>
-
-
-</div>
-
-
-<!-- BOTTOM NAV -->
-
-<div class="bottom-nav">
-
-    <div
-        class="nav-item active"
-        onclick="goHome()">
-
-        <div>⌂</div>
-
-        Home
-
-    </div>
-
-
-    <div
-        class="nav-item"
-        onclick="openStockDetails()">
-
-        <div>📦</div>
-
-        Stock
-
-    </div>
-
-
-    <div
-        class="nav-item"
-        onclick="openProductionDetails()">
-
-        <div>🏭</div>
-
-        Production
-
-    </div>
-
-
-    <div
-        class="nav-item"
-        onclick="openPPBagDetails()">
-
-        <div>🛍️</div>
-
-        PP Bags
-
-    </div>
-
-
-    <div
-        class="nav-item"
-        onclick="goTrend()">
-
-        <div>📊</div>
-
-        Reports
-
-    </div>
+</main>
 
 </div>
 
 
 <!-- MODAL -->
 
-<div
-    class="modal"
-    id="modal"
-    onclick="outsideClose(event)">
+<div class="modal" id="modal">
 
-    <div class="modal-box">
+  <div class="modal-box">
 
-        <div class="modal-head">
+    <div class="modal-head">
 
-            <h2 id="modalTitle">
-                Details
-            </h2>
+      <div class="modal-title" id="modalTitle"></div>
 
-            <button
-                class="close"
-                onclick="closeModal()">
-
-                ×
-
-            </button>
-
-        </div>
-
-        <div id="modalContent">
-        </div>
+      <button class="close" onclick="closeModal()">×</button>
 
     </div>
+
+    <div id="modalContent"></div>
+
+  </div>
 
 </div>
 
 
+<!-- BOTTOM NAV -->
+
+<nav class="bottom-nav">
+
+  <div class="nav-inner">
+
+    <button class="nav-btn active"
+            onclick="showPage('home',this)">
+      <span>🏠</span>
+      Home
+    </button>
+
+    <button class="nav-btn"
+            onclick="showPage('stock',this)">
+      <span>📦</span>
+      Stock
+    </button>
+
+    <button class="nav-btn"
+            onclick="showPage('production',this)">
+      <span>🏭</span>
+      Production
+    </button>
+
+    <button class="nav-btn"
+            onclick="showPage('bags',this)">
+      <span>🛍️</span>
+      PP Bags
+    </button>
+
+    <button class="nav-btn"
+            onclick="showPage('reports',this)">
+      <span>📊</span>
+      Reports
+    </button>
+
+  </div>
+
+</nav>
+
+
 <script>
 
-
-/* =====================================================
-   GOOGLE APPS SCRIPT
-===================================================== */
+/* =========================================================
+   CONFIG
+========================================================= */
 
 const API_URL =
 "https://script.google.com/macros/s/AKfycbw4Z4aNx2RJQOWfLmIxiD6dFeVZ3beeIL6VdWLXg2DoR8OMROSYXYPXyd7-QPdlTTYK/exec";
 
 
-/* =====================================================
-   DATA
-===================================================== */
+/* =========================================================
+   GLOBAL DATA
+========================================================= */
 
 let DATA = {
+  stock: [],
+  production: [],
+  pp_bags: [],
+  reorder_items: [],
+  productionTrend: [],
+  productionTrendBags: [],
+  usage: [],
+  consumption: 0,
+  efficiency: null,
+  processLoss: null,
+  report_date: null
+};
 
-    stock: [],
+let currentPeriod = "day";
 
-    production: [],
 
-    bags: [],
+/* =========================================================
+   PRODUCTION BAG WEIGHTS
+========================================================= */
 
-    productionTrend: [],
+const BAG_WEIGHTS = {
 
-    usage: {},
-
-    reorder_items: [],
-
-    consumption: null,
-
-    efficiency: null,
-
-    processLoss: null,
-
-    report_date: null
+  "LC CRUMBLE":70,
+  "CHICK CR":70,
+  "GCON CR":50,
+  "PSC":70,
+  "BFP":70,
+  "LM /LM TP":75,
+  "FM/PLM/YL":75,
+  "BSC":70,
+  "FC30.CR":60,
+  "GCR":70
 
 };
 
 
-/* =====================================================
+/* =========================================================
    HELPERS
-===================================================== */
-
-function clean(value){
-
-    return String(
-        value ?? ""
-    ).trim();
-
-}
-
+========================================================= */
 
 function normalize(value){
 
-    return clean(value)
-        .replace(/\s+/g," ")
-        .toUpperCase();
+  return String(value ?? "")
+    .trim()
+    .replace(/\s+/g," ")
+    .toUpperCase();
 
 }
 
 
-function transactionName(value){
+function number(value){
 
-    return clean(value)
-        .replace(/\s+/g," ");
+  if(value === null ||
+     value === undefined ||
+     value === "")
+    return null;
 
-}
+  const n = Number(value);
 
-
-function fmt(value){
-
-    if(
-        value === null ||
-        value === undefined ||
-        value === ""
-    ){
-
-        return "--";
-
-    }
-
-    const n =
-        Number(value);
-
-    if(
-        !Number.isFinite(n)
-    ){
-
-        return String(value);
-
-    }
-
-    return n.toLocaleString(
-        "en-IN",
-        {
-            maximumFractionDigits:2
-        }
-    );
+  return Number.isFinite(n) ? n : null;
 
 }
 
 
-function escapeQuotes(value){
+function formatNumber(value,decimals=2){
 
-    return clean(value)
-        .replace(/\\/g,"\\\\")
-        .replace(/'/g,"\\'");
+  const n = number(value);
 
-}
+  if(n === null)
+    return "—";
 
-
-function escapeHtml(value){
-
-    return clean(value)
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
+  return n.toLocaleString("en-IN",{
+    minimumFractionDigits:decimals,
+    maximumFractionDigits:decimals
+  });
 
 }
 
 
-/* =====================================================
-   MATERIALS
-===================================================== */
+function formatBags(value){
 
-function getMaterials(){
+  const n = number(value);
 
-    return [
-        ...new Set(
+  if(n === null)
+    return "—";
 
-            DATA.stock
-            .map(
-                row =>
-                clean(row.material)
-            )
-            .filter(Boolean)
-
-        )
-    ];
+  return Math.round(n).toLocaleString("en-IN");
 
 }
 
 
-/* =====================================================
-   FIXED MATERIAL SUMMARY
-===================================================== */
+function dateText(value){
 
-function getMaterialSummary(material){
+  if(!value)
+    return "—";
 
-    /*
-       IMPORTANT:
+  const d = new Date(value);
 
-       Apps Script already sends:
+  if(isNaN(d.getTime()))
+    return String(value);
 
-       {
-           material: "SOYA DOC",
-           closing: 1.0022,
-           reorder_level: 2,
-           unit: "MT",
-           reorder_required: true,
-           shortage: 0.9978,
-           transactions: [...]
-       }
+  return d.toLocaleDateString("en-IN",{
+    day:"2-digit",
+    month:"short",
+    year:"numeric"
+  });
 
-       Therefore closing must be taken
-       directly from item.closing.
-    */
+}
 
 
-    const item =
-        DATA.stock.find(
-            row =>
-            normalize(row.material) ===
-            normalize(material)
+function getBagWeight(product){
+
+  return BAG_WEIGHTS[normalize(product)] ?? null;
+
+}
+
+
+function mtToBags(mt,product){
+
+  const weight = getBagWeight(product);
+  const value = number(mt);
+
+  if(value === null || !weight)
+    return null;
+
+  return value * 1000 / weight;
+
+}
+
+
+function safePeriodValue(row){
+
+  if(currentPeriod === "month")
+    return number(row.for_month);
+
+  if(currentPeriod === "year")
+    return number(row.for_year);
+
+  return number(row.for_day);
+
+}
+
+
+/* =========================================================
+   JSONP
+========================================================= */
+
+function loadDashboard(){
+
+  const callbackName =
+    "dashboardCallback_" + Date.now();
+
+
+  window[callbackName] = function(result){
+
+    try{
+
+      if(!result ||
+         result.status !== "success"){
+
+        throw new Error(
+          "API returned invalid data"
         );
 
+      }
 
-    if(!item){
+      DATA = result;
 
-        return {
+      document.getElementById(
+        "reportInfo"
+      ).innerHTML =
+        "📅 Report: <b>" +
+        dateText(DATA.report_date) +
+        "</b> &nbsp; • &nbsp; ✓ MIS data loaded";
 
-            closing: null,
 
-            unit: "MT",
+      renderDashboard();
 
-            reorderLevel: null,
+    }
+    catch(error){
 
-            reorderRequired: false,
+      showError(error.message);
 
-            shortage: null,
+    }
+    finally{
 
-            rows: []
+      delete window[callbackName];
 
-        };
+      const script =
+        document.getElementById(callbackName);
+
+      if(script)
+        script.remove();
 
     }
 
+  };
 
-    return {
 
-        closing:
-            item.closing ??
-            null,
+  const script =
+    document.createElement("script");
 
-        unit:
-            item.unit ||
-            "MT",
+  script.id = callbackName;
 
-        reorderLevel:
-            item.reorder_level ??
-            null,
+  script.src =
+    API_URL +
+    "?callback=" +
+    callbackName +
+    "&_=" +
+    Date.now();
 
-        reorderRequired:
-            !!item.reorder_required,
 
-        shortage:
-            item.shortage ??
-            null,
+  script.onerror = function(){
 
-        rows:
-            Array.isArray(
-                item.transactions
-            )
-            ? item.transactions
-            : []
+    showError(
+      "Unable to connect to MIS API."
+    );
 
-    };
+  };
+
+
+  document.body.appendChild(script);
 
 }
 
 
-/* =====================================================
+function showError(message){
+
+  document.getElementById("app").innerHTML = `
+
+    <div class="error">
+
+      ⚠️ <b>Dashboard data unavailable</b>
+
+      <br><br>
+
+      ${message}
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function showPage(page,button){
+
+  document
+    .querySelectorAll(".nav-btn")
+    .forEach(btn =>
+      btn.classList.remove("active")
+    );
+
+
+  if(button)
+    button.classList.add("active");
+
+
+  if(page === "home")
+    renderHome();
+
+  if(page === "stock")
+    renderStock();
+
+  if(page === "production")
+    renderProduction();
+
+  if(page === "bags")
+    renderBags();
+
+  if(page === "reports")
+    renderReports();
+
+}
+
+
+/* =========================================================
    DASHBOARD
-===================================================== */
+========================================================= */
 
 function renderDashboard(){
 
-    const materials =
-        getMaterials();
-
-
-    document
-        .getElementById(
-            "materialCount"
-        )
-        .textContent =
-        materials.length;
-
-
-    document
-        .getElementById(
-            "stockList"
-        )
-        .innerHTML =
-
-        materials.map(
-            material => {
-
-                const summary =
-                    getMaterialSummary(
-                        material
-                    );
-
-
-                return `
-
-                    <div
-                        class="stock-row"
-                        onclick="
-                        openMaterialDetails(
-                        '${escapeQuotes(material)}'
-                        )">
-
-                        <div
-                            class="stock-name">
-
-                            ${escapeHtml(material)}
-
-                        </div>
-
-
-                        <div
-                            class="stock-value">
-
-                            <strong>
-
-                                ${
-                                    summary.closing !== null
-
-                                    ? fmt(
-                                        summary.closing
-                                      )
-                                      +" "
-                                      +escapeHtml(
-                                        summary.unit
-                                      )
-
-                                    : "--"
-                                }
-
-                            </strong>
-
-
-                            <small
-                                style="${
-                                    summary.reorderRequired
-                                    ? "color:#c0392b;font-weight:600"
-                                    : ""
-                                }">
-
-                                ${
-                                    summary.reorderRequired
-
-                                    ? "REORDER REQUIRED"
-
-                                    : "View details →"
-                                }
-
-                            </small>
-
-                        </div>
-
-                    </div>
-
-                `;
-
-            }
-
-        ).join("")
-
-        ||
-
-        "<div style='color:#888'>No stock data</div>";
-
-
-    /* PRODUCTION */
-
-    const totalProduction =
-        DATA.production.reduce(
-
-            (total,row) =>
-
-            total +
-            Number(
-                row.actual_output || 0
-            ),
-
-            0
-
-        );
-
-
-    document
-        .getElementById(
-            "productionTotal"
-        )
-        .textContent =
-        fmt(totalProduction)
-        +" T";
-
-
-    document
-        .getElementById(
-            "productionTotalMain"
-        )
-        .textContent =
-        fmt(totalProduction)
-        +" T";
-
-
-    document
-        .getElementById(
-            "productionList"
-        )
-        .innerHTML =
-
-        DATA.production.map(
-            row => `
-
-                <div
-                    class="production-row"
-                    onclick="
-                    openProductDetails(
-                    '${escapeQuotes(
-                        row.product
-                    )}'
-                    )">
-
-                    <span>
-                        ${escapeHtml(
-                            row.product
-                        )}
-                    </span>
-
-                    <strong>
-                        ${fmt(
-                            row.actual_output
-                        )} T
-                    </strong>
-
-                </div>
-
-            `
-        ).join("")
-
-        ||
-
-        "<div style='color:#888'>No production data</div>";
-
-
-    renderPPBags();
-
-    renderAlerts();
-
-    renderTrends();
-
-    renderQuickView();
+  renderHome();
 
 }
 
 
-/* =====================================================
-   PP BAGS
-===================================================== */
+function renderHome(){
 
-function renderPPBags(){
-
-    if(
-        !DATA.bags ||
-        !DATA.bags.length
-    ){
-
-        document
-            .getElementById(
-                "bagGrid"
-            )
-            .innerHTML =
-            "<div style='color:#888'>No PP Bag data</div>";
+  const app =
+    document.getElementById("app");
 
 
-        document
-            .getElementById(
-                "bagClosing"
-            )
-            .textContent =
-            "--";
-
-        return;
-
-    }
-
-
-    const bag =
-        DATA.bags[
-            DATA.bags.length - 1
-        ];
-
-
-    document
-        .getElementById(
-            "bagClosing"
-        )
-        .textContent =
-        fmt(
-            bag.closing
-        );
-
-
-    document
-        .getElementById(
-            "bagGrid"
-        )
-        .innerHTML = `
-
-            <div class="pp-item">
-
-                <p>
-                    Opening
-                </p>
-
-                <strong>
-                    ${fmt(bag.opening)}
-                </strong>
-
-            </div>
-
-
-            <div class="pp-item">
-
-                <p>
-                    Received
-                </p>
-
-                <strong>
-                    ${fmt(bag.received)}
-                </strong>
-
-            </div>
-
-
-            <div class="pp-item">
-
-                <p>
-                    Issue
-                </p>
-
-                <strong>
-                    ${fmt(bag.issue)}
-                </strong>
-
-            </div>
-
-
-            <div class="pp-item">
-
-                <p>
-                    Damage
-                </p>
-
-                <strong>
-                    ${fmt(bag.damage)}
-                </strong>
-
-            </div>
-
-
-            <div class="pp-item">
-
-                <p>
-                    Closing
-                </p>
-
-                <strong>
-                    ${fmt(bag.closing)}
-                </strong>
-
-            </div>
-
-        `;
-
-}
-
-
-/* =====================================================
-   ALERTS
-===================================================== */
-
-function renderAlerts(){
-
-    const alerts = [];
-
-
-    if(
-        DATA.reorder_items &&
-        DATA.reorder_items.length
-    ){
-
-        DATA.reorder_items.forEach(
-            item => {
-
-                alerts.push({
-
-                    title:
-                        item.material,
-
-                    text:
-                        "Reorder required • Closing "
-                        +fmt(item.closing)
-                        +" "
-                        +(item.unit || "MT")
-                        +" • Level "
-                        +fmt(item.reorder_level)
-                        +" "
-                        +(item.unit || "MT")
-                        +" • Shortage "
-                        +fmt(item.shortage)
-                        +" "
-                        +(item.unit || "MT")
-
-                });
-
-            }
-        );
-
-    }
-
-
-    DATA.stock.forEach(
-        item => {
-
-            if(
-                Number(item.closing) < 0
-                &&
-                !alerts.some(
-                    a =>
-                    normalize(a.title) ===
-                    normalize(item.material)
-                )
-            ){
-
-                alerts.push({
-
-                    title:
-                        item.material,
-
-                    text:
-                        "Negative closing stock: "
-                        +fmt(item.closing)
-
-                });
-
-            }
-
-        }
+  const totalStock =
+    DATA.stock.reduce(
+      (sum,item)=>
+        sum + (number(item.closing) || 0),
+      0
     );
 
 
-    document
-        .getElementById(
-            "alertCount"
-        )
-        .textContent =
-        alerts.length
-        +" Items";
+  const productionBags =
+    DATA.production.reduce(
+      (sum,row)=>{
+
+        const bags =
+          mtToBags(
+            row.actual_output,
+            row.product
+          );
+
+        return sum + (bags || 0);
+
+      },
+      0
+    );
 
 
-    if(
-        !alerts.length
-    ){
-
-        document
-            .getElementById(
-                "alerts"
-            )
-            .innerHTML = `
-
-                <div class="alert">
-
-                    <div>
-                        ✅
-                    </div>
-
-                    <div>
-
-                        <p>
-                            <b>
-                                No active alerts
-                            </b>
-                        </p>
-
-                        <small>
-                            Current data has no
-                            reorder or negative-stock alert.
-                        </small>
-
-                    </div>
-
-                </div>
-
-            `;
-
-        return;
-
-    }
+  const totalConsumption =
+    DATA.consumption || 0;
 
 
-    document
-        .getElementById(
-            "alerts"
-        )
-        .innerHTML =
+  const totalPPBags =
+    DATA.pp_bags.reduce(
+      (sum,row)=>
+        sum + (number(row.closing) || 0),
+      0
+    );
 
-        alerts.map(
-            alert => `
 
-                <div class="alert">
+  app.innerHTML = `
 
-                    <div>
-                        ⚠️
-                    </div>
+    <div class="section-title">
+      🚨 Attention
+    </div>
 
-                    <div>
+    ${renderHomeAlerts()}
 
-                        <p>
-                            <b>
-                                ${escapeHtml(
-                                    alert.title
-                                )}
-                            </b>
-                        </p>
 
-                        <small>
-                            ${escapeHtml(
-                                alert.text
-                            )}
-                        </small>
+    <div class="section-title">
+      📌 Today's Overview
+    </div>
 
-                    </div>
 
-                </div>
+    <div class="kpi-grid">
 
-            `
-        ).join("");
+      <div class="kpi">
+
+        <div class="kpi-icon">📦</div>
+
+        <div class="kpi-label">
+          Total Material Stock
+        </div>
+
+        <div class="kpi-value">
+          ${formatNumber(totalStock)}
+        </div>
+
+        <div class="kpi-unit">
+          MT
+        </div>
+
+      </div>
+
+
+      <div class="kpi">
+
+        <div class="kpi-icon">🏭</div>
+
+        <div class="kpi-label">
+          Today's Production
+        </div>
+
+        <div class="kpi-value">
+          ${formatBags(productionBags)}
+        </div>
+
+        <div class="kpi-unit">
+          Bags
+        </div>
+
+      </div>
+
+
+      <div class="kpi">
+
+        <div class="kpi-icon">📉</div>
+
+        <div class="kpi-label">
+          Today's Consumption
+        </div>
+
+        <div class="kpi-value">
+          ${formatNumber(totalConsumption)}
+        </div>
+
+        <div class="kpi-unit">
+          MT
+        </div>
+
+      </div>
+
+
+      <div class="kpi">
+
+        <div class="kpi-icon">🛍️</div>
+
+        <div class="kpi-label">
+          Total PP Bag Stock
+        </div>
+
+        <div class="kpi-value">
+          ${formatBags(totalPPBags)}
+        </div>
+
+        <div class="kpi-unit">
+          Bags
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="section-title">
+      🏭 Production Trend
+    </div>
+
+    ${renderProductionTrend()}
+
+
+    <div class="section-title">
+      📦 Stock Alerts
+    </div>
+
+    ${renderStockAlerts()}
+
+  `;
 
 }
 
 
-/* =====================================================
-   MATERIAL DETAILS
-===================================================== */
+/* =========================================================
+   ALERTS
+========================================================= */
 
-function openMaterialDetails(material){
+function renderHomeAlerts(){
 
-    const summary =
-        getMaterialSummary(
-            material
-        );
-
-
-    let content = `
-
-        <div class="detail-section">
-
-            <h3>
-                ${escapeHtml(material)}
-            </h3>
+  const items =
+    Array.isArray(DATA.reorder_items)
+      ? DATA.reorder_items
+      : [];
 
 
-            <div class="detail-row">
+  if(items.length === 0){
 
-                <span>
-                    Closing
-                </span>
+    return `
 
-                <strong>
+      <div class="alert-card">
 
-                    ${
-                        summary.closing !== null
+        <div class="alert-header">
 
-                        ? fmt(
-                            summary.closing
-                          )
-                          +" "
-                          +escapeHtml(
-                            summary.unit
-                          )
+          <div class="alert-title">
+            🟢 All Operations Normal
+          </div>
 
-                        : "--"
-                    }
-
-                </strong>
-
-            </div>
-
-
-            <div class="detail-row">
-
-                <span>
-                    Reorder Level
-                </span>
-
-                <strong>
-
-                    ${
-                        summary.reorderLevel !== null
-
-                        ? fmt(
-                            summary.reorderLevel
-                          )
-                          +" "
-                          +escapeHtml(
-                            summary.unit
-                          )
-
-                        : "--"
-                    }
-
-                </strong>
-
-            </div>
-
-
-            <div class="detail-row">
-
-                <span>
-                    Shortage
-                </span>
-
-                <strong>
-
-                    ${
-                        summary.shortage !== null
-
-                        ? fmt(
-                            summary.shortage
-                          )
-                          +" "
-                          +escapeHtml(
-                            summary.unit
-                          )
-
-                        : "--"
-                    }
-
-                </strong>
-
-            </div>
-
-
-            <div class="detail-row">
-
-                <span>
-                    Status
-                </span>
-
-                <strong>
-
-                    ${
-                        summary.reorderRequired
-
-                        ? "REORDER REQUIRED"
-
-                        : "NORMAL"
-                    }
-
-                </strong>
-
-            </div>
+          <div class="alert-normal">
+            NORMAL
+          </div>
 
         </div>
 
-    `;
+        <div style="
+          font-size:12px;
+          color:#7b8494;
+        ">
 
+          No material is currently below
+          its configured reorder level.
 
-    summary.rows.forEach(
-        row => {
+        </div>
 
-            content += `
-
-                <div class="transaction">
-
-                    <div class="transaction-title">
-
-                        <strong>
-
-                            ${escapeHtml(
-                                transactionName(
-                                    row.transaction
-                                )
-                            )}
-
-                        </strong>
-
-                        <span class="badge">
-
-                            ${escapeHtml(
-                                row.report_date
-                            )}
-
-                        </span>
-
-                    </div>
-
-
-                    <div class="transaction-values">
-
-
-                        <div class="transaction-value">
-
-                            <span>
-                                FOR DAY
-                            </span>
-
-                            <strong>
-                                ${fmt(
-                                    row.for_day
-                                )}
-                            </strong>
-
-                        </div>
-
-
-                        <div class="transaction-value">
-
-                            <span>
-                                FOR MONTH
-                            </span>
-
-                            <strong>
-                                ${fmt(
-                                    row.for_month
-                                )}
-                            </strong>
-
-                        </div>
-
-
-                        <div class="transaction-value">
-
-                            <span>
-                                FOR YEAR
-                            </span>
-
-                            <strong>
-                                ${fmt(
-                                    row.for_year
-                                )}
-                            </strong>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            `;
-
-        }
-    );
-
-
-    showModal(
-        "📦 "+material,
-        content
-    );
-
-}
-
-
-/* =====================================================
-   STOCK DETAILS
-===================================================== */
-
-function openStockDetails(){
-
-    const materials =
-        getMaterials();
-
-
-    let content = `
-
-        <div class="detail-section">
-
-            <h3>
-                Material-wise Stock
-            </h3>
+      </div>
 
     `;
 
-
-    materials.forEach(
-        material => {
-
-            const summary =
-                getMaterialSummary(
-                    material
-                );
+  }
 
 
-            content += `
+  return `
 
-                <div
-                    class="detail-row"
-                    onclick="
-                    openMaterialDetails(
-                    '${escapeQuotes(
-                        material
-                    )}'
-                    )">
+    <div class="alert-card">
 
-                    <span>
-                        ${escapeHtml(material)}
-                    </span>
+      <div class="alert-header">
 
-                    <strong>
+        <div class="alert-title">
+          🚨 ${items.length} Reorder Alert
+          ${items.length > 1 ? "s" : ""}
+        </div>
 
-                        ${
-                            summary.closing !== null
-
-                            ? fmt(
-                                summary.closing
-                              )
-                              +" "
-                              +escapeHtml(
-                                summary.unit
-                              )
-
-                            : "--"
-                        }
-
-                        →
-
-                    </strong>
-
-                </div>
-
-            `;
-
-        }
-    );
+      </div>
 
 
-    content +=
-        "</div>";
+      ${items.slice(0,5).map(item=>`
 
+        <div class="alert-item">
 
-    showModal(
-        "📦 Raw Material Details",
-        content
-    );
+          <div class="alert-dot"></div>
+
+          <div class="alert-text">
+
+            <b>
+              ${escapeHTML(item.material)}
+            </b>
+
+            <br>
+
+            <span style="color:#7b8494;">
+              Stock
+              ${formatNumber(item.closing)}
+              ${escapeHTML(item.unit || "MT")}
+            </span>
+
+          </div>
+
+          <div class="alert-value">
+            REORDER
+          </div>
+
+        </div>
+
+      `).join("")}
+
+    </div>
+
+  `;
 
 }
 
 
-/* =====================================================
-   PRODUCTION DETAILS
-===================================================== */
+function renderStockAlerts(){
 
-function openProductionDetails(){
-
-    let content = "";
-
-
-    DATA.production.forEach(
-        row => {
-
-            content += `
-
-                <div class="detail-section">
-
-                    <h3>
-                        ${escapeHtml(
-                            row.product
-                        )}
-                    </h3>
+  const items =
+    Array.isArray(DATA.reorder_items)
+      ? DATA.reorder_items
+      : [];
 
 
-                    <div class="detail-row">
+  if(items.length === 0){
 
-                        <span>
-                            Standard Output
-                        </span>
+    return `
 
-                        <strong>
-                            ${fmt(
-                                row.standard_output
-                            )}
-                        </strong>
+      <div class="alert-card">
 
-                    </div>
+        <div style="
+          text-align:center;
+          padding:8px;
+          color:#159447;
+        ">
+          ✓ No reorder alerts
+        </div>
 
+      </div>
 
-                    <div class="detail-row">
+    `;
 
-                        <span>
-                            Actual Output
-                        </span>
-
-                        <strong>
-                            ${fmt(
-                                row.actual_output
-                            )}
-                        </strong>
-
-                    </div>
+  }
 
 
-                    <div class="detail-row">
+  return items.slice(0,8).map(item=>`
 
-                        <span>
-                            Output %
-                        </span>
+    <div
+      class="material-card"
+      onclick="openMaterialDetails(
+        '${escapeAttr(item.material)}'
+      )"
+    >
 
-                        <strong>
-                            ${fmt(
-                                row.output_percentage
-                            )} %
+      <div class="material-top">
 
-                        </strong>
+        <div>
 
-                    </div>
+          <div class="material-name">
+            ${escapeHTML(item.material)}
+          </div>
 
+          <div class="material-stock">
 
-                    <div class="detail-row">
+            ${formatNumber(item.closing)}
 
-                        <span>
-                            Process Loss
-                        </span>
+            <span class="material-unit">
+              ${escapeHTML(item.unit || "MT")}
+            </span>
 
-                        <strong>
-                            ${fmt(
-                                row.process_loss
-                            )} %
+          </div>
 
-                        </strong>
-
-                    </div>
+        </div>
 
 
-                    <div class="detail-row">
+        <div class="
+          material-status
+          status-reorder
+        ">
+          🔴 REORDER
+        </div>
 
-                        <span>
-                            Remarks
-                        </span>
+      </div>
 
-                        <strong>
-                            ${escapeHtml(
-                                row.remarks ||
-                                "--"
-                            )}
-                        </strong>
+    </div>
 
-                    </div>
-
-                </div>
-
-            `;
-
-        }
-    );
-
-
-    showModal(
-        "🏭 Production Details",
-        content ||
-        "<div class='detail-section'>No production data.</div>"
-    );
+  `).join("");
 
 }
 
 
-/* =====================================================
-   PRODUCT DETAILS
-===================================================== */
+/* =========================================================
+   PRODUCTION TREND
+========================================================= */
 
-function openProductDetails(product){
+function renderProductionTrend(){
 
-    const rows =
-        DATA.production.filter(
-            row =>
-            normalize(row.product) ===
-            normalize(product)
-        );
+  const trend =
+    Array.isArray(DATA.productionTrend)
+      ? DATA.productionTrend
+      : [];
 
 
-    let content = "";
+  if(trend.length === 0){
+
+    return `
+
+      <div class="chart-card">
+
+        <div class="empty">
+          No production trend data available
+        </div>
+
+      </div>
+
+    `;
+
+  }
 
 
-    rows.forEach(
-        row => {
-
-            content += `
-
-                <div class="detail-section">
-
-                    <h3>
-                        ${escapeHtml(
-                            row.product
-                        )}
-                    </h3>
-
-
-                    <div class="detail-row">
-
-                        <span>
-                            Standard Output
-                        </span>
-
-                        <strong>
-                            ${fmt(
-                                row.standard_output
-                            )}
-                        </strong>
-
-                    </div>
-
-
-                    <div class="detail-row">
-
-                        <span>
-                            Actual Output
-                        </span>
-
-                        <strong>
-                            ${fmt(
-                                row.actual_output
-                            )}
-                        </strong>
-
-                    </div>
-
-
-                    <div class="detail-row">
-
-                        <span>
-                            Output %
-                        </span>
-
-                        <strong>
-                            ${fmt(
-                                row.output_percentage
-                            )} %
-
-                        </strong>
-
-                    </div>
-
-
-                    <div class="detail-row">
-
-                        <span>
-                            Process Loss
-                        </span>
-
-                        <strong>
-                            ${fmt(
-                                row.process_loss
-                            )} %
-
-                        </strong>
-
-                    </div>
-
-
-                    <div class="detail-row">
-
-                        <span>
-                            Remarks
-                        </span>
-
-                        <strong>
-                            ${escapeHtml(
-                                row.remarks ||
-                                "--"
-                            )}
-                        </strong>
-
-                    </div>
-
-                </div>
-
-            `;
-
-        }
+  const max =
+    Math.max(
+      ...trend.map(x=>number(x)||0),
+      1
     );
 
 
-    showModal(
-        "🏭 "+product,
-        content ||
-        "<div class='detail-section'>No data.</div>"
-    );
+  return `
 
-}
+    <div class="chart-card">
 
+      <div class="chart-title">
+        📊 Production
+      </div>
 
-/* =====================================================
-   PP BAG DETAILS
-===================================================== */
+      <div class="chart-subtitle">
+        Historical API trend
+      </div>
 
-function openPPBagDetails(){
 
-    let content = "";
+      <div class="chart">
 
+        <svg
+          width="100%"
+          height="190"
+          viewBox="0 0 360 190"
+          preserveAspectRatio="none"
+        >
 
-    DATA.bags.forEach(
-        row => {
+          <line
+            x1="10"
+            y1="170"
+            x2="350"
+            y2="170"
+            stroke="#e6e9ee"
+          />
 
-            content += `
 
-                <div class="detail-section">
-
-                    <h3>
-                        ${escapeHtml(
-                            row.product ||
-                            "PP Bags"
-                        )}
-                    </h3>
-
-
-                    <div class="detail-row">
-
-                        <span>
-                            Opening
-                        </span>
-
-                        <strong>
-                            ${fmt(
-                                row.opening
-                            )}
-                        </strong>
-
-                    </div>
-
-
-                    <div class="detail-row">
-
-                        <span>
-                            Received
-                        </span>
-
-                        <strong>
-                            ${fmt(
-                                row.received
-                            )}
-                        </strong>
-
-                    </div>
-
-
-                    <div class="detail-row">
-
-                        <span>
-                            Issue
-                        </span>
-
-                        <strong>
-                            ${fmt(
-                                row.issue
-                            )}
-                        </strong>
-
-                    </div>
-
-
-                    <div class="detail-row">
-
-                        <span>
-                            Damage Bags
-                        </span>
-
-                        <strong>
-                            ${fmt(
-                                row.damage
-                            )}
-                        </strong>
-
-                    </div>
-
-
-                    <div class="detail-row">
-
-                        <span>
-                            Closing
-                        </span>
-
-                        <strong>
-                            ${fmt(
-                                row.closing
-                            )}
-                        </strong>
-
-                    </div>
-
-                </div>
-
-            `;
-
-        }
-    );
-
-
-    showModal(
-        "🛍️ PP Bags Details",
-        content ||
-        "<div class='detail-section'>No PP Bag data.</div>"
-    );
-
-}
-
-
-/* =====================================================
-   TRENDS
-===================================================== */
-
-function renderTrends(){
-
-    const materials =
-        getMaterials();
-
-
-    const select =
-        document.getElementById(
-            "materialSelect"
-        );
-
-
-    select.innerHTML =
-        materials.map(
-            material => `
-
-                <option
-                    value="${escapeHtml(material)}">
-
-                    ${escapeHtml(material)}
-
-                </option>
-
-            `
-        ).join("");
-
-
-    if(materials.length){
-
-        select.onchange =
-            function(){
-
-                drawMaterialChart(
-                    this.value
-                );
-
-            };
-
-
-        drawMaterialChart(
-            materials[0]
-        );
-
-    }
-    else{
-
-        drawMaterialChart("");
-
-    }
-
-
-    drawProductionChart(
-        DATA.productionTrend
-    );
-
-}
-
-
-/* =====================================================
-   MATERIAL CHART
-===================================================== */
-
-function drawMaterialChart(material){
-
-    const values =
-        DATA.usage[
-            material
-        ] || [];
-
-
-    drawChart(
-        "materialChart",
-        values,
-        "material"
-    );
-
-}
-
-
-/* =====================================================
-   PRODUCTION CHART
-===================================================== */
-
-function drawProductionChart(values){
-
-    drawChart(
-        "productionChart",
-        values,
-        "production"
-    );
-
-}
-
-
-/* =====================================================
-   CHART
-===================================================== */
-
-function drawChart(
-    canvasId,
-    values,
-    type
-){
-
-    const canvas =
-        document.getElementById(
-            canvasId
-        );
-
-
-    if(!canvas){
-
-        return;
-
-    }
-
-
-    const ctx =
-        canvas.getContext(
-            "2d"
-        );
-
-
-    const width =
-        canvas.clientWidth || 300;
-
-
-    const height =
-        canvas.clientHeight || 160;
-
-
-    canvas.width =
-        width * 2;
-
-    canvas.height =
-        height * 2;
-
-
-    ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
-
-
-    if(
-        !values ||
-        !values.length
-    ){
-
-        ctx.font =
-            "24px Arial";
-
-        ctx.fillText(
-            "No trend data",
-            30,
-            60
-        );
-
-        return;
-
-    }
-
-
-    const numbers =
-        values
-        .map(Number)
-        .filter(
-            Number.isFinite
-        );
-
-
-    if(!numbers.length){
-
-        return;
-
-    }
-
-
-    const padding =
-        24;
-
-
-    const max =
-        Math.max(
-            ...numbers
-        ) * 1.2 || 1;
-
-
-    ctx.beginPath();
-
-
-    numbers.forEach(
-        (value,index) => {
+          ${trend.map((value,index)=>{
 
             const x =
-                padding +
+              trend.length === 1
+              ? 180
+              : 20 +
                 index *
-                (
-                    (
-                        canvas.width -
-                        padding * 2
-                    )
-                    /
-                    Math.max(
-                        numbers.length - 1,
-                        1
-                    )
-                );
+                (320/(trend.length-1));
 
 
             const y =
-                canvas.height -
-                padding -
-                (
-                    value /
-                    max
-                )
-                *
-                (
-                    canvas.height -
-                    padding * 2
-                );
+              165 -
+              ((number(value)||0)/max)*135;
 
 
-            if(index === 0){
+            return `
 
-                ctx.moveTo(
-                    x,
-                    y
-                );
+              <circle
+                cx="${x}"
+                cy="${y}"
+                r="4"
+                fill="#2563eb"
+              />
 
-            }
-            else{
+            `;
 
-                ctx.lineTo(
-                    x,
-                    y
-                );
+          }).join("")}
 
-            }
 
-        }
+          <polyline
+            fill="none"
+            stroke="#2563eb"
+            stroke-width="3"
+            points="${
+              trend.map((value,index)=>{
+
+                const x =
+                  trend.length === 1
+                  ? 180
+                  : 20 +
+                    index *
+                    (320/(trend.length-1));
+
+
+                const y =
+                  165 -
+                  ((number(value)||0)/max)*135;
+
+
+                return `${x},${y}`;
+
+              }).join(" ")
+            }"
+          />
+
+        </svg>
+
+      </div>
+
+
+      <div style="
+        font-size:10px;
+        color:#7d8695;
+        text-align:center;
+      ">
+        Current API trend • MT
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   STOCK PAGE
+========================================================= */
+
+function renderStock(){
+
+  const app =
+    document.getElementById("app");
+
+  currentPeriod = "day";
+
+
+  app.innerHTML = `
+
+    <div class="section-title">
+      📦 Stock Summary
+    </div>
+
+    ${periodButtons("stock")}
+
+
+    <div id="stockSummary"></div>
+
+
+    <div class="search">
+
+      🔍
+
+      <input
+        id="materialSearch"
+        placeholder="Search material..."
+        oninput="filterMaterials()"
+      >
+
+    </div>
+
+
+    <div id="materialList"></div>
+
+  `;
+
+
+  renderStockContent();
+
+}
+
+
+function periodButtons(type){
+
+  return `
+
+    <div class="period">
+
+      <button
+        class="active"
+        onclick="setPeriod(
+          'day',
+          this,
+          '${type}'
+        )"
+      >
+        DAY
+      </button>
+
+
+      <button
+        onclick="setPeriod(
+          'month',
+          this,
+          '${type}'
+        )"
+      >
+        MONTH
+      </button>
+
+
+      <button
+        onclick="setPeriod(
+          'year',
+          this,
+          '${type}'
+        )"
+      >
+        YEAR
+      </button>
+
+    </div>
+
+  `;
+
+}
+
+
+function setPeriod(period,button,type){
+
+  currentPeriod = period;
+
+
+  button.parentElement
+    .querySelectorAll("button")
+    .forEach(b =>
+      b.classList.remove("active")
     );
 
 
-    ctx.lineWidth =
-        5;
+  button.classList.add("active");
 
 
-    ctx.lineCap =
-        "round";
+  if(type === "stock")
+    renderStockContent();
 
+  if(type === "production")
+    renderProductionContent();
 
-    ctx.strokeStyle =
-        type === "material"
-        ? "#35a66f"
-        : "#4f7cff";
-
-
-    ctx.stroke();
+  if(type === "bags")
+    renderBagContent();
 
 }
 
 
-/* =====================================================
-   QUICK VIEW
-===================================================== */
+function renderStockContent(){
 
-function renderQuickView(){
-
-    document
-        .getElementById(
-            "consumption"
-        )
-        .textContent =
-
-        DATA.consumption !== null &&
-        DATA.consumption !== undefined
-
-        ? fmt(
-            DATA.consumption
-          )
-          +" T"
-
-        : "--";
+  const summary =
+    document.getElementById(
+      "stockSummary"
+    );
 
 
-    document
-        .getElementById(
-            "efficiency"
-        )
-        .textContent =
-
-        DATA.efficiency !== null &&
-        DATA.efficiency !== undefined
-
-        ? fmt(
-            DATA.efficiency
-          )
-          +"%"
-
-        : "--";
+  const list =
+    document.getElementById(
+      "materialList"
+    );
 
 
-    document
-        .getElementById(
-            "processLoss"
-        )
-        .textContent =
+  if(!summary || !list)
+    return;
 
-        DATA.processLoss !== null &&
-        DATA.processLoss !== undefined
 
-        ? fmt(
-            DATA.processLoss
-          )
-          +"%"
+  let received = 0;
+  let consumption = 0;
 
-        : "--";
+
+  DATA.stock.forEach(row=>{
+
+    const value =
+      safePeriodValue(row);
+
+
+    if(value === null)
+      return;
+
+
+    const transaction =
+      normalize(row.transaction);
+
+
+    if(
+      transaction === "PURCHASE" ||
+      transaction.includes("TRANSFER FROM") ||
+      transaction === "TRANSFER"
+    ){
+
+      received += Math.abs(value);
+
+    }
+
+
+    if(transaction === "CONSUMPTION"){
+
+      consumption += Math.abs(value);
+
+    }
+
+  });
+
+
+  const totalStock =
+    DATA.stock.reduce(
+      (sum,item)=>
+        sum + (number(item.closing)||0),
+      0
+    );
+
+
+  summary.innerHTML = `
+
+    <div class="kpi-grid">
+
+      <div class="kpi">
+
+        <div class="kpi-icon">📦</div>
+
+        <div class="kpi-label">
+          Current Stock
+        </div>
+
+        <div class="kpi-value">
+          ${formatNumber(totalStock)}
+        </div>
+
+        <div class="kpi-unit">
+          MT
+        </div>
+
+      </div>
+
+
+      <div class="kpi">
+
+        <div class="kpi-icon">📥</div>
+
+        <div class="kpi-label">
+          Received
+        </div>
+
+        <div class="kpi-value">
+          ${formatNumber(received)}
+        </div>
+
+        <div class="kpi-unit">
+          MT
+        </div>
+
+      </div>
+
+
+      <div class="kpi">
+
+        <div class="kpi-icon">📉</div>
+
+        <div class="kpi-label">
+          Consumption
+        </div>
+
+        <div class="kpi-value">
+          ${formatNumber(consumption)}
+        </div>
+
+        <div class="kpi-unit">
+          MT
+        </div>
+
+      </div>
+
+
+      <div class="kpi">
+
+        <div class="kpi-icon">📅</div>
+
+        <div class="kpi-label">
+          Period
+        </div>
+
+        <div class="kpi-value"
+             style="font-size:18px;">
+          ${periodName(currentPeriod)}
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  renderMaterials(list);
 
 }
 
 
-/* =====================================================
-   MODAL
-===================================================== */
+function renderMaterials(container){
 
-function showModal(
-    title,
-    content
+  const search =
+    document.getElementById(
+      "materialSearch"
+    );
+
+
+  const query =
+    search
+      ? normalize(search.value)
+      : "";
+
+
+  const materials =
+    DATA.stock
+      .filter(item=>{
+
+        const name =
+          normalize(item.material);
+
+        return !query ||
+          name.includes(query);
+
+      })
+      .sort((a,b)=>
+        (number(b.closing)||0) -
+        (number(a.closing)||0)
+      );
+
+
+  if(materials.length === 0){
+
+    container.innerHTML =
+      `<div class="empty">
+        No materials found
+      </div>`;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    materials.map(item=>{
+
+      const reorder =
+        !!item.reorder_required;
+
+
+      const consumption =
+        getMaterialPeriodTotal(
+          item.material,
+          "CONSUMPTION"
+        );
+
+
+      const received =
+        getMaterialReceivedTotal(
+          item.material
+        );
+
+
+      return `
+
+        <div
+          class="material-card"
+          onclick="openMaterialDetails(
+            '${escapeAttr(item.material)}'
+          )"
+        >
+
+          <div class="material-top">
+
+            <div>
+
+              <div class="material-name">
+                📦
+                ${escapeHTML(item.material)}
+              </div>
+
+              <div class="material-stock">
+
+                ${formatNumber(item.closing)}
+
+                <span class="material-unit">
+                  ${escapeHTML(item.unit || "MT")}
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <div class="
+              material-status
+              ${
+                reorder
+                ? "status-reorder"
+                : "status-ok"
+              }
+            ">
+
+              ${
+                reorder
+                ? "🔴 REORDER"
+                : "🟢 NORMAL"
+              }
+
+            </div>
+
+          </div>
+
+
+          <div class="material-stats">
+
+            <div class="stat-box">
+
+              <div class="stat-label">
+                📥 Received
+              </div>
+
+              <div class="stat-value">
+                ${formatNumber(received)} MT
+              </div>
+
+            </div>
+
+
+            <div class="stat-box">
+
+              <div class="stat-label">
+                📉 Consumption
+              </div>
+
+              <div class="stat-value">
+                ${formatNumber(consumption)} MT
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      `;
+
+    }).join("");
+
+}
+
+
+function filterMaterials(){
+
+  renderMaterials(
+    document.getElementById(
+      "materialList"
+    )
+  );
+
+}
+
+
+/* =========================================================
+   MATERIAL HELPERS
+========================================================= */
+
+function getMaterialTransactions(material){
+
+  return DATA.stock.filter(row =>
+    normalize(row.material) ===
+    normalize(material)
+  );
+
+}
+
+
+function getMaterialPeriodTotal(
+  material,
+  transaction
 ){
 
-    document
-        .getElementById(
-            "modalTitle"
-        )
-        .textContent =
-        title;
+  return getMaterialTransactions(material)
+    .filter(row =>
+      normalize(row.transaction) ===
+      normalize(transaction)
+    )
+    .reduce((sum,row)=>{
+
+      const value =
+        safePeriodValue(row);
+
+      return sum +
+        (value === null
+          ? 0
+          : Math.abs(value));
+
+    },0);
+
+}
 
 
-    document
-        .getElementById(
-            "modalContent"
-        )
-        .innerHTML =
-        content;
+function getMaterialReceivedTotal(material){
+
+  const receivedTypes = [
+
+    "PURCHASE",
+    "TRANSFER",
+    "TRANSFER FROM SOYA DIVISION",
+    "TRANSFER FROM BMKL"
+
+  ];
 
 
-    document
-        .getElementById(
-            "modal"
-        )
-        .classList
-        .add("show");
+  return getMaterialTransactions(material)
+    .filter(row =>
+      receivedTypes.includes(
+        normalize(row.transaction)
+      )
+    )
+    .reduce((sum,row)=>{
+
+      const value =
+        safePeriodValue(row);
+
+      return sum +
+        (value === null
+          ? 0
+          : Math.abs(value));
+
+    },0);
+
+}
+
+
+/* =========================================================
+   MATERIAL DETAILS
+========================================================= */
+
+function openMaterialDetails(material){
+
+  const item =
+    DATA.stock.find(row =>
+      normalize(row.material) ===
+      normalize(material)
+    );
+
+
+  if(!item)
+    return;
+
+
+  document.getElementById(
+    "modalTitle"
+  ).innerHTML =
+    "📦 " +
+    escapeHTML(material);
+
+
+  document.getElementById(
+    "modalContent"
+  ).innerHTML = `
+
+    <div class="big-kpi">
+
+      <div class="big-kpi-icon">
+        📦
+      </div>
+
+      <div class="big-kpi-title">
+        Current Stock
+      </div>
+
+      <div class="big-kpi-value">
+
+        ${formatNumber(item.closing)}
+
+        <span style="font-size:14px;">
+          ${escapeHTML(
+            item.unit || "MT"
+          )}
+        </span>
+
+      </div>
+
+
+      <div style="
+        margin-top:8px;
+        font-size:12px;
+        color:${
+          item.reorder_required
+          ? "#d92d20"
+          : "#159447"
+        };
+        font-weight:800;
+      ">
+
+        ${
+          item.reorder_required
+          ? "🔴 REORDER REQUIRED"
+          : "🟢 STOCK NORMAL"
+        }
+
+      </div>
+
+
+      ${
+        item.reorder_level !== null
+        ? `
+          <div style="
+            margin-top:8px;
+            font-size:11px;
+            color:#7c8594;
+          ">
+
+            Reorder Level:
+
+            <b>
+              ${formatNumber(
+                item.reorder_level
+              )}
+              ${escapeHTML(
+                item.unit || "MT"
+              )}
+            </b>
+
+          </div>
+        `
+        : ""
+      }
+
+    </div>
+
+
+    <div class="detail-tabs">
+
+      <button
+        class="active"
+        onclick="
+          showMaterialTab(
+            'overview',
+            this
+          )
+        "
+      >
+        Overview
+      </button>
+
+
+      <button
+        onclick="
+          showMaterialTab(
+            'received',
+            this
+          )
+        "
+      >
+        Received
+      </button>
+
+
+      <button
+        onclick="
+          showMaterialTab(
+            'consumption',
+            this
+          )
+        "
+      >
+        Consumption
+      </button>
+
+    </div>
+
+
+    <div id="materialTabContent"></div>
+
+  `;
+
+
+  window.currentMaterial =
+    material;
+
+
+  showMaterialTab(
+    "overview",
+    document.querySelector(
+      ".detail-tabs button"
+    )
+  );
+
+
+  openModal();
+
+}
+
+
+function showMaterialTab(type,button){
+
+  document
+    .querySelectorAll(
+      ".detail-tabs button"
+    )
+    .forEach(b =>
+      b.classList.remove("active")
+    );
+
+
+  if(button)
+    button.classList.add("active");
+
+
+  const material =
+    window.currentMaterial;
+
+
+  const container =
+    document.getElementById(
+      "materialTabContent"
+    );
+
+
+  if(!container)
+    return;
+
+
+  const rows =
+    getMaterialTransactions(
+      material
+    );
+
+
+  if(type === "overview"){
+
+    const received =
+      getMaterialReceivedTotal(
+        material
+      );
+
+
+    const consumption =
+      getMaterialPeriodTotal(
+        material,
+        "CONSUMPTION"
+      );
+
+
+    const current =
+      getCurrentMaterial(
+        material
+      );
+
+
+    container.innerHTML = `
+
+      <div class="bag-card">
+
+        <div class="bag-title">
+          📊
+          ${periodName(currentPeriod)}
+          Summary
+        </div>
+
+
+        <div class="bag-grid">
+
+          <div class="bag-stat">
+
+            <span>
+              📦 Current Stock
+            </span>
+
+            <strong>
+              ${formatNumber(
+                current?.closing
+              )} MT
+            </strong>
+
+          </div>
+
+
+          <div class="bag-stat">
+
+            <span>
+              📥 Received
+            </span>
+
+            <strong>
+              ${formatNumber(
+                received
+              )} MT
+            </strong>
+
+          </div>
+
+
+          <div class="bag-stat">
+
+            <span>
+              📉 Consumption
+            </span>
+
+            <strong>
+              ${formatNumber(
+                consumption
+              )} MT
+            </strong>
+
+          </div>
+
+
+          <div class="bag-stat">
+
+            <span>
+              📅 Period
+            </span>
+
+            <strong>
+              ${periodName(
+                currentPeriod
+              )}
+            </strong>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  let filtered = [];
+
+
+  if(type === "received"){
+
+    const receivedTypes = [
+
+      "PURCHASE",
+      "TRANSFER",
+      "TRANSFER FROM SOYA DIVISION",
+      "TRANSFER FROM BMKL"
+
+    ];
+
+
+    filtered =
+      rows.filter(row=>{
+
+        const value =
+          safePeriodValue(row);
+
+
+        return receivedTypes.includes(
+          normalize(row.transaction)
+        ) &&
+        value !== null &&
+        value !== 0;
+
+      });
+
+  }
+
+
+  if(type === "consumption"){
+
+    filtered =
+      rows.filter(row=>{
+
+        const value =
+          safePeriodValue(row);
+
+
+        return normalize(
+          row.transaction
+        ) === "CONSUMPTION" &&
+        value !== null &&
+        value !== 0;
+
+      });
+
+  }
+
+
+  if(filtered.length === 0){
+
+    container.innerHTML = `
+
+      <div class="empty">
+
+        No non-zero ${type}
+        transactions available for
+        ${periodName(currentPeriod)}.
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    filtered
+      .sort((a,b)=>
+        String(b.report_date)
+          .localeCompare(
+            String(a.report_date)
+          )
+      )
+      .map(row=>{
+
+        const value =
+          safePeriodValue(row);
+
+        const isReceived =
+          type === "received";
+
+
+        return `
+
+          <div class="transaction">
+
+            <div class="transaction-left">
+
+              <div class="transaction-icon">
+                ${
+                  isReceived
+                  ? "📥"
+                  : "📉"
+                }
+              </div>
+
+
+              <div>
+
+                <div class="transaction-name">
+                  ${escapeHTML(
+                    row.transaction
+                  )}
+                </div>
+
+                <div class="transaction-date">
+                  ${dateText(
+                    row.report_date
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <div class="
+              transaction-value
+              ${
+                isReceived
+                ? "received"
+                : "consumption"
+              }
+            ">
+
+              ${isReceived ? "+" : "-"}
+
+              ${formatNumber(
+                Math.abs(value)
+              )}
+
+              MT
+
+            </div>
+
+          </div>
+
+        `;
+
+      }).join("");
+
+}
+
+
+function getCurrentMaterial(material){
+
+  return DATA.stock.find(row =>
+    normalize(row.material) ===
+    normalize(material)
+  );
+
+}
+
+
+/* =========================================================
+   PRODUCTION
+========================================================= */
+
+function renderProduction(){
+
+  const app =
+    document.getElementById("app");
+
+  currentPeriod = "day";
+
+
+  app.innerHTML = `
+
+    <div class="section-title">
+      🏭 Production
+    </div>
+
+    ${periodButtons("production")}
+
+    <div id="productionContent"></div>
+
+  `;
+
+
+  renderProductionContent();
+
+}
+
+
+function renderProductionContent(){
+
+  const container =
+    document.getElementById(
+      "productionContent"
+    );
+
+
+  if(!container)
+    return;
+
+
+  let totalBags = 0;
+
+
+  DATA.production.forEach(row=>{
+
+    const bags =
+      mtToBags(
+        row.actual_output,
+        row.product
+      );
+
+
+    if(bags !== null)
+      totalBags += bags;
+
+  });
+
+
+  const products =
+    DATA.production.filter(row =>
+      number(row.actual_output) !== null
+    );
+
+
+  container.innerHTML = `
+
+    <div class="big-kpi">
+
+      <div class="big-kpi-icon">
+        🏭
+      </div>
+
+      <div class="big-kpi-title">
+        Production —
+        ${periodName(currentPeriod)}
+      </div>
+
+      <div class="big-kpi-value">
+        ${formatBags(totalBags)}
+      </div>
+
+      <div class="kpi-unit">
+        Bags
+      </div>
+
+    </div>
+
+
+    <div class="section-title">
+      Product-wise Production
+    </div>
+
+
+    ${
+      products.length
+      ? products.map(row=>{
+
+          const bags =
+            mtToBags(
+              row.actual_output,
+              row.product
+            );
+
+
+          const weight =
+            getBagWeight(
+              row.product
+            );
+
+
+          return `
+
+            <div
+              class="product-card"
+              onclick="
+                openProductDetails(
+                  '${escapeAttr(
+                    row.product
+                  )}'
+                )
+              "
+            >
+
+              <div class="product-row">
+
+                <div class="product-icon">
+                  🏭
+                </div>
+
+
+                <div class="product-info">
+
+                  <div class="product-name">
+                    ${escapeHTML(
+                      row.product
+                    )}
+                  </div>
+
+                  <div class="product-weight">
+
+                    ${
+                      weight
+                      ? weight + " kg/bag"
+                      : "⚠️ Weight not configured"
+                    }
+
+                  </div>
+
+                </div>
+
+
+                <div class="product-bags">
+
+                  ${
+                    bags !== null
+                    ? formatBags(bags)
+                    : "—"
+                  }
+
+                  <small>
+                    Bags
+                  </small>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          `;
+
+        }).join("")
+      : `
+        <div class="empty">
+          No production data available.
+        </div>
+      `
+    }
+
+
+    <div class="section-title">
+      📊 Production Trend
+    </div>
+
+    ${renderProductionTrend()}
+
+  `;
+
+}
+
+
+/* =========================================================
+   PRODUCT DETAILS
+========================================================= */
+
+function openProductDetails(product){
+
+  const rows =
+    DATA.production.filter(row =>
+      normalize(row.product) ===
+      normalize(product)
+    );
+
+
+  const latest =
+    rows[rows.length - 1];
+
+
+  if(!latest)
+    return;
+
+
+  const weight =
+    getBagWeight(product);
+
+
+  const bags =
+    mtToBags(
+      latest.actual_output,
+      product
+    );
+
+
+  document.getElementById(
+    "modalTitle"
+  ).innerHTML =
+    "🏭 " +
+    escapeHTML(product);
+
+
+  document.getElementById(
+    "modalContent"
+  ).innerHTML = `
+
+    <div class="big-kpi">
+
+      <div class="big-kpi-icon">
+        🏭
+      </div>
+
+      <div class="big-kpi-title">
+        Actual Production
+      </div>
+
+      <div class="big-kpi-value">
+
+        ${
+          bags !== null
+          ? formatBags(bags)
+          : "—"
+        }
+
+      </div>
+
+      <div class="kpi-unit">
+        Bags
+      </div>
+
+
+      ${
+        weight
+        ? `
+          <div class="report-info">
+
+            Bag Weight:
+            <b>${weight} kg</b>
+
+            <br>
+
+            Source Actual Output:
+            <b>
+              ${formatNumber(
+                latest.actual_output
+              )} MT
+            </b>
+
+          </div>
+        `
+        : `
+          <div class="report-info">
+
+            ⚠️ Bag weight is not configured.
+            Conversion not performed.
+
+          </div>
+        `
+      }
+
+    </div>
+
+
+    <div class="bag-card">
+
+      <div class="bag-title">
+        📊 Production Details
+      </div>
+
+
+      <div class="bag-grid">
+
+        <div class="bag-stat">
+
+          <span>
+            Standard Output
+          </span>
+
+          <strong>
+            ${formatNumber(
+              latest.standard_output
+            )} MT
+          </strong>
+
+        </div>
+
+
+        <div class="bag-stat">
+
+          <span>
+            Actual Output
+          </span>
+
+          <strong>
+            ${formatNumber(
+              latest.actual_output
+            )} MT
+          </strong>
+
+        </div>
+
+
+        <div class="bag-stat">
+
+          <span>
+            Output %
+          </span>
+
+          <strong>
+            ${formatNumber(
+              latest.output_percentage
+            )}%
+          </strong>
+
+        </div>
+
+
+        <div class="bag-stat">
+
+          <span>
+            Process Loss
+          </span>
+
+          <strong>
+            ${formatNumber(
+              latest.process_loss
+            )}%
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  `;
+
+
+  openModal();
+
+}
+
+
+/* =========================================================
+   PP BAGS
+========================================================= */
+
+function renderBags(){
+
+  const app =
+    document.getElementById("app");
+
+  currentPeriod = "day";
+
+
+  app.innerHTML = `
+
+    <div class="section-title">
+      🛍️ PP Bags
+    </div>
+
+    ${periodButtons("bags")}
+
+    <div id="bagContent"></div>
+
+  `;
+
+
+  renderBagContent();
+
+}
+
+
+function renderBagContent(){
+
+  const container =
+    document.getElementById(
+      "bagContent"
+    );
+
+
+  if(!container)
+    return;
+
+
+  const totalClosing =
+    DATA.pp_bags.reduce(
+      (sum,row)=>
+        sum + (number(row.closing)||0),
+      0
+    );
+
+
+  const totalOpening =
+    DATA.pp_bags.reduce(
+      (sum,row)=>
+        sum + (number(row.opening)||0),
+      0
+    );
+
+
+  const totalReceived =
+    DATA.pp_bags.reduce(
+      (sum,row)=>
+        sum + (number(row.received)||0),
+      0
+    );
+
+
+  const totalIssue =
+    DATA.pp_bags.reduce(
+      (sum,row)=>
+        sum + (number(row.issue)||0),
+      0
+    );
+
+
+  const totalDamage =
+    DATA.pp_bags.reduce(
+      (sum,row)=>
+        sum + (number(row.damage)||0),
+      0
+    );
+
+
+  container.innerHTML = `
+
+    <div class="big-kpi">
+
+      <div class="big-kpi-icon">
+        🛍️
+      </div>
+
+      <div class="big-kpi-title">
+        Total PP Bag Stock
+      </div>
+
+      <div class="big-kpi-value">
+        ${formatBags(totalClosing)}
+      </div>
+
+      <div class="kpi-unit">
+        Bags
+      </div>
+
+    </div>
+
+
+    <div class="section-title">
+      📊 Stock Movement
+    </div>
+
+
+    <div class="kpi-grid">
+
+      <div class="kpi">
+
+        <div class="kpi-icon">📦</div>
+
+        <div class="kpi-label">
+          Opening
+        </div>
+
+        <div class="kpi-value">
+          ${formatBags(totalOpening)}
+        </div>
+
+      </div>
+
+
+      <div class="kpi">
+
+        <div class="kpi-icon">📥</div>
+
+        <div class="kpi-label">
+          Received
+        </div>
+
+        <div class="kpi-value">
+          ${formatBags(totalReceived)}
+        </div>
+
+      </div>
+
+
+      <div class="kpi">
+
+        <div class="kpi-icon">📤</div>
+
+        <div class="kpi-label">
+          Issue
+        </div>
+
+        <div class="kpi-value">
+          ${formatBags(totalIssue)}
+        </div>
+
+      </div>
+
+
+      <div class="kpi">
+
+        <div class="kpi-icon">⚠️</div>
+
+        <div class="kpi-label">
+          Damage
+        </div>
+
+        <div class="kpi-value">
+          ${formatBags(totalDamage)}
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="section-title">
+      🛍️ Product-wise Stock
+    </div>
+
+
+    ${
+      DATA.pp_bags.length
+      ? DATA.pp_bags.map(row=>`
+
+          <div class="bag-card">
+
+            <div class="bag-title">
+              🛍️
+              ${escapeHTML(row.product)}
+            </div>
+
+
+            <div class="bag-grid">
+
+              <div class="bag-stat">
+                <span>Opening</span>
+                <strong>
+                  ${formatBags(row.opening)}
+                </strong>
+              </div>
+
+
+              <div class="bag-stat">
+                <span>Received</span>
+                <strong>
+                  ${formatBags(row.received)}
+                </strong>
+              </div>
+
+
+              <div class="bag-stat">
+                <span>Issue</span>
+                <strong>
+                  ${formatBags(row.issue)}
+                </strong>
+              </div>
+
+
+              <div class="bag-stat">
+                <span>Damage</span>
+                <strong>
+                  ${formatBags(row.damage)}
+                </strong>
+              </div>
+
+
+              <div
+                class="bag-stat"
+                style="grid-column:1/-1;"
+              >
+
+                <span>
+                  Closing Stock
+                </span>
+
+                <strong>
+                  ${formatBags(row.closing)}
+                  Bags
+                </strong>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        `).join("")
+      : `
+        <div class="empty">
+          No PP Bag data available.
+        </div>
+      `
+    }
+
+  `;
+
+}
+
+
+/* =========================================================
+   REPORTS
+========================================================= */
+
+function renderReports(){
+
+  const app =
+    document.getElementById("app");
+
+
+  app.innerHTML = `
+
+    <div class="section-title">
+      📊 Reports
+    </div>
+
+
+    <div class="material-card">
+
+      <div class="material-name">
+        📅 Daily Report
+      </div>
+
+      <div class="report-info">
+        Current MIS report and today's
+        operational values.
+      </div>
+
+    </div>
+
+
+    <div class="material-card">
+
+      <div class="material-name">
+        📆 Weekly View
+      </div>
+
+      <div class="report-info">
+        Production, consumption and stock
+        history from available data.
+      </div>
+
+    </div>
+
+
+    <div class="material-card">
+
+      <div class="material-name">
+        🗓️ Monthly View
+      </div>
+
+      <div class="report-info">
+        Month-level MIS values.
+      </div>
+
+    </div>
+
+
+    <div class="material-card">
+
+      <div class="material-name">
+        📈 Yearly View
+      </div>
+
+      <div class="report-info">
+        Year-level MIS values and trends.
+      </div>
+
+    </div>
+
+
+    <div class="section-title">
+      🔐 Data Accuracy
+    </div>
+
+
+    <div class="alert-card">
+
+      <div style="
+        color:#159447;
+        font-weight:800;
+        font-size:13px;
+      ">
+        ✓ Source: MIS / Google Sheets
+      </div>
+
+      <div style="
+        color:#7b8494;
+        font-size:11px;
+        margin-top:6px;
+      ">
+        Dashboard does not invent missing
+        values. Unavailable calculations
+        remain blank.
+      </div>
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+function openModal(){
+
+  document
+    .getElementById("modal")
+    .classList.add("show");
 
 }
 
 
 function closeModal(){
 
-    document
-        .getElementById(
-            "modal"
-        )
-        .classList
-        .remove("show");
+  document
+    .getElementById("modal")
+    .classList.remove("show");
 
 }
 
 
-function outsideClose(event){
+document
+  .getElementById("modal")
+  .addEventListener(
+    "click",
+    function(e){
 
-    if(
-        event.target.id ===
-        "modal"
-    ){
-
+      if(e.target === this)
         closeModal();
 
     }
+  );
+
+
+/* =========================================================
+   UTILITY
+========================================================= */
+
+function periodName(period){
+
+  if(period === "month")
+    return "MONTH";
+
+  if(period === "year")
+    return "YEAR";
+
+  return "DAY";
 
 }
 
 
-/* =====================================================
-   NAVIGATION
-===================================================== */
+function escapeHTML(value){
 
-function goHome(){
-
-    window.scrollTo({
-
-        top:0,
-
-        behavior:"smooth"
-
-    });
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
 
 }
 
 
-function goTrend(){
+function escapeAttr(value){
 
-    document
-        .querySelector(
-            ".trend-wrapper"
-        )
-        .scrollIntoView({
-
-            behavior:"smooth"
-
-        });
+  return String(value ?? "")
+    .replace(/\\/g,"\\\\")
+    .replace(/'/g,"\\'")
+    .replace(/"/g,"&quot;");
 
 }
 
 
-/* =====================================================
-   TREND SWIPE DOTS
-===================================================== */
-
-document
-    .getElementById(
-        "trendWrapper"
-    )
-    .addEventListener(
-        "scroll",
-        function(){
-
-            const index =
-                Math.round(
-                    this.scrollLeft /
-                    this.clientWidth
-                );
-
-
-            document
-                .getElementById(
-                    "dot1"
-                )
-                .classList
-                .toggle(
-                    "active",
-                    index === 0
-                );
-
-
-            document
-                .getElementById(
-                    "dot2"
-                )
-                .classList
-                .toggle(
-                    "active",
-                    index === 1
-                );
-
-        }
-    );
-
-
-/* =====================================================
-   JSONP API LOAD
-===================================================== */
-
-function loadDashboard(){
-
-    return new Promise(
-        function(
-            resolve,
-            reject
-        ){
-
-            const callbackName =
-                "managerDashboardCallback_"
-                +
-                Date.now();
-
-
-            const script =
-                document.createElement(
-                    "script"
-                );
-
-
-            let finished =
-                false;
-
-
-            function cleanup(){
-
-                if(
-                    script.parentNode
-                ){
-
-                    script.parentNode
-                        .removeChild(
-                            script
-                        );
-
-                }
-
-
-                try{
-
-                    delete window[
-                        callbackName
-                    ];
-
-                }
-                catch(e){}
-
-            }
-
-
-            window[
-                callbackName
-            ] =
-            function(apiData){
-
-                if(finished){
-
-                    return;
-
-                }
-
-
-                finished =
-                    true;
-
-
-                try{
-
-                    if(
-                        !apiData ||
-                        apiData.status !==
-                        "success"
-                    ){
-
-                        throw new Error(
-                            "Invalid API response"
-                        );
-
-                    }
-
-
-                    DATA = {
-
-                        stock:
-                            Array.isArray(
-                                apiData.stock
-                            )
-                            ? apiData.stock
-                            : [],
-
-
-                        production:
-                            Array.isArray(
-                                apiData.production
-                            )
-                            ? apiData.production
-                            : [],
-
-
-                        bags:
-                            Array.isArray(
-                                apiData.pp_bags
-                            )
-                            ? apiData.pp_bags
-                            : [],
-
-
-                        productionTrend:
-                            Array.isArray(
-                                apiData.productionTrend
-                            )
-                            ? apiData.productionTrend
-                            : [],
-
-
-                        usage:
-                            apiData.usage &&
-                            typeof apiData.usage ===
-                            "object"
-                            ? apiData.usage
-                            : {},
-
-
-                        reorder_items:
-                            Array.isArray(
-                                apiData.reorder_items
-                            )
-                            ? apiData.reorder_items
-                            : [],
-
-
-                        consumption:
-                            apiData.consumption ??
-                            null,
-
-
-                        efficiency:
-                            apiData.efficiency ??
-                            null,
-
-
-                        processLoss:
-                            apiData.processLoss ??
-                            null,
-
-
-                        report_date:
-                            apiData.report_date ??
-                            null
-
-                    };
-
-
-                    if(
-                        DATA.report_date
-                    ){
-
-                        document
-                            .getElementById(
-                                "reportDate"
-                            )
-                            .textContent =
-                            DATA.report_date;
-
-                    }
-
-
-                    renderDashboard();
-
-
-                    cleanup();
-
-
-                    resolve(
-                        apiData
-                    );
-
-                }
-                catch(error){
-
-                    cleanup();
-
-                    reject(
-                        error
-                    );
-
-                }
-
-            };
-
-
-            script.onerror =
-            function(){
-
-                if(finished){
-
-                    return;
-
-                }
-
-
-                finished =
-                    true;
-
-
-                cleanup();
-
-
-                reject(
-                    new Error(
-                        "Google Apps Script connection failed"
-                    )
-                );
-
-            };
-
-
-            script.src =
-                API_URL
-                +
-                "?callback="
-                +
-                encodeURIComponent(
-                    callbackName
-                )
-                +
-                "&t="
-                +
-                Date.now();
-
-
-            document
-                .head
-                .appendChild(
-                    script
-                );
-
-        }
-    );
-
-}
-
-
-/* =====================================================
+/* =========================================================
    START
-===================================================== */
+========================================================= */
 
-loadDashboard()
-
-.catch(
-    function(error){
-
-        console.error(
-            "Dashboard Error:",
-            error
-        );
-
-
-        document
-            .getElementById(
-                "stockList"
-            )
-            .innerHTML = `
-
-                <div class="error-box">
-
-                    ❌ Unable to load dashboard data.
-
-                    <br><br>
-
-                    API is reachable, but GitHub
-                    could not read the response.
-
-                </div>
-
-            `;
-
-
-        document
-            .getElementById(
-                "productionList"
-            )
-            .innerHTML = `
-
-                <div class="error-box">
-
-                    ❌ API connection failed.
-
-                </div>
-
-            `;
-
-    }
-);
+loadDashboard();
 
 </script>
 
