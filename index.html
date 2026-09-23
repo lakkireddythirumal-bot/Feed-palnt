@@ -947,7 +947,11 @@ let DATA = {
     production: [],
 
     bags: [],
+        
+    feedUnitData: [],
 
+    feedUnitTotals: [],
+    
     productionTrend: [],
 
     usage: {},
@@ -2910,9 +2914,22 @@ function loadDashboard(){
                             )
                             ? apiData.stock
                             : [],
+                            
+                       feedUnitData:
+                              Array.isArray(
+                                  apiData.feedUnitData
+    )
+    ? apiData.feedUnitData
+    : [],
 
+                       feedUnitTotals:
+    Array.isArray(
+        apiData.feedUnitTotals
+    )
+    ? apiData.feedUnitTotals
+    : [],
 
-                        production:
+                       production:
                             Array.isArray(
                                 apiData.production
                             )
@@ -3070,6 +3087,12 @@ function loadDashboard(){
 
 loadDashboard()
 
+.then(
+    function(){
+        renderFeedUnit();
+    }
+)
+
 .catch(
     function(error){
 
@@ -3115,8 +3138,126 @@ loadDashboard()
 
     }
 );
+function renderFeedUnit() {
+
+    const data = Array.isArray(DATA.feedUnitData)
+        ? DATA.feedUnitData
+        : [];
+
+    const totals = Array.isArray(DATA.feedUnitTotals)
+        ? DATA.feedUnitTotals
+        : [];
+
+    console.log("FEED UNIT DATA:", data);
+    console.log("FEED UNIT TOTALS:", totals);
+}
 
 </script>
+<!-- =====================================================
+     FEED UNIT SECTION
+     ===================================================== -->
 
+<section class="section" id="feedUnitSection">
+
+    <div class="section-title">
+        <span>🏭 FEED UNIT</span>
+        <span id="feedUnitDate"></span>
+    </div>
+
+    <!-- FEED UNIT SUMMARY -->
+    <div class="summary-grid">
+
+        <div class="summary-card">
+            <div class="summary-icon">📦</div>
+            <div>
+                <div class="summary-label">Closing Stock</div>
+                <div class="summary-value" id="feedClosingTotal">0 MT</div>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-icon">⚙️</div>
+            <div>
+                <div class="summary-label">Production</div>
+                <div class="summary-value" id="feedProductionTotal">0 MT</div>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-icon">🚚</div>
+            <div>
+                <div class="summary-label">Dispatch</div>
+                <div class="summary-value" id="feedDispatchTotal">0 MT</div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- MATERIAL WISE CLOSING STOCK -->
+
+    <div class="card">
+
+        <div class="card-header">
+            <span>📦 Material-wise Closing Stock</span>
+        </div>
+
+        <div id="feedClosingList"></div>
+
+    </div>
+
+
+    <!-- MATERIAL WISE PRODUCTION -->
+
+    <div class="card">
+
+        <div class="card-header">
+            <span>⚙️ Material-wise Production</span>
+        </div>
+
+        <div id="feedProductionList"></div>
+
+    </div>
+
+
+    <!-- MATERIAL WISE DISPATCH -->
+
+    <div class="card">
+
+        <div class="card-header">
+            <span>🚚 Material-wise Dispatch</span>
+        </div>
+
+        <div id="feedDispatchList"></div>
+
+    </div>
+
+
+    <!-- MATERIAL WISE TRANSFER -->
+
+    <div class="card">
+
+        <div class="card-header">
+            <span>🔄 Material-wise Transfer</span>
+        </div>
+
+        <div id="feedTransferList"></div>
+
+    </div>
+
+
+    <!-- TOTAL TREND -->
+
+    <div class="card">
+
+        <div class="card-header">
+            <span>📈 Production vs Dispatch Trend</span>
+        </div>
+
+        <div id="feedTotalTrend"></div>
+
+    </div>
+
+</section>
 </body>
 </html>
