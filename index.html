@@ -1359,22 +1359,83 @@ function renderDashboard(){
         "<div style='color:#888'>No stock data</div>";
 
 
-    /* PRODUCTION */
+/* =====================================================
+   PRODUCTION → BAGS
+===================================================== */
 
-    const totalProduction =
-        DATA.production.reduce(
+const bagWeights = {
 
-            (total,row) =>
+    "LC CRUMBLE": 70,
 
-            total +
-            Number(
-                row.actual_output || 0
-            ),
+    "CHICK CR": 70,
 
-            0
+    "GCON CR": 50,
 
-        );
+    "PSC": 70,
 
+    "BFP": 70,
+
+    "LM /LM TP": 75,
+
+    "FM/PLM/YL": 75,
+
+    "BSC": 70,
+
+    "FC30.CR": 60,
+
+    "GCR": 70
+
+};
+
+
+function productionBags(product, actualOutput){
+
+    const key =
+        normalize(product);
+
+    const weight =
+        bagWeights[key];
+
+    if(
+        !weight ||
+        actualOutput === null ||
+        actualOutput === undefined
+    ){
+
+        return null;
+
+    }
+
+    return (
+        Number(actualOutput) * 1000
+    ) / weight;
+
+}
+
+
+const totalProductionBags =
+    DATA.production.reduce(
+
+        (total,row) => {
+
+            const bags =
+                productionBags(
+                    row.product,
+                    row.actual_output
+                );
+
+            return total +
+                (
+                    bags !== null
+                    ? bags
+                    : 0
+                );
+
+        },
+
+        0
+
+    );
 
     document
         .getElementById(
