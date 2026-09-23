@@ -1448,7 +1448,6 @@ function renderDashboard(){
 /* =====================================================
    PP BAGS
 ===================================================== */
-
 function renderPPBags(){
 
     if(
@@ -1463,7 +1462,6 @@ function renderPPBags(){
             .innerHTML =
             "<div style='color:#888'>No PP Bag data</div>";
 
-
         document
             .getElementById(
                 "bagClosing"
@@ -1476,11 +1474,52 @@ function renderPPBags(){
     }
 
 
-    const bag =
-        DATA.bags[
-            DATA.bags.length - 1
-        ];
+    /* =========================================
+       TOTAL ALL PP BAG PRODUCTS
+       ========================================= */
 
+    let totalOpening = 0;
+    let totalReceived = 0;
+    let totalIssue = 0;
+    let totalDamage = 0;
+    let totalClosing = 0;
+
+
+    DATA.bags.forEach(
+        row => {
+
+            totalOpening +=
+                Number(
+                    row.opening || 0
+                );
+
+            totalReceived +=
+                Number(
+                    row.received || 0
+                );
+
+            totalIssue +=
+                Number(
+                    row.issue || 0
+                );
+
+            totalDamage +=
+                Number(
+                    row.damage || 0
+                );
+
+            totalClosing +=
+                Number(
+                    row.closing || 0
+                );
+
+        }
+    );
+
+
+    /* =========================================
+       TOP PP BAG TOTAL
+       ========================================= */
 
     document
         .getElementById(
@@ -1488,9 +1527,13 @@ function renderPPBags(){
         )
         .textContent =
         fmt(
-            bag.closing
+            totalClosing
         );
 
+
+    /* =========================================
+       PP BAG CARD
+       ========================================= */
 
     document
         .getElementById(
@@ -1505,7 +1548,9 @@ function renderPPBags(){
                 </p>
 
                 <strong>
-                    ${fmt(bag.opening)}
+                    ${fmt(
+                        totalOpening
+                    )}
                 </strong>
 
             </div>
@@ -1518,7 +1563,9 @@ function renderPPBags(){
                 </p>
 
                 <strong>
-                    ${fmt(bag.received)}
+                    ${fmt(
+                        totalReceived
+                    )}
                 </strong>
 
             </div>
@@ -1531,7 +1578,9 @@ function renderPPBags(){
                 </p>
 
                 <strong>
-                    ${fmt(bag.issue)}
+                    ${fmt(
+                        totalIssue
+                    )}
                 </strong>
 
             </div>
@@ -1544,7 +1593,9 @@ function renderPPBags(){
                 </p>
 
                 <strong>
-                    ${fmt(bag.damage)}
+                    ${fmt(
+                        totalDamage
+                    )}
                 </strong>
 
             </div>
@@ -1557,7 +1608,9 @@ function renderPPBags(){
                 </p>
 
                 <strong>
-                    ${fmt(bag.closing)}
+                    ${fmt(
+                        totalClosing
+                    )}
                 </strong>
 
             </div>
@@ -1565,7 +1618,6 @@ function renderPPBags(){
         `;
 
 }
-
 
 /* =====================================================
    ALERTS
