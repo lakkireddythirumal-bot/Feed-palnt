@@ -1358,153 +1358,79 @@ function renderDashboard(){
 
         "<div style='color:#888'>No stock data</div>";
 
+/* PRODUCTION */
 
-/* =====================================================
-   PRODUCTION → BAGS
-===================================================== */
-
-const bagWeights = {
-
-    "LC CRUMBLE": 70,
-
-    "CHICK CR": 70,
-
-    "GCON CR": 50,
-
-    "PSC": 70,
-
-    "BFP": 70,
-
-    "LM /LM TP": 75,
-
-    "FM/PLM/YL": 75,
-
-    "BSC": 70,
-
-    "FC30.CR": 60,
-
-    "GCR": 70
-
-};
-
-
-function productionBags(product, actualOutput){
-
-    const key =
-        normalize(product);
-
-    const weight =
-        bagWeights[key];
-
-    if(
-        !weight ||
-        actualOutput === null ||
-        actualOutput === undefined
-    ){
-
-        return null;
-
-    }
-
-    return (
-        Number(actualOutput) * 1000
-    ) / weight;
-
-}
-
-
-const totalProductionBags =
+const totalProduction =
     DATA.production.reduce(
 
-        (total,row) => {
+        (total,row) =>
 
-            const bags =
-                productionBags(
-                    row.product,
-                    row.actual_output
-                );
-
-            return total +
-                (
-                    bags !== null
-                    ? bags
-                    : 0
-                );
-
-        },
+        total +
+        Number(
+            row.actual_output || 0
+        ),
 
         0
 
     );
 
-    document
-        .getElementById(
-            "productionTotal"
-        )
-        .textContent =
-        fmt(totalProduction)
-        +" T";
+
+document
+    .getElementById(
+        "productionTotal"
+    )
+    .textContent =
+    fmt(totalProduction)
+    +" T";
 
 
-    document
-        .getElementById(
-            "productionTotalMain"
-        )
-        .textContent =
-        fmt(totalProduction)
-        +" T";
+document
+    .getElementById(
+        "productionTotalMain"
+    )
+    .textContent =
+    fmt(totalProduction)
+    +" T";
 
 
-    document
-        .getElementById(
-            "productionList"
-        )
-        .innerHTML =
+document
+    .getElementById(
+        "productionList"
+    )
+    .innerHTML =
 
-        DATA.production.map(
-            row => `
+    DATA.production.map(
+        row => `
 
-                <div
-                    class="production-row"
-                    onclick="
-                    openProductDetails(
-                    '${escapeQuotes(
+            <div
+                class="production-row"
+                onclick="
+                openProductDetails(
+                '${escapeQuotes(
+                    row.product
+                )}'
+                )">
+
+                <span>
+                    ${escapeHtml(
                         row.product
-                    )}'
-                    )">
+                    )}
+                </span>
 
-                    <span>
-                        ${escapeHtml(
-                            row.product
-                        )}
-                    </span>
+                <strong>
+                    ${fmt(
+                        row.actual_output
+                    )} T
+                </strong>
 
-                    <strong>
-                        ${fmt(
-                            row.actual_output
-                        )} T
-                    </strong>
+            </div>
 
-                </div>
+        `
+    ).join("")
 
-            `
-        ).join("")
+    ||
 
-        ||
-
-        "<div style='color:#888'>No production data</div>";
-
-
-    renderPPBags();
-
-    renderAlerts();
-
-    renderTrends();
-
-    renderQuickView();
-
-}
-
+    "<div style='color:#888'>No production data</div>";
 
 /* =====================================================
    PP BAGS
