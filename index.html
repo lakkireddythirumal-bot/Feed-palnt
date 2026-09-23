@@ -3166,10 +3166,19 @@ function renderFeedUnit() {
         0
     );
 
-    const productionTotal = latestData.reduce(
-        (sum, row) =>
-            sum + Number(row.Production_Day_MT || 0),
-        0
+ const officialTotal =
+    totals.length > 0
+        ? totals[totals.length - 1]
+        : {};
+
+const productionTotal =
+    Number(
+        officialTotal.Production_Day_MT || 0
+    );
+
+const dispatchTotal =
+    Number(
+        officialTotal.Dispatch_Day_MT || 0
     );
 
     const dispatchTotal = latestData.reduce(
