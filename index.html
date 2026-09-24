@@ -430,23 +430,32 @@ function renderStock(){
   }).join("")||"<div class='empty'>No stock data</div>";
 }
 function premixReceivedRows(){
-  const rows=Array.isArray(DATA.feedUnitData)?DATA.feedUnitData:[];
   const latest={};
-  rows.forEach(r=>{
-    const p=clean(r.Product||r.product);
+  const rows=Array.isArray(DATA.stock)?DATA.stock:[];
+  rows.forEach(m=>{
+    const p=clean(m.material||m.Material||m.name);
     if(!p || !isPremixProduct(p)) return;
-    const transfer=num(r.Transfer_Day_MT??r.transfer_day_mt??r.Transfer??r.transfer);
-    if(transfer!==null && transfer>0) latest[normalize(p)]=r;
+    const tx=Array.isArray(m.transactions)?m.transactions:[];
+    const bmkl=tx.filter(t=>/BMKL|BOMMAKAL/i.test(tType(t)));
+    if(!bmkl.length) return;
+    let targetDate=clean(DATA.report_date);
+    if(!targetDate){
+      const dates=bmkl.map(t=>rowDate(t)).filter(Boolean).sort();
+      targetDate=dates.length?dates[dates.length-1]:"";
+    }
+    const dayRows=targetDate?bmkl.filter(t=>rowDate(t)===targetDate):bmkl.slice(-1);
+    const qty=dayRows.reduce((sum,t)=>sum+tVal(t),0);
+    latest[normalize(p)]={Product:p,Transfer_Day_MT:qty};
   });
   return Object.values(latest);
 }
 function renderPremixReceived(){
   const list=document.getElementById("premixReceivedList");
   if(!list)return;
-  const rows=premixReceivedRows();
+  const rows=premixReceivedRows().filter(r=>(num(r.Transfer_Day_MT)||0)>0);
   list.innerHTML=rows.map(r=>{
     const p=r.Product||r.product||"--";
-    const received=num(r.Transfer_Day_MT??r.transfer_day_mt??r.Transfer??r.transfer)||0;
+    const received=num(r.Transfer_Day_MT)||0;
     return `<div class="feed-row" onclick="openFeedProductDetails('${jsq(p)}')"><div><div class="row-name">${esc(p)}</div><div class="prod-meta">Transfer from Bommakal</div></div><div class="row-right"><strong>${fmt(received)} KG</strong><small>Received →</small></div></div>`;
   }).join("")||"<div class='empty'>No Premix received from Bommakal today.</div>";
 }
@@ -549,10 +558,10 @@ function renderRawCategory(tab){
   }else{
     let html=mats.map(m=>{const v=rawTotal(m,tab);return `<div class="feed-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmt(v)} MT</strong><small>${esc(tab)} • tap for details</small></div></div>`}).join("");
     if(tab==="PURCHASE"){
-      const premixes=Array.isArray(DATA.feedUnitData)?DATA.feedUnitData.filter(r=>isPremixProduct(r.Product||r.product)):[];
+      const premixes=premixReceivedRows();
       html+=premixes.map(r=>{
         const p=r.Product||r.product||"--";
-        const qty=num(r.Transfer_Day_MT??r.transfer_day_mt??r.Transfer??r.transfer)||0;
+        const qty=num(r.Transfer_Day_MT)||0;
         return `<div class="feed-row" onclick="openFeedProductDetails('${jsq(p)}')"><div><div class="row-name">${esc(p)}</div><div class="prod-meta">Transfer from Bommakal</div></div><div class="row-right"><strong>${fmt(qty)} KG</strong><small>Received →</small></div></div>`;
       }).join("");
     }
@@ -585,10 +594,10 @@ function openStockDetails(){showModal("Raw Material Stock",getMaterials().map(m=
 function openRawCategory(tab){
   let html=getMaterials().map(m=>`<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmt(rawTotal(m,tab))} MT</strong><small>Tap for complete details</small></div></div>`).join("");
   if(tab==="PURCHASE"){
-    const premixes=Array.isArray(DATA.feedUnitData)?DATA.feedUnitData.filter(r=>isPremixProduct(r.Product||r.product)):[];
+    const premixes=premixReceivedRows();
     html+=premixes.map(r=>{
       const p=r.Product||r.product||"--";
-      const qty=num(r.Transfer_Day_MT??r.transfer_day_mt??r.Transfer??r.transfer)||0;
+      const qty=num(r.Transfer_Day_MT)||0;
       return `<div class="feed-row" onclick="closeModal();openFeedProductDetails('${jsq(p)}')"><div><div class="row-name">${esc(p)}</div><div class="prod-meta">Transfer from Bommakal</div></div><div class="row-right"><strong>${fmt(qty)} KG</strong><small>Received →</small></div></div>`;
     }).join("");
   }
