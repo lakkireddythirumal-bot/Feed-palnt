@@ -433,7 +433,9 @@ function renderFeedUnit(){
     const prod=num(r.Production_Day_MT??r.production_day_mt??(r.Production||r.production));
     const disp=num(r.Dispatch_Day_MT??r.dispatch_day_mt??(r.Dispatch||r.dispatch));
     const close=num(r.Closing_Day_MT??r.closing_day_mt??(r.Closing||r.closing));
-    return `<div class="feed-row" onclick="openFeedProductDetails('${jsq(p)}')"><div><div class="row-name">${esc(p)}</div><div class="prod-meta">Closing ${fmtFeed(close,p)}</div></div><div class="row-right"><strong>${fmtFeed(prod,p)}</strong><small>Dispatch ${fmtFeed(disp,p)}</small></div></div>`;
+    const transfer=num(r.Transfer_Day_MT??r.transfer_day_mt??r.Transfer??r.transfer);
+    const received=isPremixProduct(p)?transfer:null;
+    return `<div class="feed-row" onclick="openFeedProductDetails('${jsq(p)}')"><div><div class="row-name">${esc(p)}</div><div class="prod-meta">Closing ${fmtFeed(close,p)}${received!==null?` • Received ${fmtFeed(received,p)}`:""}</div></div><div class="row-right"><strong>${fmtFeed(prod,p)}</strong><small>Dispatch ${fmtFeed(disp,p)}</small></div></div>`;
   }).join("");
 }
 function renderProduction(){
@@ -565,7 +567,7 @@ function openFeedProductDetails(product){
   const rows=(Array.isArray(DATA.feedUnitData)?DATA.feedUnitData:[]).filter(r=>normalize(r.Product||r.product)===normalize(product));
   if(!rows.length){showModal(product,"<div class='empty'>No Feed Unit product data in API response.</div>");return}
   const r=rows[rows.length-1];
-  let html=`<div class="detail-section"><h3>${esc(product)}</h3>${detail("Closing Day",fmtFeed(r.Closing_Day_MT??r.closing_day_mt??r.Closing??r.closing,product))}${detail("Production Day",fmtFeed(r.Production_Day_MT??r.production_day_mt??r.Production??r.production,product))}${detail("Dispatch Day",fmtFeed(r.Dispatch_Day_MT??r.dispatch_day_mt??r.Dispatch??r.dispatch,product))}${detail("Transfer Day",fmtFeed(r.Transfer_Day_MT??r.transfer_day_mt??r.Transfer??r.transfer,product))}${detail("Production Month",fmtFeed(r.Production_Month_MT??r.production_month_mt,product))}${detail("Dispatch Month",fmtFeed(r.Dispatch_Month_MT??r.dispatch_month_mt,product))}</div>`;
+  let html=`<div class="detail-section"><h3>${esc(product)}</h3>${detail("Closing Day",fmtFeed(r.Closing_Day_MT??r.closing_day_mt??r.Closing??r.closing,product))}${detail("Production Day",fmtFeed(r.Production_Day_MT??r.production_day_mt??r.Production??r.production,product))}${detail("Dispatch Day",fmtFeed(r.Dispatch_Day_MT??r.dispatch_day_mt??r.Dispatch??r.dispatch,product))}${isPremixProduct(product)?detail("Received from Bommakal",fmtFeed(r.Transfer_Day_MT??r.transfer_day_mt??r.Transfer??r.transfer,product)):""}${detail("Transfer Day",fmtFeed(r.Transfer_Day_MT??r.transfer_day_mt??r.Transfer??r.transfer,product))}${detail("Production Month",fmtFeed(r.Production_Month_MT??r.production_month_mt,product))}${detail("Dispatch Month",fmtFeed(r.Dispatch_Month_MT??r.dispatch_month_mt,product))}</div>`;
   if(rows.length>1){html+=`<div class="detail-section"><h3>Available records</h3>`+rows.map(z=>`<div class="transaction">${detail("Date",z.Report_Date||z.report_date||"--")}${detail("Production",fmtFeed(z.Production_Day_MT??z.production_day_mt,product))}${detail("Dispatch",fmtFeed(z.Dispatch_Day_MT??z.dispatch_day_mt,product))}${detail("Closing",fmtFeed(z.Closing_Day_MT??z.closing_day_mt,product))}</div>`).join("")+"</div>"}
   showModal(product,html);
 }
