@@ -233,12 +233,19 @@ function feedField(r,key){
   for(const k of (map[key]||[key])){const v=num(r?.[k]);if(v!==null)return v;}
   return null;
 }
-function latestTotal(key){
-  const x=Array.isArray(DATA.feedUnitTotals)?(DATA.feedUnitTotals[0]||{}):(DATA.feedUnitTotals||{});
-  const direct=feedField(x,key);
-  if(direct!==null)return direct;
+function latestFeedRows(){
   const rows=Array.isArray(DATA.feedUnitData)?DATA.feedUnitData:[];
-  return rows.reduce((sum,r)=>{
+  const latest={};
+  rows.forEach(r=>{
+    const p=clean(r.Product||r.product);
+    if(p)latest[normalize(p)]=r;
+  });
+  return Object.values(latest);
+}
+function latestTotal(key){
+  // Calculate from the latest record of each product.
+  // PREMIX values are stored in KG, so convert KG -> MT only for the total.
+  return latestFeedRows().reduce((sum,r)=>{
     const product=r.Product||r.product||"";
     return sum+feedValueInMT(feedField(r,key),product);
   },0);
@@ -509,7 +516,7 @@ function openFeedTotals(type){
   const label={production_day:"Day Production",production_month:"Month Production",dispatch_day:"Day Dispatch",dispatch_month:"Month Dispatch"}[type]||"Feed Unit";
   const key={production_day:"Production_Day_MT",production_month:"Production_Month_MT",dispatch_day:"Dispatch_Day_MT",dispatch_month:"Dispatch_Month_MT"}[type];
   const total=latestTotal(key);
-  const rows=Array.isArray(DATA.feedUnitData)?DATA.feedUnitData:[];
+  const rows=latestFeedRows();
   showModal(label,`<div class="detail-section">${detail("Total",fmtMT(total))}</div>`+rows.map(r=>{const p=r.Product||r.product||"--";const v=feedField(r,key);return `<div class="feed-row" onclick="closeModal();openFeedProductDetails('${jsq(p)}')"><div class="row-name">${esc(p)}</div><div class="row-right"><strong>${fmtFeed(v,p)}</strong><small>Product details →</small></div></div>`}).join(""));
 }
 function openFeedProductDetails(product){
