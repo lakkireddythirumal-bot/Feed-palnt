@@ -3642,21 +3642,305 @@ document
 
 
 /* =====================================================
-   API LOAD
+   API LOAD + CACHE + RETRY + PULL TO REFRESH
 ===================================================== */
 
-function loadDashboard(){
+const CACHE_KEY = "managerDashboardLastData";
+
+let isLoadingDashboard = false;
+let pullStartY = 0;
+let isPulling = false;
+
+
+/* =====================================================
+   SAVE CACHE
+===================================================== */
+
+function saveDashboardCache(apiData){
+
+    try{
+
+        localStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify({
+                saved_at: new Date().toISOString(),
+                data: apiData
+            })
+        );
+
+    }
+    catch(error){
+
+        console.warn(
+            "Dashboard cache save failed:",
+            error
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   READ CACHE
+===================================================== */
+
+function getDashboardCache(){
+
+    try{
+
+        const saved =
+            localStorage.getItem(
+                CACHE_KEY
+            );
+
+        if(!saved){
+            return null;
+        }
+
+        const parsed =
+            JSON.parse(saved);
+
+        if(
+            !parsed ||
+            !parsed.data
+        ){
+
+            return null;
+
+        }
+
+        return parsed;
+
+    }
+    catch(error){
+
+        console.warn(
+            "Dashboard cache read failed:",
+            error
+        );
+
+        return null;
+
+    }
+
+}
+
+
+/* =====================================================
+   CACHE STATUS
+===================================================== */
+
+function showCacheStatus(){
+
+    let status =
+        document.getElementById(
+            "dashboardCacheStatus"
+        );
+
+
+    if(!status){
+
+        status =
+            document.createElement(
+                "div"
+            );
+
+        status.id =
+            "dashboardCacheStatus";
+
+        status.style.cssText = `
+            position:fixed;
+            top:8px;
+            left:50%;
+            transform:translateX(-50%);
+            z-index:1000;
+            background:#fff8d9;
+            color:#7a6500;
+            padding:6px 12px;
+            border-radius:20px;
+            font-size:11px;
+            box-shadow:0 2px 8px rgba(0,0,0,.12);
+        `;
+
+        document.body.appendChild(
+            status
+        );
+
+    }
+
+
+    status.textContent =
+        "🟡 Showing last successful data";
+
+    status.style.display =
+        "block";
+
+}
+
+
+function hideCacheStatus(){
+
+    const status =
+        document.getElementById(
+            "dashboardCacheStatus"
+        );
+
+    if(status){
+
+        status.style.display =
+            "none";
+
+    }
+
+}
+
+
+/* =====================================================
+   APPLY API DATA
+===================================================== */
+
+function applyDashboardData(apiData){
+
+    if(
+        !apiData ||
+        apiData.status !== "success"
+    ){
+
+        throw new Error(
+            "Invalid API response"
+        );
+
+    }
+
+
+    DATA={
+
+        stock:
+            Array.isArray(
+                apiData.stock
+            )
+            ? apiData.stock
+            : [],
+
+
+        production:
+            Array.isArray(
+                apiData.production
+            )
+            ? apiData.production
+            : [],
+
+
+        bags:
+            Array.isArray(
+                apiData.pp_bags
+            )
+            ? apiData.pp_bags
+            : [],
+
+
+        feedUnitData:
+            Array.isArray(
+                apiData.feedUnitData
+            )
+            ? apiData.feedUnitData
+            : [],
+
+
+        feedUnitTotals:
+            Array.isArray(
+                apiData.feedUnitTotals
+            )
+            ? apiData.feedUnitTotals
+            : [],
+
+
+        productionTrend:
+            Array.isArray(
+                apiData.productionTrend
+            )
+            ? apiData.productionTrend
+            : [],
+
+
+        usage:
+            apiData.usage &&
+            typeof apiData.usage === "object"
+            ? apiData.usage
+            : {},
+
+
+        reorder_items:
+            Array.isArray(
+                apiData.reorder_items
+            )
+            ? apiData.reorder_items
+            : [],
+
+
+        consumption:
+            apiData.consumption ??
+            null,
+
+
+        efficiency:
+            apiData.efficiency ??
+            null,
+
+
+        processLoss:
+            apiData.processLoss ??
+            null,
+
+
+        report_date:
+            apiData.report_date ??
+            null
+
+    };
+
+
+    if(DATA.report_date){
+
+        document
+            .getElementById(
+                "reportDate"
+            )
+            .textContent =
+            DATA.report_date;
+
+    }
+
+
+    renderDashboard();
+
+    renderFeedUnit();
+
+    renderQuickView();
+
+}
+
+
+/* =====================================================
+   API REQUEST
+===================================================== */
+
+function requestDashboardAPI(){
 
     return new Promise(
-        function(
-            resolve,
-            reject
-        ){
+        function(resolve,reject){
 
             const callbackName =
                 "managerDashboardCallback_"
                 +
-                Date.now();
+                Date.now()
+                +
+                "_"
+                +
+                Math.random()
+                .toString(36)
+                .slice(2);
 
 
             const script =
@@ -3692,6 +3976,30 @@ function loadDashboard(){
             }
 
 
+            const timeout =
+                setTimeout(
+                    function(){
+
+                        if(finished){
+                            return;
+                        }
+
+
+                        finished=true;
+
+                        cleanup();
+
+                        reject(
+                            new Error(
+                                "API timeout"
+                            )
+                        );
+
+                    },
+                    12000
+                );
+
+
             window[
                 callbackName
             ] =
@@ -3703,6 +4011,13 @@ function loadDashboard(){
 
 
                 finished=true;
+
+                clearTimeout(
+                    timeout
+                );
+
+
+                cleanup();
 
 
                 try{
@@ -3720,126 +4035,12 @@ function loadDashboard(){
                     }
 
 
-                    DATA={
-
-                        stock:
-                            Array.isArray(
-                                apiData.stock
-                            )
-                            ? apiData.stock
-                            : [],
-
-
-                        production:
-                            Array.isArray(
-                                apiData.production
-                            )
-                            ? apiData.production
-                            : [],
-
-
-                        bags:
-                            Array.isArray(
-                                apiData.pp_bags
-                            )
-                            ? apiData.pp_bags
-                            : [],
-
-
-                        feedUnitData:
-                            Array.isArray(
-                                apiData.feedUnitData
-                            )
-                            ? apiData.feedUnitData
-                            : [],
-
-
-                        feedUnitTotals:
-                            Array.isArray(
-                                apiData.feedUnitTotals
-                            )
-                            ? apiData.feedUnitTotals
-                            : [],
-
-
-                        productionTrend:
-                            Array.isArray(
-                                apiData.productionTrend
-                            )
-                            ? apiData.productionTrend
-                            : [],
-
-
-                        usage:
-                            apiData.usage &&
-                            typeof apiData.usage ===
-                            "object"
-                            ? apiData.usage
-                            : {},
-
-
-                        reorder_items:
-                            Array.isArray(
-                                apiData.reorder_items
-                            )
-                            ? apiData.reorder_items
-                            : [],
-
-
-                        consumption:
-                            apiData.consumption ??
-                            null,
-
-
-                        efficiency:
-                            apiData.efficiency ??
-                            null,
-
-
-                        processLoss:
-                            apiData.processLoss ??
-                            null,
-
-
-                        report_date:
-                            apiData.report_date ??
-                            null
-
-                    };
-
-
-                    if(
-                        DATA.report_date
-                    ){
-
-                        document
-                            .getElementById(
-                                "reportDate"
-                            )
-                            .textContent =
-                            DATA.report_date;
-
-                    }
-
-
-                    renderDashboard();
-
-                    renderFeedUnit();
-
-                    renderQuickView();
-
-
-                    cleanup();
-
-
                     resolve(
                         apiData
                     );
 
                 }
                 catch(error){
-
-                    cleanup();
 
                     reject(error);
 
@@ -3857,6 +4058,11 @@ function loadDashboard(){
 
 
                 finished=true;
+
+                clearTimeout(
+                    timeout
+                );
+
 
                 cleanup();
 
@@ -3897,6 +4103,277 @@ function loadDashboard(){
 
 
 /* =====================================================
+   RETRY
+===================================================== */
+
+function wait(ms){
+
+    return new Promise(
+        resolve =>
+        setTimeout(
+            resolve,
+            ms
+        )
+    );
+
+}
+
+
+async function requestWithRetry(){
+
+    try{
+
+        return await requestDashboardAPI();
+
+    }
+    catch(firstError){
+
+        console.warn(
+            "API first attempt failed. Retrying in 1 sec..."
+        );
+
+    }
+
+
+    await wait(1000);
+
+
+    try{
+
+        return await requestDashboardAPI();
+
+    }
+    catch(secondError){
+
+        console.warn(
+            "API second attempt failed. Retrying in 2 sec..."
+        );
+
+    }
+
+
+    await wait(2000);
+
+
+    return await requestDashboardAPI();
+
+}
+
+
+/* =====================================================
+   LOAD DASHBOARD
+===================================================== */
+
+async function loadDashboard(
+    options = {}
+){
+
+    const forceRefresh =
+        !!options.forceRefresh;
+
+
+    if(isLoadingDashboard){
+
+        return;
+
+    }
+
+
+    isLoadingDashboard=true;
+
+
+    /*
+       FIRST:
+       Show cached data immediately
+       unless this is a manual refresh
+    */
+
+    if(!forceRefresh){
+
+        const cached =
+            getDashboardCache();
+
+
+        if(cached){
+
+            try{
+
+                applyDashboardData(
+                    cached.data
+                );
+
+                showCacheStatus();
+
+            }
+            catch(error){
+
+                console.warn(
+                    "Cached dashboard data invalid:",
+                    error
+                );
+
+            }
+
+        }
+
+    }
+
+
+    /*
+       API refresh
+    */
+
+    try{
+
+        const apiData =
+            await requestWithRetry();
+
+
+        applyDashboardData(
+            apiData
+        );
+
+
+        saveDashboardCache(
+            apiData
+        );
+
+
+        hideCacheStatus();
+
+
+        return apiData;
+
+    }
+    catch(error){
+
+        console.error(
+            "Dashboard API failed:",
+            error
+        );
+
+
+        const cached =
+            getDashboardCache();
+
+
+        if(cached){
+
+            try{
+
+                applyDashboardData(
+                    cached.data
+                );
+
+                showCacheStatus();
+
+                return cached.data;
+
+            }
+            catch(cacheError){
+
+                console.error(
+                    "Cached data failed:",
+                    cacheError
+                );
+
+            }
+
+        }
+
+
+        throw error;
+
+    }
+    finally{
+
+        isLoadingDashboard=false;
+
+    }
+
+}
+
+
+/* =====================================================
+   PULL TO REFRESH
+===================================================== */
+
+document.addEventListener(
+    "touchstart",
+    function(event){
+
+        if(
+            window.scrollY <= 5
+        ){
+
+            pullStartY =
+                event.touches[0].clientY;
+
+            isPulling=true;
+
+        }
+
+    },
+    {
+        passive:true
+    }
+);
+
+
+document.addEventListener(
+    "touchend",
+    function(event){
+
+        if(!isPulling){
+            return;
+        }
+
+
+        isPulling=false;
+
+
+        const endY =
+            event.changedTouches[0].clientY;
+
+
+        const distance =
+            endY -
+            pullStartY;
+
+
+        /*
+           Pull down more than 80px
+        */
+
+        if(
+            distance > 80 &&
+            window.scrollY <= 5
+        ){
+
+            loadDashboard({
+                forceRefresh:true
+            })
+            .catch(
+                function(error){
+
+                    console.error(
+                        "Manual refresh failed:",
+                        error
+                    );
+
+                }
+            );
+
+        }
+
+    },
+    {
+        passive:true
+    }
+);
+
+
+/* =====================================================
    START
 ===================================================== */
 
@@ -3909,6 +4386,49 @@ loadDashboard()
             "Dashboard Error:",
             error
         );
+
+
+        document
+            .getElementById(
+                "stockList"
+            )
+            .innerHTML = `
+
+                <div class="error-box">
+
+                    ❌ Unable to load dashboard data.
+
+                    <br><br>
+
+                    API connection failed.
+                    Please pull down to refresh.
+
+                </div>
+
+            `;
+
+
+        document
+            .getElementById(
+                "productionList"
+            )
+            .innerHTML = `
+
+                <div class="error-box">
+
+                    ❌ API connection failed.
+
+                    <br><br>
+
+                    Please pull down to refresh.
+
+                </div>
+
+            `;
+
+    }
+);
+       
 
 
         document
