@@ -102,9 +102,15 @@ canvas{width:100%;height:150px;display:block}
     </div>
   </div>
 
+  <!-- PREMIXES RECEIVED FROM BOMMAKAL -->
+  <div class="card">
+    <div class="card-title"><h2>🧪 Premixes</h2><span>Received from Bommakal • KG</span></div>
+    <div id="premixReceivedList"><div class="empty">Loading...</div></div>
+  </div>
+
   <!-- FEED UNIT -->
   <div class="card">
-    <div class="card-title"><h2>🌾 Feed Unit</h2><span>Product-wise details</span></div>
+    <div class="card-title"><h2>🌾 Feed Unit</h2><span>Only received Premixes</span></div>
     <div id="feedUnitList"><div class="empty">Loading...</div></div>
   </div>
 
@@ -375,6 +381,7 @@ function manualRefresh(){refreshData()}
 ===================================================== */
 function renderDashboard(){
   renderQuick();
+  renderPremixReceived();
   renderFeedUnit();
   renderStock();
   renderProduction();
@@ -422,6 +429,27 @@ function renderStock(){
     </div>`;
   }).join("")||"<div class='empty'>No stock data</div>";
 }
+function premixReceivedRows(){
+  const rows=Array.isArray(DATA.feedUnitData)?DATA.feedUnitData:[];
+  const latest={};
+  rows.forEach(r=>{
+    const p=clean(r.Product||r.product);
+    if(!p || !isPremixProduct(p)) return;
+    const transfer=num(r.Transfer_Day_MT??r.transfer_day_mt??r.Transfer??r.transfer);
+    if(transfer!==null && transfer>0) latest[normalize(p)]=r;
+  });
+  return Object.values(latest);
+}
+function renderPremixReceived(){
+  const list=document.getElementById("premixReceivedList");
+  if(!list)return;
+  const rows=premixReceivedRows();
+  list.innerHTML=rows.map(r=>{
+    const p=r.Product||r.product||"--";
+    const received=num(r.Transfer_Day_MT??r.transfer_day_mt??r.Transfer??r.transfer)||0;
+    return `<div class="feed-row" onclick="openFeedProductDetails('${jsq(p)}')"><div><div class="row-name">${esc(p)}</div><div class="prod-meta">Transfer from Bommakal</div></div><div class="row-right"><strong>${fmt(received)} KG</strong><small>Received →</small></div></div>`;
+  }).join("")||"<div class='empty'>No Premix received from Bommakal today.</div>";
+}
 function renderFeedUnit(){
   const rows=Array.isArray(DATA.feedUnitData)?DATA.feedUnitData:[];
   const list=document.getElementById("feedUnitList");
@@ -433,11 +461,10 @@ function renderFeedUnit(){
     const prod=num(r.Production_Day_MT??r.production_day_mt??(r.Production||r.production));
     const disp=num(r.Dispatch_Day_MT??r.dispatch_day_mt??(r.Dispatch||r.dispatch));
     const close=num(r.Closing_Day_MT??r.closing_day_mt??(r.Closing||r.closing));
-    const transfer=num(r.Transfer_Day_MT??r.transfer_day_mt??r.Transfer??r.transfer);
-    const received=isPremixProduct(p)?transfer:null;
-    return `<div class="feed-row" onclick="openFeedProductDetails('${jsq(p)}')"><div><div class="row-name">${esc(p)}</div><div class="prod-meta">Closing ${fmtFeed(close,p)}${received!==null?` • Received ${fmtFeed(received,p)}`:""}</div></div><div class="row-right"><strong>${fmtFeed(prod,p)}</strong><small>Dispatch ${fmtFeed(disp,p)}</small></div></div>`;
+    return `<div class="feed-row" onclick="openFeedProductDetails('${jsq(p)}')"><div><div class="row-name">${esc(p)}</div><div class="prod-meta">Closing ${fmtFeed(close,p)}</div></div><div class="row-right"><strong>${fmtFeed(prod,p)}</strong><small>Dispatch ${fmtFeed(disp,p)}</small></div></div>`;
   }).join("");
 }
+
 function renderProduction(){
   const total=DATA.production.reduce((a,r)=>a+(num(r.actual_output)||0),0);
   setText("productionTotalMain",fmtBags(total));
@@ -516,11 +543,24 @@ function rawTotal(material,tab){
 function renderRawCategory(tab){
   const el=document.getElementById("rawCategoryList");
   const mats=getMaterials();
+  let html="";
   if(tab==="STOCK"){
-    el.innerHTML=mats.map(m=>`<div class="feed-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmt(num(getMaterial(m)?.closing)||0)} ${esc(getMaterial(m)?.unit||"MT")}</strong><small>Tap for complete details</small></div></div>`).join("")||"<div class='empty'>No data</div>";
+    html=mats.map(m=>`<div class="feed-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmt(num(getMaterial(m)?.closing)||0)} ${esc(getMaterial(m)?.unit||"MT")}</strong><small>Tap for complete details</small></div></div>`).join("");
   }else{
-    el.innerHTML=mats.map(m=>{const v=rawTotal(m,tab);return `<div class="feed-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmt(v)} MT</strong><small>${esc(tab)} • tap for details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
+    html=mats.map(m=>{const v=rawTotal(m,tab);return `<div class="feed-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmt(v)} MT</strong><small>${esc(tab)} • tap for details</small></div></div>`}).join("");
+    // Premix transfers from Bommakal are maintained in Feed Unit data, not RM stock.
+    // Show them here for both Received and Transfer views, in KG.
+    if(tab==="PURCHASE" || tab==="TRANSFER"){
+      const premix=premixReceivedRows();
+      html += premix.map(r=>{
+        const p=r.Product||r.product||"--";
+        const received=num(r.Transfer_Day_MT??r.transfer_day_mt??r.Transfer??r.transfer)||0;
+        const label=tab==="PURCHASE"?"Received from Bommakal":"Transfer from Bommakal";
+        return `<div class="feed-row" onclick="openFeedProductDetails('${jsq(p)}')"><div><div class="row-name">${esc(p)}</div><div class="prod-meta">${label}</div></div><div class="row-right"><strong>${fmt(received)} KG</strong><small>${tab==="PURCHASE"?"Received":"Transfer"} →</small></div></div>`;
+      }).join("");
+    }
   }
+  el.innerHTML=html||"<div class='empty'>No data</div>";
 }
 
 /* =====================================================
@@ -545,7 +585,19 @@ function openMaterialDetails(material){
   showModal(material,html);
 }
 function openStockDetails(){showModal("Raw Material Stock",getMaterials().map(m=>{const x=getMaterial(m);return `<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmt(x?.closing)} ${esc(x?.unit||"MT")}</strong><small>Details →</small></div></div>`}).join("")||"<div class='empty'>No stock data</div>")}
-function openRawCategory(tab){showModal(tab==="PURCHASE"?"Raw Material Received":("Raw Material "+tab),getMaterials().map(m=>`<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmt(rawTotal(m,tab))} MT</strong><small>Tap for complete details</small></div></div>`).join("")||"<div class='empty'>No data</div>")}
+function openRawCategory(tab){
+  let html=getMaterials().map(m=>`<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmt(rawTotal(m,tab))} MT</strong><small>Tap for complete details</small></div></div>`).join("");
+  if(tab==="PURCHASE" || tab==="TRANSFER"){
+    const premix=premixReceivedRows();
+    html += premix.map(r=>{
+      const p=r.Product||r.product||"--";
+      const received=num(r.Transfer_Day_MT??r.transfer_day_mt??r.Transfer??r.transfer)||0;
+      const label=tab==="PURCHASE"?"Received from Bommakal":"Transfer from Bommakal";
+      return `<div class="feed-row" onclick="closeModal();openFeedProductDetails('${jsq(p)}')"><div><div class="row-name">${esc(p)}</div><div class="prod-meta">${label}</div></div><div class="row-right"><strong>${fmt(received)} KG</strong><small>${tab==="PURCHASE"?"Received":"Transfer"} →</small></div></div>`;
+    }).join("");
+  }
+  showModal(tab==="PURCHASE"?"Raw Material Received":("Raw Material "+tab),html||"<div class='empty'>No data</div>");
+}
 function openProductionDetails(){showModal("Production",DATA.production.map(r=>`<div class="feed-row" onclick="closeModal();openProductDetails('${jsq(r.product)}')"><div class="row-name">${esc(r.product)}</div><div class="row-right"><strong>${fmtBags(r.actual_output)}</strong><small>Output ${fmt(r.output_percentage)}%</small></div></div>`).join("")||"<div class='empty'>No production data</div>")}
 function packingFromRemarks(v){const m=clean(v).match(/(\d+(?:\.\d+)?)\s*(?:bags?|Bags?).*?(\d+(?:\.\d+)?)\s*kg/i);return m?`${m[1]} Bags × ${m[2]} kg/bag`:clean(v)}
 function openProductDetails(product){
