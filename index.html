@@ -29,7 +29,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-s
 .mini{background:#f7f8fa;border-radius:12px;padding:7px;cursor:pointer}
 .mini p{font-size:10px;color:#777}.mini strong{display:block;font-size:14px;margin-top:2px}
 .stock-table{overflow:hidden;border-radius:12px}
-.stock-head,.stock-row{display:grid;grid-template-columns:minmax(0,1.75fr) .78fr .78fr .78fr .62fr;gap:7px;align-items:center}
+.stock-head,.stock-row{display:grid;grid-template-columns:1.25fr .85fr .9fr .75fr .85fr;gap:6px;align-items:center}
 .stock-head{font-size:10px;color:#888;padding:7px 4px;background:#f7f8fa}
 .stock-row{padding:8px 4px;border-bottom:1px solid #f0f0f0;font-size:11px;cursor:pointer}
 .stock-row:last-child{border-bottom:0}.stock-row strong{font-size:13px}.stock-row span:not(.status-symbol){font-size:12px}
@@ -87,13 +87,6 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 .row-name{line-height:1.25}.row-right strong{font-variant-numeric:tabular-nums}
 .stock-row{min-height:43px;padding:7px 3px}
 .stock-row strong,.stock-row span{font-variant-numeric:tabular-nums}
-.reorder-material-wrap{min-width:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
-.reorder-material{display:block;white-space:normal;overflow-wrap:anywhere}
-.avg-sub{display:block;color:#7b808b;font-size:10.5px;line-height:1.1;margin-top:4px;white-space:nowrap}
-.stock-head>span:not(:first-child){text-align:right}
-.stock-row>span{text-align:right;white-space:nowrap}
-.stock-row>span:last-child{text-align:center}
-
 .status-symbol{font-size:14px;width:24px;height:24px;line-height:24px;border-radius:8px;background:#f3f4f6}
 .status-symbol.good{background:#e9f8ef}.status-symbol.warn{background:#fff5dc}.status-symbol.bad{background:#ffeded}
 .premix-row{min-height:45px}.premix-total{padding-bottom:1px}
@@ -137,6 +130,7 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 @media(min-width:700px){.desktop-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.desktop-grid>.card{margin-bottom:0}}
 @media(max-width:520px){.stock-head,.stock-row{grid-template-columns:minmax(0,2.2fr) .9fr .75fr .7fr .78fr;gap:5px}.stock-row>span{font-size:10px}.status-text{font-size:8.5px!important}.stock-row strong{font-size:11.5px}}
 </style>
+<style id="reorder-ui-polish">.stock-row .reorder-material,.stock-row strong.reorder-material{font-size:13px!important;font-weight:500!important;line-height:1.15!important;letter-spacing:0!important}.stock-row .avg-sub{font-size:9.5px!important;font-weight:400!important;color:#858a94!important;line-height:1.05!important;margin-top:3px!important}.stock-row>span{font-size:12px!important;font-weight:700!important;line-height:1.1!important;white-space:nowrap}.stock-row>span:last-child{font-size:9px!important;font-weight:700!important;letter-spacing:.15px}.stock-head,.stock-row{grid-template-columns:minmax(0,1.72fr) .82fr .72fr .82fr .58fr!important;column-gap:9px!important}.stock-head{font-size:9.5px!important;letter-spacing:.15px}.stock-row{min-height:52px!important;padding:7px 0!important}.reorder-material-wrap{min-width:0;padding-right:3px}@media(max-width:520px){.stock-head,.stock-row{grid-template-columns:minmax(0,1.62fr) .82fr .72fr .82fr .56fr!important;column-gap:6px!important}.stock-row .reorder-material,.stock-row strong.reorder-material{font-size:12px!important}.stock-row .avg-sub{font-size:9px!important}.stock-row>span{font-size:11.5px!important}.stock-row>span:last-child{font-size:8px!important}}</style>
 </head>
 <body>
 <div class="container">
@@ -185,7 +179,7 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
     <div class="card">
       <div class="card-title"><h2>📦 Raw Material Reorder</h2><span>Tap material</span></div>
       <div class="stock-table">
-        <div class="stock-head"><span>Material</span><span>Stock</span><span>Cover</span><span>Reorder</span><span>Status</span></div>
+        <div class="stock-head"><span>Material</span><span>Stock</span><span>Avg/Day</span><span>Cover</span><span>Status</span></div>
         <div id="stockList"><div class="empty">Loading...</div></div>
       </div>
       <div class="small-note">Avg/Day uses the consumption history available from the API. Reorder Level = Avg Daily Consumption × Safety Days. Default Safety Days is 7 and can be changed in the code.</div>
@@ -555,25 +549,10 @@ function stockStatus(closing,avg){
 function renderStock(){
   const list=document.getElementById("stockList");
   const mats=getMaterials();
-  list.innerHTML=mats.slice().sort((a,b)=>{
-    const av=num(getMaterial(a)?.closing)||0,bv=num(getMaterial(b)?.closing)||0;
-    return (bv>0)-(av>0)||bv-av;
-  }).map(m=>{
-    const x=getMaterial(m);
-    const closing=num(x?.closing)||0;
-    const avg=avgConsumption(m);
-    const s=stockStatus(closing,avg);
-    const reorder=avg*DEFAULT_SAFETY_DAYS;
-    const unit=x?.unit||"MT";
+  list.innerHTML=mats.slice().sort((a,b)=>{const av=num(getMaterial(a)?.closing)||0,bv=num(getMaterial(b)?.closing)||0;return (bv>0)-(av>0)||bv-av}).map(m=>{
+    const x=getMaterial(m),closing=num(x?.closing)||0,avg=avgConsumption(m),s=stockStatus(closing,avg);
     return `<div class="stock-row" onclick="openMaterialDetails('${jsq(m)}')">
-      <div class="reorder-material-wrap">
-        <strong class="reorder-material">${esc(m)}</strong>
-        <small class="avg-sub">${avg?`Avg ${fmt(avg)} ${esc(unit)}/day`:"Avg --"}</small>
-      </div>
-      <span>${fmt(closing)} ${esc(unit)}</span>
-      <span>${s.cover!==null?fmt(s.cover)+" d":"--"}</span>
-      <span>${avg?`${fmt(reorder)} ${esc(unit)}`:"--"}</span>
-      <span class="${s.cls} status-text">${esc(s.status)}</span>
+      <strong class="reorder-material">${esc(m)}</strong><span>${fmt(closing)} ${esc(x?.unit||"MT")}</span><span>${avg?fmt(avg):"--"}</span><span>${s.cover!==null?fmt(s.cover)+" d":"--"}</span><span class="${s.cls} status-text">${esc(s.status)}</span>
     </div>`;
   }).join("")||"<div class='empty'>No stock data</div>";
 }
@@ -796,15 +775,3 @@ if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.se
 </script>
 </body>
 </html>
-
-<style>
-@media(max-width:520px){
-  .stock-head,.stock-row{grid-template-columns:minmax(0,1.65fr) .76fr .76fr .76fr .58fr;gap:5px}
-  .stock-head{font-size:9px}
-  .stock-row>span{font-size:10.5px}
-  .stock-row strong{font-size:12px}
-  .reorder-material{font-size:13px!important}
-  .avg-sub{font-size:10px!important;margin-top:3px!important}
-  .status-text{font-size:8px!important}
-}
-</style>
