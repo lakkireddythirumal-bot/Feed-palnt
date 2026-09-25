@@ -540,7 +540,7 @@ function applyData(apiData,fromCache=false){
     processLoss:apiData.processLoss??null,
     report_date:apiData.report_date??null
   };
-  if(DATA.report_date)setText("reportDate",DATA.report_date);
+  if(DATA.report_date)setText("reportDate",VIEW_DATE||DATA.report_date);
   renderDashboard();
   if(!fromCache)saveCache(apiData);
 }
@@ -1123,6 +1123,221 @@ function bagTrend(){
 ===================================================== */
 function goHome(){window.scrollTo({top:0,behavior:"smooth"})}
 function goTrend(){document.getElementById("trendsSection").scrollIntoView({behavior:"smooth"})}
+
+
+/* =====================================================
+   DATE VIEW — COMPLETE DASHBOARD DATE FILTER
+===================================================== */
+let VIEW_DATE=null;
+
+function viewDate(){return VIEW_DATE?dateOnly(VIEW_DATE):dateOnly(DATA.report_date);}
+function isViewDate(d){return !VIEW_DATE || dateOnly(d)===dateOnly(VIEW_DATE);}
+function viewStockRows(){
+  return (DATA.stock||[]).map(x=>{
+    const tx=(Array.isArray(x.transactions)?x.transactions:[]).filter(t=>isViewDate(rowDate(t)));
+    const closingRows=tx.filter(t=>tType(t)==="CL. STOCK");
+    const latestClosing=closingRows.length?closingRows[closingRows.length-1]:null;
+    return {...x,transactions:tx,closing:latestClosing? tVal(latestClosing) : null};
+  }).filter(x=>x.transactions.length || x.closing!==null);
+}
+function getMaterials(){
+  return [...new Set(viewStockRows().map(x=>clean(x.material)).filter(Boolean))];
+}
+function getMaterial(material){
+  return viewStockRows().find(x=>normalize(x.material)===normalize(material))||null;
+}
+function transactions(material){
+  const x=getMaterial(material);
+  return x&&Array.isArray(x.transactions)?x.transactions:[];
+}
+function selectedProduction(){
+  const rows=Array.isArray(DATA.production)?DATA.production:[];
+  return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):rows;
+}
+function selectedBags(){
+  const rows=Array.isArray(DATA.bags)?DATA.bags:[];
+  return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):rows;
+}
+function selectedFeedRows(){
+  const rows=Array.isArray(DATA.feedUnitData)?DATA.feedUnitData:[];
+  return VIEW_DATE?rows.filter(r=>dateOnly(r.Report_Date||r.report_date)===dateOnly(VIEW_DATE)):rows;
+}
+function latestFeedRows(){
+  const rows=selectedFeedRows(), latest={};
+  rows.forEach(r=>{
+    const p=clean(r.Product||r.product);
+    if(p)latest[normalize(p)]=r;
+  });
+  return Object.values(latest);
+}
+function latestTotal(key){
+  return latestFeedRows().reduce((sum,r)=>{
+    const product=r.Product||r.product||"";
+    return sum+feedValueInMT(feedField(r,key),product);
+  },0);
+}
+function latestFeedClosingTotal(){
+  return latestFeedRows().reduce((sum,r)=>{
+    const product=r.Product||r.product||"";
+    const v=num(r.Closing_Day_MT??r.closing_day_mt??r.Closing_Day??r.closing_day??r.Closing??r.closing);
+    return sum+feedValueInMT(v,product);
+  },0);
+}
+function avgConsumption(material){
+  const rows=transactions(material).filter(t=>tType(t).includes("CONSUMPTION")).map(t=>tVal(t)).filter(v=>v>0);
+  if(!rows.length)return 0;
+  return rows.reduce((a,b)=>a+b,0)/rows.length;
+}
+function selectedUsageFor(material){
+  const rows=transactions(material);
+  const map={};
+  rows.forEach(t=>{
+    if(tType(t).includes("CONSUMPTION")){
+      const d=dateOnly(rowDate(t)); if(d)map[d]=(map[d]||0)+tVal(t);
+    }
+  });
+  return map;
+}
+function renderQuick(){
+  const pd=latestTotal("Production_Day_MT"),pm=latestTotal("Production_Month_MT");
+  const dd=latestTotal("Dispatch_Day_MT"),dm=latestTotal("Dispatch_Month_MT");
+  setText("qProdDay",fmtMT(pd));setText("qProdMonth",fmtMT(pm));setText("qDispDay",fmtMT(dd));setText("qDispMonth",fmtMT(dm));
+  let received=0,cons=0,closing=0;
+  viewStockRows().forEach(x=>{
+    const material=x.material||"";
+    if(x.closing!==null)closing+=materialValueInMT(x.closing,material);
+    (x.transactions||[]).forEach(t=>{
+      const ty=tType(t),v=materialValueInMT(tVal(t),material);
+      if(ty==="PURCHASE"||ty==="RECEIVED"||ty.includes("TRANSFER FROM"))received+=v;
+      if(ty.includes("CONSUMPTION"))cons+=v;
+    });
+  });
+  setText("qReceived",fmt(received)+" MT");setText("qConsumption",fmt(cons)+" MT");setText("qClosing",fmt(closing)+" MT");
+  setText("qFeedClosing",fmtMT(latestFeedClosingTotal()));
+  setText("reportDate",VIEW_DATE||DATA.report_date||"Latest");
+}
+function renderFeedUnit(){
+  const rows=latestFeedRows(),list=document.getElementById("feedUnitList");
+  if(!rows.length){list.innerHTML="<div class='empty'>Feed Unit product-wise data not available for this date.</div>";return}
+  list.innerHTML=rows.sort((a,b)=>{
+    const av=(num(a.Production_Day_MT??a.production_day_mt??a.Production??a.production)||0)>0?1:0;
+    const bv=(num(b.Production_Day_MT??b.production_day_mt??b.Production??b.production)||0)>0?1:0;
+    return bv-av;
+  }).map(r=>{
+    const p=r.Product||r.product||"--";
+    const prod=num(r.Production_Day_MT??r.production_day_mt??(r.Production||r.production));
+    const disp=num(r.Dispatch_Day_MT??r.dispatch_day_mt??(r.Dispatch||r.dispatch));
+    const close=num(r.Closing_Day_MT??r.closing_day_mt??(r.Closing||r.closing));
+    const transfer=num(r.Transfer_Day_MT??r.transfer_day_mt??r.Transfer??r.transfer);
+    const received=isPremixProduct(p)?transfer:null;
+    return `<div class="feed-row" onclick="openFeedProductDetails('${jsq(p)}')"><div><div class="row-name">${esc(p)}</div><div class="prod-meta">Closing ${fmtFeed(close,p)}${received!==null?` • Received ${fmtFeed(received,p)}`:""}</div></div><div class="row-right"><strong>${fmtFeed(prod,p)}</strong><small>Dispatch ${fmtFeed(disp,p)}</small></div></div>`;
+  }).join("");
+}
+function renderProduction(){
+  const rows=selectedProduction(),total=rows.reduce((a,r)=>a+(num(r.actual_output)||0),0);
+  setText("productionTotalMain",fmtBags(total));
+  const el=document.getElementById("productionList");
+  el.innerHTML=rows.slice().sort((a,b)=>(num(b.actual_output)||0>0)-(num(a.actual_output)||0>0)).map(r=>{
+    const p=r.product||"--",a=num(r.actual_output),op=num(r.output_percentage),loss=num(r.process_loss),remarks=clean(r.remarks);
+    return `<div class="production-row" onclick="openProductDetails('${jsq(p)}')"><div><div class="row-name">${esc(p)}</div><div class="prod-meta">Output ${op!==null?fmt(op)+"%":"--"} • Loss ${loss!==null?fmt(loss)+"%":"--"}${remarks?" • "+esc(remarks):""}</div></div><div class="row-right"><strong>${fmtBags(a)}</strong><small>Standard ${fmtBags(r.standard_output)}</small></div></div>`;
+  }).join("")||"<div class='empty'>No production data for this date</div>";
+}
+function renderPPBags(){
+  const rows=selectedBags(),el=document.getElementById("bagGrid");
+  el.innerHTML=rows.slice().sort((a,b)=>(num(b.closing)||0)-(num(a.closing)||0)).map(r=>{
+    const p=r.product||"PP Bags";
+    return `<div class="pp-item" onclick="openBagProduct('${jsq(p)}')"><p>${esc(p)}</p><small class="pp-closing-label">Closing</small><strong class="pp-closing-number">${fmt(r.closing)}</strong><p style="margin-top:4px">Issue ${fmt(r.issue)} • Damage ${fmt(r.damage)}</p></div>`;
+  }).join("")||"<div class='empty'>No PP Bag data for this date</div>";
+}
+function renderStock(){
+  const list=document.getElementById("stockList"),mats=getMaterials();
+  list.innerHTML=mats.slice().sort((a,b)=>{
+    const av=num(getMaterial(a)?.closing)||0,bv=num(getMaterial(b)?.closing)||0;
+    return (bv>0)-(av>0)||bv-av;
+  }).map(m=>{
+    const x=getMaterial(m),closing=num(x?.closing)||0,avg=avgConsumption(m),s=stockStatus(closing,avg),reorder=avg*DEFAULT_SAFETY_DAYS,unit=x?.unit||"MT";
+    return `<div class="stock-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="reorder-material-wrap"><strong class="reorder-material">${esc(m)}</strong><small class="avg-sub">${avg?`Avg ${fmt(avg)} ${esc(unit)}/day`:"Avg --"}</small></div><span>${fmt(closing)} ${esc(unit)}</span><span>${s.cover!==null?fmt(s.cover)+" d":"--"}</span><span>${avg?`${fmt(reorder)} ${esc(unit)}`:"--"}</span><span class="${s.cls} status-text">${esc(s.status)}</span></div>`;
+  }).join("")||"<div class='empty'>No stock data for this date</div>";
+}
+function renderRawCategory(tab){
+  const el=document.getElementById("rawCategoryList"),mats=getMaterials();
+  if(tab==="STOCK"){
+    const rows=mats.map(m=>({m,v:num(getMaterial(m)?.closing)||0})).sort((a,b)=>(b.v>0)-(a.v>0)||b.v-a.v);
+    el.innerHTML=rows.map(({m})=>{const x=getMaterial(m);return `<div class="feed-row raw-movement-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(num(x?.closing)||0,m,x?.unit||"MT")}</strong><small>Tap for complete details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
+  }else{
+    const rows=mats.map(m=>({m,v:rawTotal(m,tab)})).sort((a,b)=>(b.v>0?1:0)-(a.v>0?1:0)||b.v-a.v);
+    el.innerHTML=rows.map(({m,v})=>{const label=tab==="TRANSFER"?"Transfer / Bommakal":tab;return `<div class="feed-row raw-movement-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(v,m,"MT")}</strong><small>${esc(label)} • tap for details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
+  }
+}
+function renderControlCenter(){
+  const m=dailyControlMetrics();
+  setText("controlDate",VIEW_DATE||DATA.report_date||"Latest data");
+  setText("ctlReorder",String(m.reorder));setText("ctlMismatch",String(m.mismatches+(m.abnormal?m.abnormal:0)));
+  setText("ctlEfficiency",m.efficiency===null?"--":fmt(m.efficiency)+"%");
+  setText("ctlLoss",m.loss===null?"--":fmt(m.loss)+"%");
+  setText("ctlPremix",fmt(m.premix)+" MT");setText("ctlBagDamage",fmt(m.damage));
+  const problems=m.reorder+m.mismatches+m.abnormal,h=document.getElementById("healthIcon"),t=document.getElementById("healthText");
+  if(problems===0){if(h)h.textContent="✓";if(t)t.textContent="Data Health • No active data checks";}
+  else {if(h)h.textContent="⚠";if(t)t.textContent=`Data Health • ${problems} item${problems===1?"":"s"} need checking`;}
+}
+function dailyControlMetrics(){
+  const reorder=getMaterials().filter(m=>stockStatus(num(getMaterial(m)?.closing)||0,avgConsumption(m)).status==="REORDER").length;
+  const mismatches=reconciliationItems().filter(x=>x.r.status==="MISMATCH").length;
+  const abnormal=abnormalConsumptionItems().length;
+  const rows=selectedProduction(),outs=rows.map(r=>num(r.output_percentage)).filter(v=>v!==null),losses=rows.map(r=>num(r.process_loss)).filter(v=>v!==null);
+  const premix=premixBommakalTransfers().reduce((a,r)=>a+r.value,0)/1000;
+  const damage=selectedBags().reduce((a,r)=>a+(num(r.damage)||0),0);
+  return {reorder,mismatches,abnormal,efficiency:outs.length?outs.reduce((a,b)=>a+b,0)/outs.length:null,loss:losses.length?losses.reduce((a,b)=>a+b,0)/losses.length:null,premix,damage};
+}
+function setViewDate(date){
+  VIEW_DATE=date?dateOnly(date):null;
+  closeModal();
+  renderDashboard();
+  renderTrends();
+  showToast(VIEW_DATE?`Dashboard set to ${VIEW_DATE}`:"Dashboard set to latest");
+}
+function getAvailableDates(){
+  const s=new Set();
+  (DATA.stock||[]).forEach(x=>(x.transactions||[]).forEach(t=>{const d=dateOnly(rowDate(t));if(d)s.add(d)}));
+  (DATA.production||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
+  (DATA.bags||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
+  (DATA.feedUnitData||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
+  if(DATA.report_date)s.add(dateOnly(DATA.report_date));
+  return [...s].filter(Boolean).sort().reverse();
+}
+function openDateSelector(){
+  const dates=getAvailableDates();
+  const buttons=(VIEW_DATE?`<button class="date-btn" onclick="setViewDate(null)"><strong>Latest / Today</strong><small>Return to latest dashboard</small></button>`:"")+dates.map(d=>`<button class="date-btn" onclick="setViewDate('${jsq(d)}')"><strong>${esc(d)}</strong><small>${d===dateOnly(DATA.report_date)?"Latest API date":"View complete dashboard →"}</small></button>`).join("");
+  showModal("Date Selector",`<div class="detail-section"><h3>📅 Dashboard Date</h3><div class="small-note">Selecting a date now changes the entire dashboard, not just the summary popup.</div><div class="date-list">${buttons||"<div class='empty'>No dated records available.</div>"}</div></div>`);
+}
+function openDateSummary(date){setViewDate(date);}
+
+/* Keep trend charts aligned with the selected dashboard date. */
+function renderTrends(){
+  const sel=document.getElementById("materialSelect"),mats=getMaterials();
+  sel.innerHTML=mats.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");
+  if(mats.length)drawMaterialChart(mats[0]);
+  const p=VIEW_DATE?selectedProduction():DATA.productionTrend||[];
+  const outs=selectedProduction().map(r=>num(r.output_percentage)).filter(v=>v!==null),loss=selectedProduction().map(r=>num(r.process_loss)).filter(v=>v!==null);
+  chart("productionChart",p.map((x,i)=>x.date||x.report_date||x.Report_Date||"D"+(i+1)),productionTrendData());
+  const purchase=trendFromTransactions("PURCHASE");chart("purchaseChart",purchase.labels,purchase.values);
+  const closing=trendClosing();chart("closingChart",closing.labels,closing.values);
+  chart("outputChart",outs.map((_,i)=>"P"+(i+1)),outs);chart("lossChart",loss.map((_,i)=>"P"+(i+1)),loss);
+  const feed=feedTrend();chart("feedChart",feed.labels,feed.values);
+  const bags=bagTrend();chart("bagChart",bags.labels,bags.values);
+  const wrap=document.getElementById("trendWrapper"),dots=document.getElementById("trendDots");dots.innerHTML=[...wrap.children].map((_,i)=>`<div class="dot ${i===0?"active":""}"></div>`).join("");
+  wrap.onscroll=function(){const i=Math.round(this.scrollLeft/this.clientWidth);[...dots.children].forEach((d,j)=>d.classList.toggle("active",i===j))};
+}
+function feedTrend(){
+  const rows=selectedFeedRows(),map={};
+  rows.forEach(r=>{const d=clean(r.Report_Date||r.report_date)||"Latest";map[d]=(map[d]||0)+(num(r.Production_Day_MT??r.production_day_mt)||0)-(num(r.Dispatch_Day_MT??r.dispatch_day_mt)||0)});
+  const labels=Object.keys(map).sort();return {labels,values:labels.map(k=>map[k])}
+}
+function bagTrend(){
+  const rows=selectedBags(),labels=[],values=[];
+  rows.forEach((r,i)=>{labels.push(r.product||"P"+(i+1));values.push((num(r.issue)||0)+(num(r.damage)||0))});
+  return {labels,values}
+}
 
 /* =====================================================
    START
