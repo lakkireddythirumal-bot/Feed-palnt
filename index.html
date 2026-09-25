@@ -11,39 +11,40 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#f5f6f8;color:#202938;padding-bottom:82px}
-.container{width:100%;max-width:620px;margin:auto;padding:14px}
+.container{width:100%;max-width:720px;margin:auto;padding:14px}
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .header-actions{display:flex;align-items:center;gap:8px}.notify-btn{position:relative;width:42px;height:42px;border:0;border-radius:50%;background:#fff;font-size:21px;box-shadow:0 2px 10px rgba(0,0,0,.04);cursor:pointer}.notify-badge{position:absolute;top:-2px;right:-2px;min-width:17px;height:17px;padding:0 4px;border-radius:10px;background:#d83b3b;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #f5f6f8}.notify-badge.hidden{display:none}
-.header h1{font-size:22px}.header p{color:#777;font-size:12px;margin-top:3px}
+.header h1{font-size:24px}.header p{color:#777;font-size:13px;margin-top:3px}
 .plant{width:42px;height:42px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:21px}
 .status-line{display:flex;gap:7px;align-items:center;margin-bottom:10px;font-size:10px;color:#777}
 .status-dot{width:7px;height:7px;border-radius:50%;background:#31a36a}.status-dot.off{background:#d35454}
 .refresh{margin-left:auto;border:0;background:#fff;border-radius:10px;padding:7px 10px;font-size:11px}
 .card{background:#fff;border-radius:18px;padding:14px;margin-bottom:12px;box-shadow:0 2px 12px rgba(0,0,0,.04)}
 .card-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
-.card-title h2{font-size:15px}.card-title span{font-size:11px;color:#777}
+.card-title h2{font-size:17px}.card-title span{font-size:12px;color:#777}
 .quick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .quick{background:#f7f8fa;padding:11px;border-radius:13px;cursor:pointer}
-.quick p{color:#777;font-size:10px}.quick strong{display:block;font-size:17px;margin-top:4px}
+.quick p{color:#777;font-size:11px}.quick strong{display:block;font-size:21px;margin-top:5px}
 .mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .mini{background:#f7f8fa;border-radius:13px;padding:10px;cursor:pointer}
-.mini p{font-size:10px;color:#777}.mini strong{display:block;font-size:15px;margin-top:3px}
+.mini p{font-size:11px;color:#777}.mini strong{display:block;font-size:18px;margin-top:4px}
 .stock-table{overflow:hidden;border-radius:12px}
 .stock-head,.stock-row{display:grid;grid-template-columns:1.25fr .85fr .9fr .75fr .85fr;gap:6px;align-items:center}
-.stock-head{font-size:9px;color:#888;padding:7px 4px;background:#f7f8fa}
-.stock-row{padding:10px 4px;border-bottom:1px solid #f0f0f0;font-size:10px;cursor:pointer}
-.stock-row:last-child{border-bottom:0}.stock-row strong{font-size:11px}
+.stock-head{font-size:10px;color:#888;padding:7px 4px;background:#f7f8fa}
+.stock-row{padding:11px 4px;border-bottom:1px solid #f0f0f0;font-size:11px;cursor:pointer}
+.stock-row:last-child{border-bottom:0}.stock-row strong{font-size:12px}
 .good{color:#258a55}.warn{color:#b47700}.bad{color:#c0392b}
 .feed-total-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .feed-total{background:#f7f8fa;padding:11px;border-radius:13px;cursor:pointer}
 .feed-total p{font-size:10px;color:#777}.feed-total strong{display:block;font-size:18px;margin-top:3px}
 .feed-row,.production-row{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #f0f0f0;cursor:pointer}
 .feed-row:last-child,.production-row:last-child{border-bottom:0}
-.row-name{font-size:12px;font-weight:500}.row-right{text-align:right}.row-right strong{display:block;font-size:12px}.row-right small{font-size:9px;color:#888}
-.production-total{font-size:28px;font-weight:700}.production-label{font-size:11px;color:#777;margin-bottom:7px}
-.prod-meta{font-size:9px;color:#777;margin-top:3px}
+.row-name{font-size:13px;font-weight:500}.row-right{text-align:right}.row-right strong{display:block;font-size:14px}.row-right small{font-size:10px;color:#888}
+.production-total{font-size:32px;font-weight:700}.production-label{font-size:12px;color:#777;margin-bottom:7px}
+.prod-meta{font-size:10px;color:#777;margin-top:3px}
 .pp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.pp-item{background:#f7f8fa;padding:11px;border-radius:13px;cursor:pointer}.pp-item p{font-size:10px;color:#777}.pp-item strong{display:block;font-size:17px;margin-top:4px}
+.pp-item{background:#f7f8fa;padding:11px;border-radius:13px;cursor:pointer}.pp-item p{font-size:11px;color:#777}.pp-item strong{display:block;font-size:20px;margin-top:4px}
+.pp-closing-label{display:block;font-size:10px;color:#888;margin-top:4px}.pp-closing-number{display:block;font-size:20px;margin-top:1px}
 .alert{background:#fff8e7;border-radius:13px;padding:11px;display:flex;gap:8px;margin-bottom:7px}.alert p{font-size:12px}.alert small{color:#8a6d1d;display:block;margin-top:3px;font-size:10px}
 .trend-wrapper{overflow-x:auto;scroll-snap-type:x mandatory;display:flex;gap:9px;scrollbar-width:none}.trend-wrapper::-webkit-scrollbar{display:none}
 .trend-card{min-width:100%;scroll-snap-align:start;background:#fafbfc;border-radius:14px;padding:11px}
@@ -51,7 +52,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-s
 select{border:1px solid #ddd;background:#fff;border-radius:9px;padding:6px 8px;font-size:11px;max-width:150px}
 canvas{width:100%;height:150px;display:block}
 .dots{display:flex;justify-content:center;gap:6px;margin-top:8px}.dot{width:6px;height:6px;border-radius:50%;background:#d5d8dd}.dot.active{width:18px;border-radius:10px;background:#4f7cff}
-.section-tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px}.section-tabs button{border:0;background:#f1f3f5;padding:7px 10px;border-radius:9px;font-size:10px;white-space:nowrap}.section-tabs button.active{background:#202938;color:#fff}
+.section-tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px}.section-tabs button{border:0;background:#f1f3f5;padding:8px 11px;border-radius:9px;font-size:11px;white-space:nowrap}.section-tabs button.active{background:#202938;color:#fff}
 .bottom-nav{position:fixed;left:0;right:0;bottom:0;height:68px;background:rgba(255,255,255,.97);border-top:1px solid #e9eaec;display:flex;justify-content:space-around;align-items:center;z-index:100}
 .nav-item{text-align:center;font-size:10px;color:#888;cursor:pointer}.nav-item div{font-size:18px}.nav-item.active{color:#315efb;font-weight:600}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.38);display:none;align-items:flex-end;z-index:500}.modal.show{display:flex}
@@ -99,13 +100,8 @@ canvas{width:100%;height:150px;display:block}
       <div class="mini" onclick="openRawCategory('PURCHASE')"><p>RM Received</p><strong id="qReceived">--</strong></div>
       <div class="mini" onclick="openRawCategory('CONSUMPTION')"><p>RM Consumption</p><strong id="qConsumption">--</strong></div>
       <div class="mini" onclick="openStockDetails()"><p>RM Closing</p><strong id="qClosing">--</strong></div>
+      <div class="mini" onclick="openFeedOpeningDetails()"><p>Feed Closing Stock</p><strong id="qFeedClosing">-- MT</strong></div>
     </div>
-  </div>
-
-  <!-- FEED UNIT -->
-  <div class="card">
-    <div class="card-title"><h2>🌾 Feed Unit</h2><span>Product-wise details</span></div>
-    <div id="feedUnitList"><div class="empty">Loading...</div></div>
   </div>
 
   <div class="desktop-grid">
@@ -148,6 +144,12 @@ canvas{width:100%;height:150px;display:block}
       <button onclick="setRawTab(this,'SALE')">Sale</button>
     </div>
     <div id="rawCategoryList"></div>
+  </div>
+
+  <!-- FEED UNIT -->
+  <div class="card">
+    <div class="card-title"><h2>🌾 Feed Unit</h2><span>Product-wise details</span></div>
+    <div id="feedUnitList"><div class="empty">Loading...</div></div>
   </div>
 
   <!-- TRENDS -->
@@ -211,8 +213,16 @@ function num(v){const n=Number(v);return Number.isFinite(n)?n:null}
 function fmt(v){if(v===null||v===undefined||v==="")return"--";const n=Number(v);return Number.isFinite(n)?n.toLocaleString("en-IN",{maximumFractionDigits:2}):String(v)}
 function fmtMT(v){return v===null||v===undefined||v===""?"--":fmt(v)+" MT"}
 function isPremixProduct(name){return /\bPREMIX\b/i.test(clean(name));}
+function isPremixMaterial(name){return isPremixProduct(name);}
 function fmtFeed(v,product){return v===null||v===undefined||v===""?"--":isPremixProduct(product)?fmt(v)+" KG":fmt(v)+" MT"}
 function feedValueInMT(v,product){const n=num(v)||0;return isPremixProduct(product)?n/1000:n;}
+function materialUnit(material,fallback="MT"){return isPremixMaterial(material)?"KG":fallback}
+function fmtMaterial(v,material,fallback="MT"){return v===null||v===undefined||v===""?"--":fmt(v)+" "+materialUnit(material,fallback)}
+function materialValueInMT(v,material){const n=num(v)||0;return isPremixMaterial(material)?n/1000:n;}
+function rawTotalMT(material,tab){
+  if(tab==="STOCK")return materialValueInMT(getMaterial(material)?.closing,material);
+  return transactions(material).filter(t=>tType(t)===tab).reduce((a,t)=>a+materialValueInMT(tVal(t),material),0);
+}
 function fmtBags(v){return v===null||v===undefined||v===""?"--":fmt(v)+" Bags"}
 function esc(v){return clean(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
 function jsq(v){return clean(v).replace(/\\/g,"\\\\").replace(/'/g,"\\'")}
@@ -249,6 +259,22 @@ function latestTotal(key){
     const product=r.Product||r.product||"";
     return sum+feedValueInMT(feedField(r,key),product);
   },0);
+}
+function latestFeedOpeningTotal(){
+  return latestFeedRows().reduce((sum,r)=>{
+    const product=r.Product||r.product||"";
+    const v=num(r.Opening_Day_MT??r.opening_day_mt??r.Opening_Day??r.opening_day??r.Opening??r.opening);
+    return sum+feedValueInMT(v,product);
+  },0);
+}
+function openFeedOpeningDetails(){
+  const rows=latestFeedRows();
+  const total=latestFeedOpeningTotal();
+  showModal("Feed Closing Stock",`<div class="detail-section">${detail("Total",fmtMT(total))}</div>`+rows.map(r=>{
+    const p=r.Product||r.product||"--";
+    const v=num(r.Opening_Day_MT??r.opening_day_mt??r.Opening_Day??r.opening_day??r.Opening??r.opening);
+    return `<div class="feed-row" onclick="closeModal();openFeedProductDetails('${jsq(p)}')"><div class="row-name">${esc(p)}</div><div class="row-right"><strong>${fmtFeed(v,p)}</strong><small>Today opening / previous closing →</small></div></div>`;
+  }).join(""));
 }
 function setText(id,v){const e=document.getElementById(id);if(e)e.textContent=v}
 
@@ -300,100 +326,52 @@ function setConnection(ok,text){
 ===================================================== */
 function loadDashboard(){
   return new Promise(function(resolve,reject){
-
-    const callbackName =
-      "managerDashboardCallback_" + Date.now();
-
-    const script = document.createElement("script");
-
-    let finished = false;
-
-    const timeout = setTimeout(function(){
-      if(finished) return;
-
-      finished = true;
+    const callbackName="managerDashboardCallback";
+    const script=document.createElement("script");
+    let finished=false;
+    const timeout=setTimeout(function(){
+      if(finished)return;
+      finished=true;
       cleanup();
-
       reject(new Error("API timeout"));
-    },20000);
+    },15000);
 
     function cleanup(){
       clearTimeout(timeout);
-
-      if(script.parentNode){
-        script.parentNode.removeChild(script);
-      }
-
-      try{
-        delete window[callbackName];
-      }catch(e){
-        window[callbackName] = undefined;
-      }
+      if(script.parentNode)script.parentNode.removeChild(script);
     }
 
-    /*
-      Google Apps Script JSONP callback
-    */
-    window[callbackName] = function(apiData){
-
-      if(finished) return;
-
-      finished = true;
-
+    window[callbackName]=function(apiData){
+      if(finished)return;
+      finished=true;
       try{
-
-        if(!apiData || apiData.status !== "success"){
+        if(!apiData || apiData.status!=="success"){
           throw new Error("Invalid API response");
         }
-
         applyData(apiData,false);
-
         cleanup();
-
         resolve(apiData);
-
       }catch(error){
-
         cleanup();
-
         reject(error);
       }
     };
 
-    /*
-      If browser reports script loading error
-    */
-    script.onerror = function(){
-
-      if(finished) return;
-
-      finished = true;
-
-      cleanup();
-
-      reject(
-        new Error(
-          "Google Apps Script connection failed"
-        )
-      );
+    script.onload=function(){
+      /* JSONP callback normally completes the request.
+         Keep the callback installed until response arrives. */
     };
 
-    /*
-      Important:
-      Do NOT force no-referrer.
-      Android Chrome can behave differently
-      with cross-origin Apps Script requests.
-    */
+    script.onerror=function(){
+      if(finished)return;
+      finished=true;
+      cleanup();
+      reject(new Error("Google Apps Script connection failed"));
+    };
 
-    script.async = true;
-
-    script.src =
-      API_URL +
-      "?callback=" +
-      encodeURIComponent(callbackName) +
-      "&t=" +
-      Date.now();
-
+    script.async=true;
+    script.referrerPolicy="no-referrer";
+    script.src=API_URL+"?callback="+callbackName+"&t="+Date.now();
     document.head.appendChild(script);
   });
 }
@@ -437,14 +415,17 @@ function renderQuick(){
   setText("qProdDay",fmtMT(pd));setText("qProdMonth",fmtMT(pm));setText("qDispDay",fmtMT(dd));setText("qDispMonth",fmtMT(dm));
   let received=0,cons=0,closing=0;
   DATA.stock.forEach(x=>{
-    closing+=num(x.closing)||0;
+    const material=x.material||"";
+    closing+=materialValueInMT(x.closing,material);
     (Array.isArray(x.transactions)?x.transactions:[]).forEach(t=>{
-      const ty=tType(t),v=tVal(t);
+      const ty=tType(t),v=materialValueInMT(tVal(t),material);
       if(ty==="PURCHASE"||ty==="RECEIVED")received+=v;
       if(ty==="CONSUMPTION")cons+=v;
     });
   });
   setText("qReceived",fmt(received)+" MT");setText("qConsumption",fmt(cons)+" MT");setText("qClosing",fmt(closing)+" MT");
+  // The requested Feed Closing Stock is today's opening stock, i.e. the previous closing value exposed as Opening_Day_MT in FEED_UNIT_DATA.
+  setText("qFeedClosing",fmtMT(latestFeedOpeningTotal()));
 }
 function avgConsumption(material){
   const vals=Array.isArray(DATA.usage[material])?DATA.usage[material].map(Number).filter(Number.isFinite):[];
@@ -490,7 +471,11 @@ function renderProduction(){
   const total=DATA.production.reduce((a,r)=>a+(num(r.actual_output)||0),0);
   setText("productionTotalMain",fmtBags(total));
   const el=document.getElementById("productionList");
-  el.innerHTML=DATA.production.map(r=>{
+  el.innerHTML=DATA.production.slice().sort((a,b)=>{
+    const ap=(num(a.actual_output)||0)>0?1:0;
+    const bp=(num(b.actual_output)||0)>0?1:0;
+    return bp-ap;
+  }).map(r=>{
     const p=r.product||"--",a=num(r.actual_output),op=num(r.output_percentage),loss=num(r.process_loss),remarks=clean(r.remarks);
     return `<div class="production-row" onclick="openProductDetails('${jsq(p)}')"><div><div class="row-name">${esc(p)}</div><div class="prod-meta">Output ${op!==null?fmt(op)+"%":"--"} • Loss ${loss!==null?fmt(loss)+"%":"--"}${remarks?" • "+esc(remarks):""}</div></div><div class="row-right"><strong>${fmtBags(a)}</strong><small>Standard ${fmtBags(r.standard_output)}</small></div></div>`;
   }).join("")||"<div class='empty'>No production data</div>";
@@ -499,7 +484,7 @@ function renderPPBags(){
   const el=document.getElementById("bagGrid");
   el.innerHTML=DATA.bags.map(r=>{
     const p=r.product||"PP Bags";
-    return `<div class="pp-item" onclick="openBagProduct('${jsq(p)}')"><p>${esc(p)}</p><strong>Closing ${fmt(r.closing)}</strong><p style="margin-top:4px">Issue ${fmt(r.issue)} • Damage ${fmt(r.damage)}</p></div>`;
+    return `<div class="pp-item" onclick="openBagProduct('${jsq(p)}')"><p>${esc(p)}</p><small class="pp-closing-label">Closing</small><strong class="pp-closing-number">${fmt(r.closing)}</strong><p style="margin-top:4px">Issue ${fmt(r.issue)} • Damage ${fmt(r.damage)}</p></div>`;
   }).join("")||"<div class='empty'>No PP Bag data</div>";
 }
 function renderAlerts(){
@@ -565,9 +550,9 @@ function renderRawCategory(tab){
   const el=document.getElementById("rawCategoryList");
   const mats=getMaterials();
   if(tab==="STOCK"){
-    el.innerHTML=mats.map(m=>`<div class="feed-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmt(num(getMaterial(m)?.closing)||0)} ${esc(getMaterial(m)?.unit||"MT")}</strong><small>Tap for complete details</small></div></div>`).join("")||"<div class='empty'>No data</div>";
+    el.innerHTML=mats.map(m=>{const x=getMaterial(m);return `<div class="feed-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(num(x?.closing)||0,m,x?.unit||"MT")}</strong><small>Tap for complete details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
   }else{
-    el.innerHTML=mats.map(m=>{const v=rawTotal(m,tab);return `<div class="feed-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmt(v)} MT</strong><small>${esc(tab)} • tap for details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
+    el.innerHTML=mats.map(m=>{const v=rawTotal(m,tab);return `<div class="feed-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(v,m,"MT")}</strong><small>${esc(tab)} • tap for details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
   }
 }
 
@@ -581,7 +566,8 @@ function detail(label,value){return `<div class="detail-row"><span>${esc(label)}
 function openMaterialDetails(material){
   const x=getMaterial(material),rows=transactions(material),closing=num(x?.closing)||0,avg=avgConsumption(material),s=stockStatus(closing,avg),reorder=avg*DEFAULT_SAFETY_DAYS;
   const groups=["OPENING STOCK","PURCHASE","TRANSFER FROM SOYA DIVISION","GAIN","SALE","SHORTAGE","CONSUMPTION","CL. STOCK"];
-  let html=`<div class="detail-section"><h3>${esc(material)}</h3>${detail("Current Stock",fmt(closing)+" "+(x?.unit||"MT"))}${detail("Average Daily Consumption",avg?fmt(avg)+" MT/day":"Insufficient history")}${detail("Safety Days",DEFAULT_SAFETY_DAYS+" days")}${detail("Stock Coverage",s.cover!==null?fmt(s.cover)+" days":"--")}${detail("Calculated Reorder Level",fmt(reorder)+" MT")}${detail("Status",s.status)}</div>`;
+  const unit=materialUnit(material,x?.unit||"MT");
+  let html=`<div class="detail-section"><h3>${esc(material)}</h3>${detail("Current Stock",fmt(closing)+" "+unit)}${detail("Average Daily Consumption",avg?fmt(avg)+" "+unit+"/day":"Insufficient history")}${detail("Safety Days",DEFAULT_SAFETY_DAYS+" days")}${detail("Stock Coverage",s.cover!==null?fmt(s.cover)+" days":"--")}${detail("Calculated Reorder Level",fmt(reorder)+" "+unit)}${detail("Status",s.status)}</div>`;
   html+=`<div class="detail-section"><h3>Material-wise Movement</h3>`;
   groups.forEach(g=>{const total=rows.filter(t=>tType(t)===normalize(g)).reduce((a,t)=>a+tVal(t),0);if(total)html+=detail(g,fmt(total)+" MT")});
   html+="</div>";
@@ -592,8 +578,8 @@ function openMaterialDetails(material){
   }
   showModal(material,html);
 }
-function openStockDetails(){showModal("Raw Material Stock",getMaterials().map(m=>{const x=getMaterial(m);return `<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmt(x?.closing)} ${esc(x?.unit||"MT")}</strong><small>Details →</small></div></div>`}).join("")||"<div class='empty'>No stock data</div>")}
-function openRawCategory(tab){showModal(tab==="PURCHASE"?"Raw Material Received":("Raw Material "+tab),getMaterials().map(m=>`<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmt(rawTotal(m,tab))} MT</strong><small>Tap for complete details</small></div></div>`).join("")||"<div class='empty'>No data</div>")}
+function openStockDetails(){showModal("Raw Material Stock",getMaterials().map(m=>{const x=getMaterial(m);return `<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(x?.closing,m,x?.unit||"MT")}</strong><small>Details →</small></div></div>`}).join("")||"<div class='empty'>No stock data</div>")}
+function openRawCategory(tab){showModal(tab==="PURCHASE"?"Raw Material Received":("Raw Material "+tab),getMaterials().map(m=>`<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(rawTotal(m,tab),m,"MT")}</strong><small>Tap for complete details</small></div></div>`).join("")||"<div class='empty'>No data</div>")}
 function openProductionDetails(){showModal("Production",DATA.production.map(r=>`<div class="feed-row" onclick="closeModal();openProductDetails('${jsq(r.product)}')"><div class="row-name">${esc(r.product)}</div><div class="row-right"><strong>${fmtBags(r.actual_output)}</strong><small>Output ${fmt(r.output_percentage)}%</small></div></div>`).join("")||"<div class='empty'>No production data</div>")}
 function packingFromRemarks(v){const m=clean(v).match(/(\d+(?:\.\d+)?)\s*(?:bags?|Bags?).*?(\d+(?:\.\d+)?)\s*kg/i);return m?`${m[1]} Bags × ${m[2]} kg/bag`:clean(v)}
 function openProductDetails(product){
