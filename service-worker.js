@@ -1,5 +1,10 @@
-const CACHE_NAME = "feed-manager-dashboard-v2";
-const APP_SHELL = ["./", "./index.html", "./manifest.json"];
+const CACHE_NAME = "feed-manager-dashboard-v3";
+
+const APP_SHELL = [
+  "./",
+  "./index.html",
+  "./manifest.json"
+];
 
 self.addEventListener("install", event => {
   event.waitUntil(
@@ -12,34 +17,65 @@ self.addEventListener("install", event => {
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
+      .then(keys =>
+        Promise.all(
+          keys
+            .filter(key => key !== CACHE_NAME)
+            .map(key => caches.delete(key))
+        )
+      )
       .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener("fetch", event => {
-  const url = new URL(event.request.url);
-  if (url.origin !== location.origin) return;
+  const request = event.request;
+  const url = new URL(request.url);
 
-  // Always get the latest HTML from GitHub Pages; use cache only if offline.
-  if (event.request.mode === "navigate" || url.pathname.endsWith("/index.html")) {
+  // Only handle files from this GitHub Pages site
+  if (url.origin !== self.location.origin) return;
+
+  // Always try to get the latest index.html
+  if (
+    request.mode === "navigate" ||
+    url.pathname.endsWith("/index.html")
+  ) {
     event.respondWith(
-      fetch(event.request)
+      fetch(request, { cache: "no-store" })
         .then(response => {
           const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(request, copy);
+          });
+
           return response;
         })
-        .catch(() => caches.match(event.request).then(r => r || caches.match("./index.html")))
+        .catch(() =>
+          caches.match(request).then(
+            cached => cached || caches.match("./index.html")
+          )
+        )
     );
+
     return;
   }
 
+  // Other files: cache first, then network
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      return cached || fetch(event.request).then(response => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+    caches.match(request).then(cached => {
+      if (cached) return cached;
+
+      return fetch(request).then(response => {
+
+        if (response && response.ok) {
+          const copy = response.clone();
+
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(request, copy);
+          });
+        }
+
         return response;
       });
     })
