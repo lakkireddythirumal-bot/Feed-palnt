@@ -129,6 +129,38 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 .raw-row .row-right strong{font-size:12px!important}
 @media(min-width:700px){.desktop-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.desktop-grid>.card{margin-bottom:0}}
 @media(max-width:520px){.stock-head,.stock-row{grid-template-columns:minmax(0,2.2fr) .9fr .75fr .7fr .78fr;gap:5px}.stock-row>span{font-size:10px}.status-text{font-size:8.5px!important}.stock-row strong{font-size:11.5px}}
+
+/* ===== Manager control features ===== */
+.header-tool{width:38px;height:38px;border:0;border-radius:50%;background:#fff;font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,.04);cursor:pointer}
+.header-tool:active,.notify-btn:active{transform:scale(.94)}
+.control-card{overflow:hidden}
+.control-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.control-item{background:#f7f8fa;border-radius:11px;padding:8px 7px;min-height:55px}
+.control-item small{display:block;color:#777;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.control-item strong{display:block;font-size:15px;margin-top:4px;font-variant-numeric:tabular-nums}
+.health-strip{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:8px 10px;border-radius:10px;background:#f4f8f5;color:#28794d;font-size:10px;cursor:pointer}
+.health-strip b{font-size:12px}
+.control-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}
+.control-actions button,.search-input,.date-btn{border:1px solid #e3e5e8;background:#fff;border-radius:10px;padding:8px 9px;font-size:10px;color:#202938}
+.search-input{width:100%;font-size:13px;outline:none}
+.search-input:focus{border-color:#315efb;box-shadow:0 0 0 3px rgba(49,94,251,.08)}
+.search-result{padding:9px 0;border-bottom:1px solid #eceef1;cursor:pointer}
+.search-result:last-child{border-bottom:0}
+.search-result strong{font-size:12px}.search-result small{display:block;color:#888;font-size:9px;margin-top:2px}
+.date-list{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.date-btn{text-align:left;cursor:pointer;padding:10px}
+.date-btn strong{display:block;font-size:12px}.date-btn small{display:block;color:#888;margin-top:2px;font-size:9px}
+.reconcile-ok{background:#eef8f2!important;color:#28794d!important}
+.reconcile-warn{background:#fff7e8!important;color:#9a6700!important}
+.reconcile-bad{background:#fff0f0!important;color:#b83232!important}
+.reconcile-value{font-variant-numeric:tabular-nums}
+.report-box{background:#f7f8fa;border-radius:12px;padding:11px;font-size:11px;line-height:1.55;white-space:pre-line}
+@media(max-width:520px){
+  .header-tool{width:34px;height:34px;font-size:16px}
+  .control-grid{grid-template-columns:repeat(2,1fr)}
+  .control-item{min-height:51px}
+}
+
 </style>
 <style id="reorder-ui-polish">.stock-row .reorder-material,.stock-row strong.reorder-material{font-size:13px!important;font-weight:500!important;line-height:1.15!important;letter-spacing:0!important}.stock-row .avg-sub{font-size:9.5px!important;font-weight:400!important;color:#858a94!important;line-height:1.05!important;margin-top:3px!important}.stock-row>span{font-size:12px!important;font-weight:700!important;line-height:1.1!important;white-space:nowrap}.stock-row>span:last-child{font-size:9px!important;font-weight:700!important;letter-spacing:.15px}.stock-head,.stock-row{grid-template-columns:minmax(0,1.72fr) .82fr .72fr .82fr .58fr!important;column-gap:9px!important}.stock-head{font-size:9.5px!important;letter-spacing:.15px}.stock-row{min-height:52px!important;padding:7px 0!important}.reorder-material-wrap{min-width:0;padding-right:3px}@media(max-width:520px){.stock-head,.stock-row{grid-template-columns:minmax(0,1.62fr) .82fr .72fr .82fr .56fr!important;column-gap:6px!important}.stock-row .reorder-material,.stock-row strong.reorder-material{font-size:12px!important}.stock-row .avg-sub{font-size:9px!important}.stock-row>span{font-size:11.5px!important}.stock-row>span:last-child{font-size:8px!important}}</style>
 
@@ -183,12 +215,22 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 }
 </style>
 
+
+<style id="modal-polish-v13">
+.modal-box{padding-bottom:22px}
+.close{cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.05);font-weight:600;color:#147ff5}
+.modal.show .modal-box{animation:modalUp .22s ease both}
+@keyframes modalUp{from{transform:translateY(18px);opacity:.7}to{transform:translateY(0);opacity:1}}
+</style>
+
 </head>
 <body>
 <div class="container">
   <div class="header">
     <div><h1>Manager Dashboard</h1><p>Feed Plant • <span id="reportDate">Latest</span></p></div>
     <div class="header-actions">
+      <button class="header-tool" onclick="openGlobalSearch()" aria-label="Search">🔎</button>
+      <button class="header-tool" onclick="openDateSelector()" aria-label="Date selector">📅</button>
       <button class="notify-btn" onclick="openNotifications()" aria-label="Notifications">🔔<span id="notifyBadge" class="notify-badge hidden">0</span></button>
       <div class="plant">🏭</div>
     </div>
@@ -217,6 +259,27 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
       <div class="mini" onclick="openRawCategory('CONSUMPTION')"><p>RM Consumption</p><strong id="qConsumption">--</strong></div>
       <div class="mini" onclick="openStockDetails()"><p>RM Closing</p><strong id="qClosing">--</strong></div>
       <div class="mini" onclick="openFeedClosingDetails()"><p>Feed Closing Stock</p><strong id="qFeedClosing">-- MT</strong></div>
+    </div>
+  </div>
+
+  <!-- DAILY CONTROL CENTER -->
+  <div class="card control-card">
+    <div class="card-title"><h2>🧠 Daily Control Center</h2><span id="controlDate">Latest data</span></div>
+    <div class="control-grid">
+      <div class="control-item"><small>🔴 Reorder</small><strong id="ctlReorder">--</strong></div>
+      <div class="control-item"><small>⚠ Data Checks</small><strong id="ctlMismatch">--</strong></div>
+      <div class="control-item"><small>📈 Avg Output</small><strong id="ctlEfficiency">--</strong></div>
+      <div class="control-item"><small>⚙ Avg Loss</small><strong id="ctlLoss">--</strong></div>
+      <div class="control-item"><small>🧪 Premix Transfer</small><strong id="ctlPremix">--</strong></div>
+      <div class="control-item"><small>👜 Bag Damage</small><strong id="ctlBagDamage">--</strong></div>
+    </div>
+    <div class="health-strip" onclick="openDataHealth()">
+      <span><b id="healthIcon">✓</b> <span id="healthText">Data Health</span></span>
+      <span>Tap to check →</span>
+    </div>
+    <div class="control-actions">
+      <button onclick="openDailySummary()">📋 Daily Summary</button>
+      <button onclick="shareDailyReport()">↗ Share Report</button>
     </div>
   </div>
 
@@ -426,6 +489,7 @@ function latestFeedClosingTotal(){
 function feedClosingBagSize(product){
   const name=String(product||"").toUpperCase();
   if(/\bLOOSE\b/.test(name))return null;
+  if(/^FC30(?:\s*CRUMBLES)?(?:\b|$)/.test(name))return 60;
   if(/50\s*KG?\b/.test(name))return 50;
   if(/60\s*KG?\b/.test(name))return 60;
   if(/FINISHER\s*MASH|LAYER\s*MASH\s*\/\s*PLM/.test(name))return 75;
@@ -573,8 +637,214 @@ function manualRefresh(){refreshData()}
 /* =====================================================
    DASHBOARD RENDER
 ===================================================== */
+
+/* =====================================================
+   MANAGER CONTROL FEATURES
+===================================================== */
+function dateOnly(v){
+  const s=clean(v);
+  if(!s)return "";
+  const m=s.match(/(\d{4}-\d{2}-\d{2})/);
+  return m?m[1]:s.slice(0,10);
+}
+function latestTransactionDate(material){
+  const ds=transactions(material).map(t=>dateOnly(rowDate(t))).filter(Boolean).sort();
+  return ds.length?ds[ds.length-1]:"";
+}
+function materialReconciliation(material){
+  const rows=transactions(material);
+  if(!rows.length)return {status:"NO DATA",message:"No transaction history available."};
+  const dates=rows.map(t=>dateOnly(rowDate(t))).filter(Boolean).sort();
+  const latest=dates.length?dates[dates.length-1]:"";
+  const dayRows=latest?rows.filter(t=>dateOnly(rowDate(t))===latest):rows.slice();
+  let opening=null,closing=null,add=0,otherOut=0,recorded=0;
+  dayRows.forEach(t=>{
+    const ty=tType(t),v=tVal(t);
+    if(ty==="OPENING STOCK") opening=(opening===null?0:opening)+v;
+    else if(ty==="CL. STOCK") closing=v;
+    else if(ty.includes("CONSUMPTION")) recorded+=v;
+    else if(ty==="PURCHASE"||ty==="RECEIVED"||ty==="GAIN"||ty.includes("TRANSFER FROM")) add+=v;
+    else if(ty.includes("TRANSFER TO")||ty==="SALE"||ty==="SHORTAGE"||ty==="DAMAGE"||ty==="ISSUE") otherOut+=v;
+  });
+  if(opening===null||closing===null)return {status:"NO DATA",message:"Opening/closing pair is not available for the latest transaction date.",date:latest};
+  const calculated=Math.max(0,opening+add-otherOut-closing);
+  const diff=calculated-recorded;
+  const tol=isPremixMaterial(material)?0.01:0.01;
+  return {status:Math.abs(diff)<=tol?"MATCH":"MISMATCH",date:latest,opening,add,otherOut,closing,calculated,recorded,diff,tolerance:tol};
+}
+function reconciliationItems(){
+  return getMaterials().map(material=>({material,r:materialReconciliation(material)}));
+}
+function abnormalConsumptionItems(){
+  const out=[];
+  getMaterials().forEach(m=>{
+    const avg=avgConsumption(m);
+    if(!avg)return;
+    const rows=transactions(m).filter(t=>tType(t).includes("CONSUMPTION"));
+    if(!rows.length)return;
+    const latestDate=rows.map(t=>dateOnly(rowDate(t))).filter(Boolean).sort().pop()||"";
+    const today=rows.filter(t=>!latestDate||dateOnly(rowDate(t))===latestDate).reduce((a,t)=>a+tVal(t),0);
+    if(today>avg*1.5)out.push({material:m,current:today,avg,ratio:today/avg,date:latestDate});
+  });
+  return out.sort((a,b)=>b.ratio-a.ratio);
+}
+function dailyControlMetrics(){
+  const reorder=getMaterials().filter(m=>stockStatus(num(getMaterial(m)?.closing)||0,avgConsumption(m)).status==="REORDER").length;
+  const mismatches=reconciliationItems().filter(x=>x.r.status==="MISMATCH").length;
+  const abnormal=abnormalConsumptionItems().length;
+  const outs=DATA.production.map(r=>num(r.output_percentage)).filter(v=>v!==null);
+  const losses=DATA.production.map(r=>num(r.process_loss)).filter(v=>v!==null);
+  const premix=premixBommakalTransfers().reduce((a,r)=>a+r.value,0)/1000;
+  const damage=DATA.bags.reduce((a,r)=>a+(num(r.damage)||0),0);
+  return {reorder,mismatches,abnormal,efficiency:outs.length?outs.reduce((a,b)=>a+b,0)/outs.length:null,loss:losses.length?losses.reduce((a,b)=>a+b,0)/losses.length:null,premix,damage};
+}
+function renderControlCenter(){
+  const m=dailyControlMetrics();
+  setText("controlDate",DATA.report_date?String(DATA.report_date):"Latest data");
+  setText("ctlReorder",String(m.reorder));
+  setText("ctlMismatch",String(m.mismatches+(m.abnormal?m.abnormal:0)));
+  setText("ctlEfficiency",m.efficiency===null?"--":fmt(m.efficiency)+"%");
+  setText("ctlLoss",m.loss===null?"--":fmt(m.loss)+"%");
+  setText("ctlPremix",fmt(m.premix)+" MT");
+  setText("ctlBagDamage",fmt(m.damage));
+  const problems=m.reorder+m.mismatches+m.abnormal;
+  const h=document.getElementById("healthIcon"),t=document.getElementById("healthText");
+  if(problems===0){if(h)h.textContent="✓";if(t)t.textContent="Data Health • No active data checks";}
+  else {if(h)h.textContent="⚠";if(t)t.textContent=`Data Health • ${problems} item${problems===1?"":"s"} need checking`;}
+}
+function openDataHealth(){
+  const rec=reconciliationItems(),bad=rec.filter(x=>x.r.status==="MISMATCH"),no=rec.filter(x=>x.r.status==="NO DATA");
+  const abnormal=abnormalConsumptionItems();
+  let html=`<div class="detail-section"><h3>🔎 Data Health</h3>${detail("Materials checked",rec.length)}${detail("Stock mismatches",bad.length)}${detail("Abnormal consumption",abnormal.length)}${detail("Materials without daily pair",no.length)}</div>`;
+  if(bad.length){
+    html+=`<div class="detail-section"><h3>⚠ Stock Reconciliation</h3>`;
+    bad.forEach(x=>{const u=materialUnit(x.material,getMaterial(x.material)?.unit||"MT");html+=`<div class="transaction" onclick="closeModal();openMaterialDetails('${jsq(x.material)}')"><div class="transaction-title"><strong>${esc(x.material)}</strong><span>${esc(x.r.date||"--")}</span></div>${detail("Calculated consumption",fmt(x.r.calculated)+" "+u)}${detail("Recorded consumption",fmt(x.r.recorded)+" "+u)}${detail("Difference",fmt(x.r.diff)+" "+u)}</div>`});
+    html+="</div>";
+  }
+  if(abnormal.length){
+    html+=`<div class="detail-section"><h3>📈 Abnormal Consumption</h3>`;
+    abnormal.slice(0,10).forEach(a=>{html+=`<div class="transaction" onclick="closeModal();openMaterialDetails('${jsq(a.material)}')">${detail("Material",a.material)}${detail("Latest consumption",fmt(a.current)+" "+materialUnit(a.material,getMaterial(a.material)?.unit||"MT"))}${detail("Average",fmt(a.avg)+" "+materialUnit(a.material,getMaterial(a.material)?.unit||"MT")+"/day")}${detail("Above average",fmt(a.ratio*100-100)+" %")}</div>`});
+    html+="</div>";
+  }
+  if(!bad.length&&!abnormal.length)html+=`<div class="detail-section reconcile-ok"><h3>✓ Data checks</h3><div class="empty">No reconciliation or abnormal-consumption issues detected in the available data.</div></div>`;
+  showModal("Data Health",html);
+}
+function openDailySummary(){
+  const m=dailyControlMetrics();
+  const pd=latestTotal("Production_Day_MT"),dd=latestTotal("Dispatch_Day_MT");
+  const reorderNames=getMaterials().filter(x=>stockStatus(num(getMaterial(x)?.closing)||0,avgConsumption(x)).status==="REORDER");
+  const rec=reconciliationItems().filter(x=>x.r.status==="MISMATCH");
+  const abnormal=abnormalConsumptionItems();
+  let html=`<div class="detail-section"><h3>📋 Plant Summary • ${esc(DATA.report_date||"Latest")}</h3>${detail("Production",fmtMT(pd))}${detail("Dispatch",fmtMT(dd))}${detail("RM Closing",fmtMT(getMaterials().reduce((a,m)=>a+materialValueInMT(getMaterial(m)?.closing,m),0)))}${detail("Feed Closing",fmtMT(latestFeedClosingTotal()))}${detail("Premix Transfer",fmt(m.premix)+" MT")}${detail("Average Output",m.efficiency===null?"--":fmt(m.efficiency)+" %")}${detail("Average Process Loss",m.loss===null?"--":fmt(m.loss)+" %")}</div>`;
+  html+=`<div class="detail-section"><h3>Attention</h3>${detail("Reorder materials",reorderNames.length)}${detail("Stock mismatches",rec.length)}${detail("Abnormal consumption",abnormal.length)}${detail("PP bag damage",fmt(m.damage))}</div>`;
+  if(reorderNames.length)html+=`<div class="detail-section"><h3>🔴 Reorder</h3>${reorderNames.slice(0,8).map(x=>`<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(x)}')"><div class="row-name">${esc(x)}</div><div class="row-right"><strong>${esc(stockStatus(num(getMaterial(x)?.closing)||0,avgConsumption(x)).status)}</strong><small>Tap for details</small></div></div>`).join("")}</div>`;
+  const balance=pd-dd;
+  html+=`<div class="detail-section"><h3>⚖ Production vs Dispatch</h3>${detail("Production",fmtMT(pd))}${detail("Dispatch",fmtMT(dd))}${detail("Net balance",fmtMT(balance))}</div>`;
+  html+=`<div class="control-actions"><button onclick="copyDailyReport()">📋 Copy Report</button><button onclick="downloadDailyReport()">⬇ Download</button></div>`;
+  showModal("Daily Summary",html);
+}
+function buildDailyReportText(){
+  const m=dailyControlMetrics(),pd=latestTotal("Production_Day_MT"),dd=latestTotal("Dispatch_Day_MT");
+  const reorder=getMaterials().filter(x=>stockStatus(num(getMaterial(x)?.closing)||0,avgConsumption(x)).status==="REORDER");
+  const rec=reconciliationItems().filter(x=>x.r.status==="MISMATCH");
+  const abnormal=abnormalConsumptionItems();
+  return `FEED PLANT DAILY REPORT
+Date: ${DATA.report_date||"Latest"}
+
+Production: ${fmtMT(pd)}
+Dispatch: ${fmtMT(dd)}
+Feed Closing: ${fmtMT(latestFeedClosingTotal())}
+Premix Transfer: ${fmt(m.premix)} MT
+Average Output: ${m.efficiency===null?"--":fmt(m.efficiency)+" %"}
+Average Process Loss: ${m.loss===null?"--":fmt(m.loss)+" %"}
+
+Reorder Materials: ${reorder.length}
+Stock Mismatches: ${rec.length}
+Abnormal Consumption: ${abnormal.length}
+PP Bag Damage: ${fmt(m.damage)}
+
+Reorder:
+${reorder.slice(0,10).map(x=>"- "+x).join("\n")||"- None"}`;
+}
+async function copyDailyReport(){
+  const txt=buildDailyReportText();
+  try{await navigator.clipboard.writeText(txt);showToast("Daily report copied");}
+  catch(e){showModal("Daily Report",`<div class="report-box">${esc(txt)}</div>`);}
+}
+function downloadDailyReport(){
+  const blob=new Blob([buildDailyReportText()],{type:"text/plain;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=`Feed_Plant_Daily_Report_${dateOnly(DATA.report_date)||"latest"}.txt`;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),500);
+  showToast("Daily report downloaded");
+}
+async function shareDailyReport(){
+  const txt=buildDailyReportText();
+  if(navigator.share){
+    try{await navigator.share({title:"Feed Plant Daily Report",text:txt});return}catch(e){}
+  }
+  await copyDailyReport();
+}
+function showToast(msg){
+  let t=document.getElementById("dashToast");
+  if(!t){t=document.createElement("div");t.id="dashToast";t.style.cssText="position:fixed;left:50%;bottom:82px;transform:translateX(-50%);background:#202938;color:#fff;padding:9px 13px;border-radius:12px;font-size:11px;z-index:900;box-shadow:0 5px 20px rgba(0,0,0,.2)";document.body.appendChild(t);}
+  t.textContent=msg;t.style.display="block";clearTimeout(window.__toastTimer);window.__toastTimer=setTimeout(()=>t.style.display="none",1800);
+}
+function getAvailableDates(){
+  const s=new Set();
+  DATA.stock.forEach(x=>(x.transactions||[]).forEach(t=>{const d=dateOnly(rowDate(t));if(d)s.add(d)}));
+  DATA.production.forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date||DATA.report_date);if(d)s.add(d)});
+  DATA.bags.forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date||DATA.report_date);if(d)s.add(d)});
+  DATA.feedUnitData.forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
+  if(DATA.report_date)s.add(dateOnly(DATA.report_date));
+  return [...s].filter(Boolean).sort().reverse();
+}
+function openDateSelector(){
+  const dates=getAvailableDates();
+  const html=`<div class="detail-section"><h3>📅 Available report dates</h3><div class="small-note">The main dashboard remains on the latest API snapshot. Select a date to inspect the historical records available in the current API response.</div><div class="date-list">${dates.map(d=>`<button class="date-btn" onclick="openDateSummary('${jsq(d)}')"><strong>${esc(d)}</strong><small>View available data →</small></button>`).join("")||"<div class='empty'>No dated records available.</div>"}</div></div>`;
+  showModal("Date Selector",html);
+}
+function openDateSummary(date){
+  const stockRows=[];
+  getMaterials().forEach(m=>{
+    const ts=transactions(m).filter(t=>dateOnly(rowDate(t))===date);
+    if(ts.length)stockRows.push({m,ts});
+  });
+  const cons=stockRows.reduce((a,x)=>a+x.ts.filter(t=>tType(t).includes("CONSUMPTION")).reduce((s,t)=>s+materialValueInMT(tVal(t),x.m),0),0);
+  const rec=stockRows.reduce((a,x)=>a+x.ts.filter(t=>["PURCHASE","RECEIVED"].includes(tType(t))).reduce((s,t)=>s+materialValueInMT(tVal(t),x.m),0),0);
+  const feed=DATA.feedUnitData.filter(r=>dateOnly(r.report_date||r.Report_Date)===date);
+  const prod=DATA.production.filter(r=>dateOnly(r.report_date||r.Report_Date||DATA.report_date)===date);
+  const bags=DATA.bags.filter(r=>dateOnly(r.report_date||r.Report_Date||DATA.report_date)===date);
+  let html=`<div class="detail-section"><h3>📅 ${esc(date)}</h3>${detail("Recorded RM Consumption",fmt(cons)+" MT")}${detail("RM Received",fmt(rec)+" MT")}${detail("Feed Unit records",feed.length)}${detail("Production records",prod.length)}${detail("PP Bag records",bags.length)}</div>`;
+  if(stockRows.length)html+=`<div class="detail-section"><h3>Raw Materials</h3>`+stockRows.sort((a,b)=>b.ts.filter(t=>tType(t).includes("CONSUMPTION")).reduce((s,t)=>s+tVal(t),0)-a.ts.filter(t=>tType(t).includes("CONSUMPTION")).reduce((s,t)=>s+tVal(t),0)).slice(0,20).map(x=>{const cv=x.ts.filter(t=>tType(t).includes("CONSUMPTION")).reduce((s,t)=>s+tVal(t),0);return `<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(x.m)}')"><div class="row-name">${esc(x.m)}</div><div class="row-right"><strong>${fmtMaterial(cv,x.m)}</strong><small>Consumption • tap details</small></div></div>`}).join("")+"</div>";
+  showModal("Historical Day",html);
+}
+function openGlobalSearch(){
+  showModal("🔎 Search",`<div class="detail-section"><input id="globalSearchInput" class="search-input" placeholder="Search material or feed product..." oninput="renderGlobalSearch(this.value)" autofocus><div id="globalSearchResults" style="margin-top:8px"></div></div>`);
+  renderGlobalSearch("");
+  setTimeout(()=>document.getElementById("globalSearchInput")?.focus(),80);
+}
+function renderGlobalSearch(q){
+  const el=document.getElementById("globalSearchResults");if(!el)return;
+  const term=normalize(q);
+  const mats=getMaterials().filter(m=>!term||normalize(m).includes(term));
+  const feeds=latestFeedRows().map(r=>clean(r.Product||r.product)).filter(Boolean).filter(p=>!term||normalize(p).includes(term));
+  const prods=DATA.production.map(r=>clean(r.product)).filter(Boolean).filter(p=>!term||normalize(p).includes(term));
+  const bags=(DATA.bags||[]).map(r=>clean(r.product)).filter(Boolean).filter(p=>!term||normalize(p).includes(term));
+  const items=[];
+  mats.slice(0,12).forEach(m=>{const x=getMaterial(m);items.push(`<div class="search-result" onclick="closeModal();openMaterialDetails('${jsq(m)}')"><strong>📦 ${esc(m)}</strong><small>Stock ${fmtMaterial(x?.closing,m,x?.unit||"MT")} • Raw material</small></div>`)});
+  feeds.slice(0,8).forEach(p=>items.push(`<div class="search-result" onclick="closeModal();openFeedProductDetails('${jsq(p)}')"><strong>🌾 ${esc(p)}</strong><small>Feed Unit product</small></div>`));
+  prods.slice(0,8).forEach(p=>items.push(`<div class="search-result" onclick="closeModal();openProductDetails('${jsq(p)}')"><strong>🏭 ${esc(p)}</strong><small>Production product</small></div>`));
+  bags.slice(0,8).forEach(p=>items.push(`<div class="search-result" onclick="closeModal();openBagProduct('${jsq(p)}')"><strong>👜 ${esc(p)}</strong><small>PP Bags product</small></div>`));
+  el.innerHTML=items.join("")||"<div class='empty'>No matching material or product.</div>";
+}
+
 function renderDashboard(){
   renderQuick();
+  renderControlCenter();
   renderPremixTransfers();
   renderFeedUnit();
   renderStock();
@@ -684,6 +954,20 @@ function renderAlerts(){
     const op=num(r.output_percentage);
     if(op!==null&&op<95)items.push({title:r.product,msg:"Output below 95%",type:"warning",icon:"🟠"});
   });
+  abnormalConsumptionItems().forEach(a=>{
+    items.push({title:a.material,msg:`Consumption ${fmt(a.current)} is ${fmt(a.ratio*100-100)}% above average`,type:"warning",icon:"📈"});
+  });
+  reconciliationItems().filter(x=>x.r.status==="MISMATCH").forEach(x=>{
+    items.push({title:x.material,msg:`Stock reconciliation difference ${fmt(x.r.diff)} ${materialUnit(x.material,getMaterial(x.material)?.unit||"MT")}`,type:"critical",icon:"⚠️"});
+  });
+  getMaterials().forEach(m=>{
+    const closing=num(getMaterial(m)?.closing);
+    if(closing!==null&&closing<0)items.push({title:m,msg:`Negative closing stock: ${fmt(closing)} ${materialUnit(m,getMaterial(m)?.unit||"MT")}`,type:"critical",icon:"🔴"});
+  });
+  DATA.bags.forEach(r=>{
+    const damage=num(r.damage)||0;
+    if(damage>0)items.push({title:r.product||"PP Bags",msg:`PP bag damage recorded: ${fmt(damage)}`,type:"warning",icon:"👜"});
+  });
   ALERTS=items.filter(a=>!DISMISSED_ALERTS.has(alertKey(a)));
   const badge=document.getElementById("notifyBadge");
   if(badge){badge.textContent=ALERTS.length>99?"99+":String(ALERTS.length);badge.classList.toggle("hidden",ALERTS.length===0)}
@@ -712,7 +996,7 @@ function rawTotal(material,tab){
   if(tab==="STOCK")return num(getMaterial(material)?.closing)||0;
   return transactions(material).filter(t=>{
     const ty=tType(t);
-    if(tab==="TRANSFER")return ty==="TRANSFER" || ty.includes("TRANSFER FROM BMKL");
+    if(tab==="TRANSFER")return ty==="TRANSFER" || ty.includes("TRANSFER FROM") || ty.includes("TRANSFER TO");
     return ty===tab;
   }).reduce((a,t)=>a+tVal(t),0);
 }
@@ -739,9 +1023,18 @@ function openMaterialDetails(material){
   const x=getMaterial(material),rows=transactions(material),closing=num(x?.closing)||0,avg=avgConsumption(material),s=stockStatus(closing,avg),reorder=avg*DEFAULT_SAFETY_DAYS;
   const groups=["OPENING STOCK","PURCHASE","TRANSFER FROM SOYA DIVISION","GAIN","SALE","SHORTAGE","CONSUMPTION","CL. STOCK"];
   const unit=materialUnit(material,x?.unit||"MT");
+  const rec=materialReconciliation(material);
   let html=`<div class="detail-section"><h3>${esc(material)}</h3>${detail("Current Stock",fmt(closing)+" "+unit)}${detail("Average Daily Consumption",avg?fmt(avg)+" "+unit+"/day":"Insufficient history")}${detail("Safety Days",DEFAULT_SAFETY_DAYS+" days")}${detail("Stock Coverage",s.cover!==null?fmt(s.cover)+" days":"--")}${detail("Calculated Reorder Level",fmt(reorder)+" "+unit)}${detail("Status",s.status)}</div>`;
+  if(rec.status==="MATCH"||rec.status==="MISMATCH"){
+    const cls=rec.status==="MATCH"?"reconcile-ok":"reconcile-bad";
+    html+=`<div class="detail-section ${cls}"><h3>🔎 Stock Reconciliation • ${esc(rec.date||"Latest")}</h3>${detail("Opening",fmt(rec.opening)+" "+unit)}${detail("Additions",fmt(rec.add)+" "+unit)}${detail("Other deductions",fmt(rec.otherOut)+" "+unit)}${detail("Actual Closing",fmt(rec.closing)+" "+unit)}${detail("Calculated Consumption",fmt(rec.calculated)+" "+unit)}${detail("Recorded Consumption",fmt(rec.recorded)+" "+unit)}${detail("Difference",fmt(rec.diff)+" "+unit)}${detail("Result",rec.status==="MATCH"?"✓ MATCH":"⚠ CHECK — possible missing/wrong transaction")}</div>`;
+  }else{
+    html+=`<div class="detail-section reconcile-warn"><h3>🔎 Stock Reconciliation</h3><div class="empty">${esc(rec.message||"Insufficient data for reconciliation.")}</div></div>`;
+  }
   html+=`<div class="detail-section"><h3>Material-wise Movement</h3>`;
-  groups.forEach(g=>{const total=rows.filter(t=>tType(t)===normalize(g)).reduce((a,t)=>a+tVal(t),0);if(total)html+=detail(g,fmt(total)+" MT")});
+  groups.forEach(g=>{const total=rows.filter(t=>tType(t)===normalize(g)).reduce((a,t)=>a+tVal(t),0);if(total)html+=detail(g,fmt(total)+" "+unit)});
+  const namedConsumption=rows.filter(t=>tType(t).includes("CONSUMPTION")).reduce((a,t)=>a+tVal(t),0);
+  if(namedConsumption)html+=detail("All Consumption Activities",fmt(namedConsumption)+" "+unit);
   html+="</div>";
   if(rows.length){
     html+=`<div class="detail-section"><h3>Transactions</h3>`;
