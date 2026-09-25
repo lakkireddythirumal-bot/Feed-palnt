@@ -56,7 +56,7 @@ canvas{width:100%;height:150px;display:block}
 .bottom-nav{position:fixed;left:0;right:0;bottom:0;height:68px;background:rgba(255,255,255,.97);border-top:1px solid #e9eaec;display:flex;justify-content:space-around;align-items:center;z-index:100}
 .nav-item{text-align:center;font-size:10px;color:#888;cursor:pointer}.nav-item div{font-size:18px}.nav-item.active{color:#315efb;font-weight:600}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.38);display:none;align-items:flex-end;z-index:500}.modal.show{display:flex}
-.modal-box{width:100%;max-width:620px;max-height:90vh;overflow-y:auto;background:#fff;border-radius:24px 24px 0 0;padding:17px}
+.modal-box{width:100%;max-width:620px;position:relative;max-height:90vh;overflow-y:auto;background:#fff;border-radius:24px 24px 0 0;padding:17px}
 .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px}.modal-head h2{font-size:18px}.close{width:34px;height:34px;border:0;border-radius:50%;background:#f2f3f5;font-size:20px}
 .detail-section{background:#f7f8fa;border-radius:13px;padding:12px;margin-bottom:9px}.detail-section h3{font-size:12px;margin-bottom:7px}
 .detail-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #e7e8ea;font-size:12px}.detail-row:last-child{border-bottom:0}.detail-row span:first-child{color:#777}
@@ -67,6 +67,53 @@ canvas{width:100%;height:150px;display:block}
 .install{display:none;border:0;background:#202938;color:#fff;border-radius:9px;padding:7px 9px;font-size:10px}
 @media(min-width:700px){.container{max-width:960px}.desktop-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}}
 @media (min-width:520px){.quick-grid,.mini-grid{grid-template-columns:repeat(4,1fr)}}
+
+/* ===== Premium mobile-first polish ===== */
+html{scroll-behavior:smooth}
+body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+.card{position:relative;border:1px solid rgba(32,41,56,.045);box-shadow:0 3px 18px rgba(32,41,56,.055);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;animation:cardIn .34s ease both}
+.card:nth-of-type(2){animation-delay:.025s}.card:nth-of-type(3){animation-delay:.05s}.card:nth-of-type(4){animation-delay:.075s}.card:nth-of-type(5){animation-delay:.1s}
+.quick,.mini,.feed-total,.pp-item,.trend-card{border:1px solid rgba(32,41,56,.035);transition:transform .16s ease,box-shadow .16s ease,background .16s ease}
+.quick:active,.mini:active,.feed-total:active,.pp-item:active,.feed-row:active,.production-row:active,.stock-row:active{transform:scale(.985)}
+.quick:hover,.mini:hover,.feed-total:hover,.pp-item:hover{box-shadow:0 5px 14px rgba(32,41,56,.07)}
+.quick strong,.mini strong,.feed-total strong,.pp-item strong,.production-total{letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.quick-grid{gap:7px}.mini-grid{gap:7px}
+.quick{min-height:58px;padding:8px 9px;display:flex;flex-direction:column;justify-content:center}
+.quick p,.mini p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.quick strong{font-size:16px}.mini strong{font-size:15px}
+.card-title{margin-bottom:7px}.card-title h2{letter-spacing:-.01em}
+.feed-row,.production-row{min-height:43px;padding:6px 1px;transition:background .15s ease,transform .15s ease}
+.feed-row:hover,.production-row:hover,.stock-row:hover{background:#fafbfc}
+.row-name{line-height:1.25}.row-right strong{font-variant-numeric:tabular-nums}
+.stock-row{min-height:43px;padding:7px 3px}
+.stock-row strong,.stock-row span{font-variant-numeric:tabular-nums}
+.status-symbol{font-size:14px;width:24px;height:24px;line-height:24px;border-radius:8px;background:#f3f4f6}
+.status-symbol.good{background:#e9f8ef}.status-symbol.warn{background:#fff5dc}.status-symbol.bad{background:#ffeded}
+.premix-row{min-height:45px}.premix-total{padding-bottom:1px}
+.raw-movement-row{min-height:46px;padding:6px 1px}
+.raw-movement-row .row-name{font-size:14px;font-weight:600}.raw-movement-row .row-right strong{font-size:16px}
+.section-tabs{scrollbar-width:none;padding-bottom:1px}.section-tabs::-webkit-scrollbar{display:none}
+.section-tabs button{min-height:34px;box-shadow:0 1px 4px rgba(0,0,0,.03)}
+.notify-btn{transition:transform .16s ease,box-shadow .16s ease}.notify-btn:active{transform:scale(.93)}
+.notify-badge{animation:badgePop .22s ease both}
+.modal{backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);align-items:flex-end;padding:0 0 env(safe-area-inset-bottom)}
+.modal.show .modal-box{animation:sheetIn .25s cubic-bezier(.2,.8,.2,1) both}
+.modal-box{max-width:680px;max-height:min(88vh,760px);padding:12px 14px calc(18px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;box-shadow:0 -12px 40px rgba(0,0,0,.16)}
+.modal-box:before{content:"";display:block;width:38px;height:4px;border-radius:4px;background:#dfe2e6;margin:0 auto 5px}.modal-head{position:sticky;top:-12px;z-index:2;background:#fff;padding:10px 0 11px;margin-bottom:7px;border-bottom:1px solid #f0f1f3}
+.modal-head h2{font-size:17px;letter-spacing:-.01em}.close{width:44px;height:44px;font-size:24px;line-height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;box-shadow:0 1px 5px rgba(0,0,0,.06);transition:transform .15s ease,background .15s ease}.close:active{transform:scale(.92);background:#e9ebef}
+.detail-section{padding:11px;margin-bottom:8px}.detail-row{padding:7px 0}
+.transaction{padding:9px;margin-bottom:6px}
+.alert{position:relative;padding-right:42px}.alert-dismiss{position:absolute;right:8px;top:8px;width:30px;height:30px;border:0;border-radius:50%;background:#fff;color:#777;font-size:18px;cursor:pointer}.alert-dismiss:active{transform:scale(.9)}
+.notification-item{position:relative;padding-right:38px}.notification-dismiss{position:absolute;right:6px;top:6px;width:30px;height:30px;border:0;border-radius:50%;background:#f2f3f5;color:#777;font-size:17px;cursor:pointer}.notification-dismiss:active{transform:scale(.9)}
+.clear-alerts{border:0;background:#f1f3f5;border-radius:9px;padding:8px 10px;font-size:10px;cursor:pointer}
+.bottom-nav{height:70px;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 18px rgba(32,41,56,.06)}
+.nav-item{min-width:58px;padding:5px 8px;border-radius:12px;transition:background .15s ease,transform .15s ease}.nav-item:active{transform:scale(.94);background:#f2f4f7}.nav-item div{line-height:21px}
+@keyframes cardIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes sheetIn{from{opacity:.4;transform:translateY(24px)}to{opacity:1;transform:none}}
+@keyframes badgePop{from{transform:scale(.7)}to{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media(min-width:700px){.modal{align-items:center;padding:20px}.modal-box{border-radius:22px;max-height:88vh;box-shadow:0 18px 60px rgba(0,0,0,.18)}.modal.show .modal-box{animation:modalIn .22s ease both}}
+@keyframes modalIn{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -213,6 +260,12 @@ let DATA={
   efficiency:null,processLoss:null,report_date:null
 };
 let ALERTS=[];
+let DISMISSED_ALERTS=new Set();
+try{DISMISSED_ALERTS=new Set(JSON.parse(localStorage.getItem("manager_dashboard_dismissed_alerts_v1")||"[]"))}catch(e){}
+function alertKey(a){return normalize((a.title||"")+"|"+(a.msg||""))}
+function saveDismissedAlerts(){try{localStorage.setItem("manager_dashboard_dismissed_alerts_v1",JSON.stringify([...DISMISSED_ALERTS]))}catch(e){}}
+function dismissAlert(key){DISMISSED_ALERTS.add(key);saveDismissedAlerts();renderAlerts();if(document.getElementById("modal").classList.contains("show"))openNotifications()}
+function clearDismissedAlerts(){DISMISSED_ALERTS.clear();saveDismissedAlerts();renderAlerts();openNotifications()}
 
 function clean(v){return String(v??"").trim()}
 function normalize(v){return clean(v).replace(/\s+/g," ").toUpperCase()}
@@ -480,7 +533,7 @@ function stockStatus(closing,avg){
 function renderStock(){
   const list=document.getElementById("stockList");
   const mats=getMaterials();
-  list.innerHTML=mats.slice().sort((a,b)=>((num(getMaterial(b)?.closing)||0)>0?1:0)-((num(getMaterial(a)?.closing)||0)>0?1:0)).map(m=>{
+  list.innerHTML=mats.slice().sort((a,b)=>{const av=num(getMaterial(a)?.closing)||0,bv=num(getMaterial(b)?.closing)||0;return (bv>0)-(av>0)||bv-av}).map(m=>{
     const x=getMaterial(m),closing=num(x?.closing)||0,avg=avgConsumption(m),s=stockStatus(closing,avg);
     const symbol=s.status==="REORDER"?"!":s.status==="WATCH"?"●":s.status==="OK"?"●":"—";
     return `<div class="stock-row" onclick="openMaterialDetails('${jsq(m)}')">
@@ -530,17 +583,11 @@ function renderPPBags(){
 }
 function renderAlerts(){
   const items=[];
-
-  // Reorder alerts from the API are the primary source.
   const reorder=Array.isArray(DATA.reorder_items)?DATA.reorder_items:[];
   reorder.forEach(r=>{
     const title=clean(r.material||r.Material||r.name||r.product);
-    if(title){
-      items.push({title:title,msg:"Stock is at/below reorder level",type:"critical",icon:"🔴"});
-    }
+    if(title)items.push({title,msg:"Stock is at/below reorder level",type:"critical",icon:"🔴"});
   });
-
-  // Fallback / additional warnings from the dashboard's existing calculations.
   if(!reorder.length){
     getMaterials().forEach(m=>{
       const x=getMaterial(m),s=stockStatus(num(x?.closing)||0,avgConsumption(m));
@@ -548,34 +595,27 @@ function renderAlerts(){
       else if(s.status==="WATCH")items.push({title:m,msg:"Stock coverage is getting low",type:"warning",icon:"🟠"});
     });
   }
-
   DATA.production.forEach(r=>{
     const op=num(r.output_percentage);
-    if(op!==null&&op<95){
-      items.push({title:r.product,msg:"Output below 95%",type:"warning",icon:"🟠"});
-    }
+    if(op!==null&&op<95)items.push({title:r.product,msg:"Output below 95%",type:"warning",icon:"🟠"});
   });
-
-  ALERTS=items;
+  ALERTS=items.filter(a=>!DISMISSED_ALERTS.has(alertKey(a)));
   const badge=document.getElementById("notifyBadge");
-  if(badge){
-    badge.textContent=items.length>99?"99+":String(items.length);
-    badge.classList.toggle("hidden",items.length===0);
-  }
+  if(badge){badge.textContent=ALERTS.length>99?"99+":String(ALERTS.length);badge.classList.toggle("hidden",ALERTS.length===0)}
 }
-
 function openNotifications(){
   if(!ALERTS.length){
-    showModal("🔔 Notifications",`<div class="detail-section"><h3>All clear</h3><div class="empty">No active alerts right now.</div></div>`);
+    showModal("🔔 Alerts",`<div class="detail-section"><h3>All clear</h3><div class="empty">No active alerts right now.</div></div>`);
     return;
   }
   const critical=ALERTS.filter(a=>a.type==="critical"),warning=ALERTS.filter(a=>a.type==="warning");
-  let html=`<div class="detail-section"><h3>🔔 Notifications (${ALERTS.length})</h3>`;
+  let html=`<div class="detail-section"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3>🔔 Active Alerts (${ALERTS.length})</h3><button class="clear-alerts" onclick="clearDismissedAlerts()">Reset dismissed</button></div>`;
   [...critical,...warning].forEach(a=>{
-    html+=`<div class="transaction"><div class="transaction-title"><strong>${a.icon} ${esc(a.title)}</strong><span>${a.type==="critical"?"Critical":"Warning"}</span></div><div style="font-size:11px;color:#666">${esc(a.msg)}</div></div>`;
+    const k=alertKey(a);
+    html+=`<div class="transaction notification-item"><button class="notification-dismiss" onclick="dismissAlert('${jsq(k)}')" aria-label="Dismiss alert">×</button><div class="transaction-title"><strong>${a.icon} ${esc(a.title)}</strong><span>${a.type==="critical"?"Critical":"Warning"}</span></div><div style="font-size:11px;color:#666">${esc(a.msg)}</div></div>`;
   });
   html+=`</div>`;
-  showModal("🔔 Notifications",html);
+  showModal("🔔 Alerts",html);
 }
 
 /* =====================================================
@@ -595,7 +635,8 @@ function renderRawCategory(tab){
   const el=document.getElementById("rawCategoryList");
   const mats=getMaterials();
   if(tab==="STOCK"){
-    el.innerHTML=mats.map(m=>{const x=getMaterial(m);return `<div class="feed-row raw-movement-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(num(x?.closing)||0,m,x?.unit||"MT")}</strong><small>Tap for complete details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
+    const rows=mats.map(m=>({m,v:num(getMaterial(m)?.closing)||0})).sort((a,b)=>(b.v>0)-(a.v>0)||b.v-a.v);
+    el.innerHTML=rows.map(({m})=>{const x=getMaterial(m);return `<div class="feed-row raw-movement-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(num(x?.closing)||0,m,x?.unit||"MT")}</strong><small>Tap for complete details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
   }else{
     const rows=mats.map(m=>({m,v:rawTotal(m,tab)})).sort((a,b)=>(b.v>0?1:0)-(a.v>0?1:0)||b.v-a.v);
     el.innerHTML=rows.map(({m,v})=>{const label=tab==="TRANSFER"?"Transfer / Bommakal":tab;return `<div class="feed-row raw-movement-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(v,m,"MT")}</strong><small>${esc(label)} • tap for details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
@@ -625,8 +666,8 @@ function openMaterialDetails(material){
   showModal(material,html);
 }
 function openStockDetails(){showModal("Raw Material Stock",getMaterials().map(m=>{const x=getMaterial(m);return `<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(x?.closing,m,x?.unit||"MT")}</strong><small>Details →</small></div></div>`}).join("")||"<div class='empty'>No stock data</div>")}
-function openRawCategory(tab){showModal(tab==="PURCHASE"?"Raw Material Received":("Raw Material "+tab),getMaterials().map(m=>`<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(rawTotal(m,tab),m,"MT")}</strong><small>Tap for complete details</small></div></div>`).join("")||"<div class='empty'>No data</div>")}
-function openProductionDetails(){showModal("Production",DATA.production.map(r=>`<div class="feed-row" onclick="closeModal();openProductDetails('${jsq(r.product)}')"><div class="row-name">${esc(r.product)}</div><div class="row-right"><strong>${fmtBags(r.actual_output)}</strong><small>Output ${fmt(r.output_percentage)}%</small></div></div>`).join("")||"<div class='empty'>No production data</div>")}
+function openRawCategory(tab){const rows=getMaterials().map(m=>({m,v:rawTotal(m,tab)})).sort((a,b)=>(b.v>0)-(a.v>0)||b.v-a.v);showModal(tab==="PURCHASE"?"Raw Material Received":("Raw Material "+tab),rows.map(({m,v})=>`<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(v,m,"MT")}</strong><small>Tap for complete details</small></div></div>`).join("")||"<div class='empty'>No data</div>")}
+function openProductionDetails(){const rows=DATA.production.slice().sort((a,b)=>{const av=num(a.actual_output)||0,bv=num(b.actual_output)||0;return (bv>0)-(av>0)||bv-av});showModal("Production",rows.map(r=>`<div class="feed-row" onclick="closeModal();openProductDetails('${jsq(r.product)}')"><div class="row-name">${esc(r.product)}</div><div class="row-right"><strong>${fmtBags(r.actual_output)}</strong><small>Output ${fmt(r.output_percentage)}%</small></div></div>`).join("")||"<div class='empty'>No production data</div>")}
 function packingFromRemarks(v){const m=clean(v).match(/(\d+(?:\.\d+)?)\s*(?:bags?|Bags?).*?(\d+(?:\.\d+)?)\s*kg/i);return m?`${m[1]} Bags × ${m[2]} kg/bag`:clean(v)}
 function openProductDetails(product){
   const r=DATA.production.find(x=>normalize(x.product)===normalize(product));
@@ -640,7 +681,7 @@ function openFeedTotals(type){
   const label={production_day:"Day Production",production_month:"Month Production",dispatch_day:"Day Dispatch",dispatch_month:"Month Dispatch"}[type]||"Feed Unit";
   const key={production_day:"Production_Day_MT",production_month:"Production_Month_MT",dispatch_day:"Dispatch_Day_MT",dispatch_month:"Dispatch_Month_MT"}[type];
   const total=latestTotal(key);
-  const rows=latestFeedRows();
+  const rows=latestFeedRows().slice().sort((a,b)=>{const av=num(feedField(a,key))||0,bv=num(feedField(b,key))||0;return (bv>0)-(av>0)||bv-av});
   showModal(label,`<div class="detail-section">${detail("Total",fmtMT(total))}</div>`+rows.map(r=>{const p=r.Product||r.product||"--";const v=feedField(r,key);return `<div class="feed-row" onclick="closeModal();openFeedProductDetails('${jsq(p)}')"><div class="row-name">${esc(p)}</div><div class="row-right"><strong>${fmtFeed(v,p)}</strong><small>Product details →</small></div></div>`}).join(""));
 }
 function openFeedProductDetails(product){
