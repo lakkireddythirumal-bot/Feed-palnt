@@ -87,6 +87,13 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 .row-name{line-height:1.25}.row-right strong{font-variant-numeric:tabular-nums}
 .stock-row{min-height:43px;padding:7px 3px}
 .stock-row strong,.stock-row span{font-variant-numeric:tabular-nums}
+.reorder-material-wrap{min-width:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
+.reorder-material{display:block;white-space:normal;overflow-wrap:anywhere}
+.avg-sub{display:block;color:#7b808b;font-size:10.5px;line-height:1.1;margin-top:4px;white-space:nowrap}
+.stock-head>span:not(:first-child){text-align:right}
+.stock-row>span{text-align:right}
+.stock-row>span:last-child{text-align:center}
+
 .status-symbol{font-size:14px;width:24px;height:24px;line-height:24px;border-radius:8px;background:#f3f4f6}
 .status-symbol.good{background:#e9f8ef}.status-symbol.warn{background:#fff5dc}.status-symbol.bad{background:#ffeded}
 .premix-row{min-height:45px}.premix-total{padding-bottom:1px}
@@ -119,16 +126,16 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 .desktop-grid{display:block}
 .desktop-grid>.card{margin-bottom:11px}
 .stock-table{width:100%;overflow:hidden}
-.stock-head,.stock-row{display:grid;grid-template-columns:minmax(0,2.45fr) .85fr .82fr .72fr .88fr;align-items:center;gap:7px}
+.stock-head,.stock-row{display:grid;grid-template-columns:minmax(0,1.75fr) .78fr .78fr .78fr .62fr;align-items:center;gap:7px}
 .stock-head{font-size:9px}
-.stock-row{padding:9px 0}
-.stock-row strong{font-size:12px;line-height:1.18;word-break:break-word}
+.stock-row{padding:9px 0;min-height:58px}
+.stock-row strong{font-size:13px;line-height:1.15;word-break:break-word}
 .stock-row>span{font-size:11px;text-align:right;white-space:nowrap}
 .status-text{font-size:9px!important;font-weight:700;letter-spacing:.1px}
 .raw-row .row-name{font-size:12px!important}
 .raw-row .row-right strong{font-size:12px!important}
 @media(min-width:700px){.desktop-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.desktop-grid>.card{margin-bottom:0}}
-@media(max-width:520px){.stock-head,.stock-row{grid-template-columns:minmax(0,2.2fr) .9fr .75fr .7fr .78fr;gap:5px}.stock-row>span{font-size:10px}.status-text{font-size:8.5px!important}.stock-row strong{font-size:11.5px}}
+@media(max-width:520px){.stock-head,.stock-row{grid-template-columns:minmax(0,1.65fr) .76fr .76fr .76fr .58fr;gap:5px}.stock-row>span{font-size:10.5px}.status-text{font-size:8px!important}.stock-row strong{font-size:12px}.reorder-material{font-size:13px!important}.avg-sub{font-size:10px!important;margin-top:3px!important}}
 </style>
 </head>
 <body>
@@ -551,7 +558,14 @@ function renderStock(){
   list.innerHTML=mats.slice().sort((a,b)=>{const av=num(getMaterial(a)?.closing)||0,bv=num(getMaterial(b)?.closing)||0;return (bv>0)-(av>0)||bv-av}).map(m=>{
     const x=getMaterial(m),closing=num(x?.closing)||0,avg=avgConsumption(m),s=stockStatus(closing,avg);
     return `<div class="stock-row" onclick="openMaterialDetails('${jsq(m)}')">
-      <strong class="reorder-material">${esc(m)}</strong><span>${fmt(closing)} ${esc(x?.unit||"MT")}</span><span>${avg?fmt(avg):"--"}</span><span>${s.cover!==null?fmt(s.cover)+" d":"--"}</span><span class="${s.cls} status-text">${esc(s.status)}</span>
+      <div class="reorder-material-wrap">
+        <strong class="reorder-material">${esc(m)}</strong>
+        <small class="avg-sub">${avg?`Avg ${fmt(avg)} ${esc(x?.unit||"MT")}/day`:"Avg --"}</small>
+      </div>
+      <span>${fmt(closing)} ${esc(x?.unit||"MT")}</span>
+      <span>${s.cover!==null?fmt(s.cover)+" d":"--"}</span>
+      <span>${fmt(reorder)} ${esc(x?.unit||"MT")}</span>
+      <span class="${s.cls} status-text">${esc(s.status)}</span>
     </div>`;
   }).join("")||"<div class='empty'>No stock data</div>";
 }
