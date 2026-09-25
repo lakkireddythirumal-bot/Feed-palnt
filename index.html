@@ -131,6 +131,58 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 @media(max-width:520px){.stock-head,.stock-row{grid-template-columns:minmax(0,2.2fr) .9fr .75fr .7fr .78fr;gap:5px}.stock-row>span{font-size:10px}.status-text{font-size:8.5px!important}.stock-row strong{font-size:11.5px}}
 </style>
 <style id="reorder-ui-polish">.stock-row .reorder-material,.stock-row strong.reorder-material{font-size:13px!important;font-weight:500!important;line-height:1.15!important;letter-spacing:0!important}.stock-row .avg-sub{font-size:9.5px!important;font-weight:400!important;color:#858a94!important;line-height:1.05!important;margin-top:3px!important}.stock-row>span{font-size:12px!important;font-weight:700!important;line-height:1.1!important;white-space:nowrap}.stock-row>span:last-child{font-size:9px!important;font-weight:700!important;letter-spacing:.15px}.stock-head,.stock-row{grid-template-columns:minmax(0,1.72fr) .82fr .72fr .82fr .58fr!important;column-gap:9px!important}.stock-head{font-size:9.5px!important;letter-spacing:.15px}.stock-row{min-height:52px!important;padding:7px 0!important}.reorder-material-wrap{min-width:0;padding-right:3px}@media(max-width:520px){.stock-head,.stock-row{grid-template-columns:minmax(0,1.62fr) .82fr .72fr .82fr .56fr!important;column-gap:6px!important}.stock-row .reorder-material,.stock-row strong.reorder-material{font-size:12px!important}.stock-row .avg-sub{font-size:9px!important}.stock-row>span{font-size:11.5px!important}.stock-row>span:last-child{font-size:8px!important}}</style>
+
+<style id="reorder-spacing-v11">
+/* Raw Material Reorder: tighter material column, stronger numeric hierarchy */
+.stock-head,
+.stock-row{
+  grid-template-columns:minmax(0,1.58fr) .88fr .72fr .82fr .58fr !important;
+  column-gap:7px !important;
+}
+.stock-head{
+  font-size:9px !important;
+}
+.stock-row{
+  min-height:48px !important;
+  padding:6px 0 !important;
+}
+.stock-row .reorder-material,
+.stock-row strong.reorder-material{
+  font-size:12.5px !important;
+  font-weight:500 !important;
+  line-height:1.08 !important;
+}
+.stock-row .avg-sub{
+  font-size:9px !important;
+  line-height:1 !important;
+  margin-top:2px !important;
+}
+.stock-row > span{
+  font-size:12.5px !important;
+  font-weight:750 !important;
+  line-height:1 !important;
+  white-space:nowrap;
+}
+.stock-row > span:last-child{
+  font-size:8.5px !important;
+  font-weight:700 !important;
+}
+@media(max-width:520px){
+  .stock-head,
+  .stock-row{
+    grid-template-columns:minmax(0,1.52fr) .88fr .70fr .82fr .56fr !important;
+    column-gap:5px !important;
+  }
+  .stock-head{font-size:8.5px !important}
+  .stock-row{min-height:46px !important;padding:5px 0 !important}
+  .stock-row .reorder-material,
+  .stock-row strong.reorder-material{font-size:12px !important}
+  .stock-row .avg-sub{font-size:8.5px !important}
+  .stock-row > span{font-size:12px !important}
+  .stock-row > span:last-child{font-size:7.8px !important}
+}
+</style>
+
 </head>
 <body>
 <div class="container">
