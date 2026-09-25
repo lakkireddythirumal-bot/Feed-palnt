@@ -11,7 +11,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:#f5f6f8;color:#202938;padding-bottom:82px}
-.container{width:100%;max-width:720px;margin:auto;padding:14px}
+.container{width:100%;max-width:760px;margin:auto;padding:14px}
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .header-actions{display:flex;align-items:center;gap:8px}.notify-btn{position:relative;width:42px;height:42px;border:0;border-radius:50%;background:#fff;font-size:21px;box-shadow:0 2px 10px rgba(0,0,0,.04);cursor:pointer}.notify-badge{position:absolute;top:-2px;right:-2px;min-width:17px;height:17px;padding:0 4px;border-radius:10px;background:#d83b3b;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #f5f6f8}.notify-badge.hidden{display:none}
 .header h1{font-size:24px}.header p{color:#777;font-size:13px;margin-top:3px}
@@ -23,27 +23,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-s
 .card-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .card-title h2{font-size:17px}.card-title span{font-size:12px;color:#777}
 .quick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.quick{background:#f7f8fa;padding:9px;border-radius:12px;cursor:pointer}
-.quick p{color:#777;font-size:10px}.quick strong{display:block;font-size:17px;margin-top:3px}
+.quick{background:#f7f8fa;padding:7px 8px;border-radius:12px;cursor:pointer}
+.quick p{color:#777;font-size:10px}.quick strong{display:block;font-size:15px;margin-top:2px}
 .mini-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.mini{background:#f7f8fa;border-radius:12px;padding:8px;cursor:pointer}
-.mini p{font-size:10px;color:#777}.mini strong{display:block;font-size:15px;margin-top:3px}
+.mini{background:#f7f8fa;border-radius:12px;padding:7px;cursor:pointer}
+.mini p{font-size:10px;color:#777}.mini strong{display:block;font-size:14px;margin-top:2px}
 .stock-table{overflow:hidden;border-radius:12px}
 .stock-head,.stock-row{display:grid;grid-template-columns:1.25fr .85fr .9fr .75fr .85fr;gap:6px;align-items:center}
 .stock-head{font-size:10px;color:#888;padding:7px 4px;background:#f7f8fa}
-.stock-row{padding:11px 4px;border-bottom:1px solid #f0f0f0;font-size:11px;cursor:pointer}
-.stock-row:last-child{border-bottom:0}.stock-row strong{font-size:12px}
-.good{color:#258a55}.warn{color:#b47700}.bad{color:#c0392b}
+.stock-row{padding:8px 4px;border-bottom:1px solid #f0f0f0;font-size:11px;cursor:pointer}
+.stock-row:last-child{border-bottom:0}.stock-row strong{font-size:13px}.stock-row span:not(.status-symbol){font-size:12px}
+.good{color:#258a55}.warn{color:#b47700}.bad{color:#c0392b}.status-symbol{font-size:15px;font-weight:800;display:inline-block;text-align:center;min-width:18px}
 .feed-total-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .feed-total{background:#f7f8fa;padding:11px;border-radius:13px;cursor:pointer}
 .feed-total p{font-size:10px;color:#777}.feed-total strong{display:block;font-size:18px;margin-top:3px}
-.feed-row,.production-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0f0f0;cursor:pointer}
+.feed-row,.production-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f0f0f0;cursor:pointer}
 .feed-row:last-child,.production-row:last-child{border-bottom:0}
-.row-name{font-size:13px;font-weight:500}.raw-movement-row{padding:7px 0}.raw-movement-row .row-name{font-size:14px}.raw-movement-row .row-right strong{font-size:15px}.raw-movement-row .row-right small{font-size:9px}.row-right{text-align:right}.row-right strong{display:block;font-size:14px}.row-right small{font-size:10px;color:#888}
+.row-name{font-size:13px;font-weight:500}.premix-row{padding:6px 0}.premix-row .row-name{font-size:14px}.premix-row .row-right strong{font-size:15px}.premix-total{display:flex;justify-content:space-between;align-items:center;margin-top:7px;padding-top:7px;border-top:1px solid #eceef1;font-size:12px;color:#777}.premix-total strong{font-size:15px;color:#202938}.raw-movement-row{padding:6px 0}.raw-movement-row .row-name{font-size:15px}.raw-movement-row .row-right strong{font-size:16px}.raw-movement-row .row-right small{font-size:9px}.row-right{text-align:right}.row-right strong{display:block;font-size:14px}.row-right small{font-size:10px;color:#888}
 .production-total{font-size:32px;font-weight:700}.production-label{font-size:12px;color:#777;margin-bottom:7px}
-.prod-meta{font-size:10px;color:#777;margin-top:3px}
+.prod-meta{font-size:10px;color:#777;margin-top:2px}
 .pp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.pp-item{background:#f7f8fa;padding:9px;border-radius:12px;cursor:pointer}.pp-item p{font-size:10px;color:#777}.pp-item strong{display:block;font-size:18px;margin-top:3px}
+.pp-item{background:#f7f8fa;padding:8px;border-radius:12px;cursor:pointer}.pp-item p{font-size:10px;color:#777}.pp-item strong{display:block;font-size:18px;margin-top:3px}
 .pp-closing-label{display:block;font-size:10px;color:#888;margin-top:4px}.pp-closing-number{display:block;font-size:20px;margin-top:1px}
 .alert{background:#fff8e7;border-radius:13px;padding:11px;display:flex;gap:8px;margin-bottom:7px}.alert p{font-size:12px}.alert small{color:#8a6d1d;display:block;margin-top:3px;font-size:10px}
 .trend-wrapper{overflow-x:auto;scroll-snap-type:x mandatory;display:flex;gap:9px;scrollbar-width:none}.trend-wrapper::-webkit-scrollbar{display:none}
@@ -65,7 +65,7 @@ canvas{width:100%;height:150px;display:block}
 .empty{color:#888;font-size:11px;padding:10px 0}
 .small-note{font-size:9px;color:#888;margin-top:7px;line-height:1.4}
 .install{display:none;border:0;background:#202938;color:#fff;border-radius:9px;padding:7px 9px;font-size:10px}
-@media(min-width:700px){.container{max-width:900px}.desktop-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}}
+@media(min-width:700px){.container{max-width:960px}.desktop-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px}}
 @media (min-width:520px){.quick-grid,.mini-grid{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
@@ -103,6 +103,12 @@ canvas{width:100%;height:150px;display:block}
       <div class="mini" onclick="openStockDetails()"><p>RM Closing</p><strong id="qClosing">--</strong></div>
       <div class="mini" onclick="openFeedClosingDetails()"><p>Feed Closing Stock</p><strong id="qFeedClosing">-- MT</strong></div>
     </div>
+  </div>
+
+  <!-- BOMMAKAL PREMIX TRANSFERS -->
+  <div class="card premix-card" id="premixTransferCard">
+    <div class="card-title"><h2>🧪 Premixes</h2><span>Transferred from Bommakal • KG</span></div>
+    <div id="premixTransferList"><div class="empty">Loading...</div></div>
   </div>
 
   <div class="desktop-grid">
@@ -220,6 +226,34 @@ function feedValueInMT(v,product){const n=num(v)||0;return isPremixProduct(produ
 function materialUnit(material,fallback="MT"){return isPremixMaterial(material)?"KG":fallback}
 function fmtMaterial(v,material,fallback="MT"){return v===null||v===undefined||v===""?"--":fmt(v)+" "+materialUnit(material,fallback)}
 function materialValueInMT(v,material){const n=num(v)||0;return isPremixMaterial(material)?n/1000:n;}
+function isBommakalTransfer(t){const ty=tType(t);return ty.includes("TRANSFER FROM BMKL");}
+function latestBommakalDate(){
+  const rows=[];
+  getMaterials().forEach(m=>transactions(m).forEach(t=>{if(isPremixMaterial(m)&&isBommakalTransfer(t))rows.push(rowDate(t));}));
+  const dates=rows.filter(Boolean).sort();
+  return dates.length?dates[dates.length-1]:"";
+}
+function premixBommakalTransfers(){
+  const latest=latestBommakalDate(), map={};
+  getMaterials().forEach(m=>{
+    if(!isPremixMaterial(m))return;
+    transactions(m).forEach(t=>{
+      if(!isBommakalTransfer(t))return;
+      const d=rowDate(t);
+      if(latest && d!==latest)return;
+      const v=tVal(t);
+      if(v>0)map[m]=(map[m]||0)+v;
+    });
+  });
+  return Object.entries(map).map(([material,value])=>({material,value})).filter(x=>x.value>0).sort((a,b)=>b.value-a.value);
+}
+function renderPremixTransfers(){
+  const el=document.getElementById("premixTransferList");
+  if(!el)return;
+  const rows=premixBommakalTransfers();
+  const totalMT=rows.reduce((a,r)=>a+r.value/1000,0);
+  el.innerHTML=rows.length?rows.map(r=>`<div class="feed-row premix-row" onclick="openMaterialDetails('${jsq(r.material)}')"><div class="row-name">${esc(r.material)}</div><div class="row-right"><strong>${fmt(r.value)} KG</strong><small>Transfer from Bommakal</small></div></div>`).join("")+`<div class="premix-total"><span>Total</span><strong>${fmt(totalMT)} MT</strong></div>`:"<div class='empty'>No premix transferred from Bommakal</div>";
+}
 function rawTotalMT(material,tab){
   if(tab==="STOCK")return materialValueInMT(getMaterial(material)?.closing,material);
   return transactions(material).filter(t=>tType(t)===tab).reduce((a,t)=>a+materialValueInMT(tVal(t),material),0);
@@ -402,6 +436,7 @@ function manualRefresh(){refreshData()}
 ===================================================== */
 function renderDashboard(){
   renderQuick();
+  renderPremixTransfers();
   renderFeedUnit();
   renderStock();
   renderProduction();
@@ -445,10 +480,11 @@ function stockStatus(closing,avg){
 function renderStock(){
   const list=document.getElementById("stockList");
   const mats=getMaterials();
-  list.innerHTML=mats.map(m=>{
+  list.innerHTML=mats.slice().sort((a,b)=>((num(getMaterial(b)?.closing)||0)>0?1:0)-((num(getMaterial(a)?.closing)||0)>0?1:0)).map(m=>{
     const x=getMaterial(m),closing=num(x?.closing)||0,avg=avgConsumption(m),s=stockStatus(closing,avg);
+    const symbol=s.status==="REORDER"?"!":s.status==="WATCH"?"●":s.status==="OK"?"●":"—";
     return `<div class="stock-row" onclick="openMaterialDetails('${jsq(m)}')">
-      <strong>${esc(m)}</strong><span>${fmt(closing)} ${esc(x?.unit||"MT")}</span><span>${avg?fmt(avg):"--"}</span><span>${s.cover!==null?fmt(s.cover)+" d":"--"}</span><span class="${s.cls}">${s.status}</span>
+      <strong>${esc(m)}</strong><span>${fmt(closing)} ${esc(x?.unit||"MT")}</span><span>${avg?fmt(avg):"--"}</span><span>${s.cover!==null?fmt(s.cover)+" d":"--"}</span><span class="${s.cls} status-symbol" title="${esc(s.status)}" aria-label="${esc(s.status)}">${symbol}</span>
     </div>`;
   }).join("")||"<div class='empty'>No stock data</div>";
 }
@@ -458,7 +494,11 @@ function renderFeedUnit(){
   if(!rows.length){list.innerHTML="<div class='empty'>Feed Unit product-wise data not available in API response.</div>";return}
   const latest={};
   rows.forEach(r=>{const p=clean(r.Product||r.product);if(p)latest[normalize(p)]=r});
-  list.innerHTML=Object.values(latest).map(r=>{
+  list.innerHTML=Object.values(latest).sort((a,b)=>{
+    const av=(num(a.Production_Day_MT??a.production_day_mt??a.Production??a.production)||0)>0?1:0;
+    const bv=(num(b.Production_Day_MT??b.production_day_mt??b.Production??b.production)||0)>0?1:0;
+    return bv-av;
+  }).map(r=>{
     const p=r.Product||r.product||"--";
     const prod=num(r.Production_Day_MT??r.production_day_mt??(r.Production||r.production));
     const disp=num(r.Dispatch_Day_MT??r.dispatch_day_mt??(r.Dispatch||r.dispatch));
@@ -483,7 +523,7 @@ function renderProduction(){
 }
 function renderPPBags(){
   const el=document.getElementById("bagGrid");
-  el.innerHTML=DATA.bags.map(r=>{
+  el.innerHTML=DATA.bags.slice().sort((a,b)=>(num(b.closing)||0)-(num(a.closing)||0)).map(r=>{
     const p=r.product||"PP Bags";
     return `<div class="pp-item" onclick="openBagProduct('${jsq(p)}')"><p>${esc(p)}</p><small class="pp-closing-label">Closing</small><strong class="pp-closing-number">${fmt(r.closing)}</strong><p style="margin-top:4px">Issue ${fmt(r.issue)} • Damage ${fmt(r.damage)}</p></div>`;
   }).join("")||"<div class='empty'>No PP Bag data</div>";
@@ -545,7 +585,11 @@ let currentRawTab="STOCK";
 function setRawTab(btn,tab){document.querySelectorAll(".section-tabs button").forEach(x=>x.classList.remove("active"));btn.classList.add("active");currentRawTab=tab;renderRawCategory(tab)}
 function rawTotal(material,tab){
   if(tab==="STOCK")return num(getMaterial(material)?.closing)||0;
-  return transactions(material).filter(t=>tType(t)===tab).reduce((a,t)=>a+tVal(t),0);
+  return transactions(material).filter(t=>{
+    const ty=tType(t);
+    if(tab==="TRANSFER")return ty==="TRANSFER" || ty.includes("TRANSFER FROM BMKL");
+    return ty===tab;
+  }).reduce((a,t)=>a+tVal(t),0);
 }
 function renderRawCategory(tab){
   const el=document.getElementById("rawCategoryList");
@@ -553,7 +597,8 @@ function renderRawCategory(tab){
   if(tab==="STOCK"){
     el.innerHTML=mats.map(m=>{const x=getMaterial(m);return `<div class="feed-row raw-movement-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(num(x?.closing)||0,m,x?.unit||"MT")}</strong><small>Tap for complete details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
   }else{
-    el.innerHTML=mats.map(m=>{const v=rawTotal(m,tab);return `<div class="feed-row raw-movement-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(v,m,"MT")}</strong><small>${esc(tab)} • tap for details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
+    const rows=mats.map(m=>({m,v:rawTotal(m,tab)})).sort((a,b)=>(b.v>0?1:0)-(a.v>0?1:0)||b.v-a.v);
+    el.innerHTML=rows.map(({m,v})=>{const label=tab==="TRANSFER"?"Transfer / Bommakal":tab;return `<div class="feed-row raw-movement-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(v,m,"MT")}</strong><small>${esc(label)} • tap for details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
   }
 }
 
