@@ -114,6 +114,21 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 @media(min-width:700px){.modal{align-items:center;padding:20px}.modal-box{border-radius:22px;max-height:88vh;box-shadow:0 18px 60px rgba(0,0,0,.18)}.modal.show .modal-box{animation:modalIn .22s ease both}}
 @keyframes modalIn{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}
+
+/* Final layout polish */
+.desktop-grid{display:block}
+.desktop-grid>.card{margin-bottom:11px}
+.stock-table{width:100%;overflow:hidden}
+.stock-head,.stock-row{display:grid;grid-template-columns:minmax(0,2.45fr) .85fr .82fr .72fr .88fr;align-items:center;gap:7px}
+.stock-head{font-size:9px}
+.stock-row{padding:9px 0}
+.stock-row strong{font-size:12px;line-height:1.18;word-break:break-word}
+.stock-row>span{font-size:11px;text-align:right;white-space:nowrap}
+.status-text{font-size:9px!important;font-weight:700;letter-spacing:.1px}
+.raw-row .row-name{font-size:12px!important}
+.raw-row .row-right strong{font-size:12px!important}
+@media(min-width:700px){.desktop-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.desktop-grid>.card{margin-bottom:0}}
+@media(max-width:520px){.stock-head,.stock-row{grid-template-columns:minmax(0,2.2fr) .9fr .75fr .7fr .78fr;gap:5px}.stock-row>span{font-size:10px}.status-text{font-size:8.5px!important}.stock-row strong{font-size:11.5px}}
 </style>
 </head>
 <body>
@@ -177,12 +192,12 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
       <div id="productionList"><div class="empty">Loading...</div></div>
     </div>
 
-    <!-- PP BAGS -->
-    <div class="card">
-      <div class="card-title"><h2>🛍 PP Bags</h2><span>Tap product</span></div>
-      <div class="pp-grid" id="bagGrid"><div class="empty">Loading...</div></div>
-    </div>
+  </div>
 
+  <!-- FEED UNIT -->
+  <div class="card">
+    <div class="card-title"><h2>🌾 Feed Unit</h2><span>Product-wise details</span></div>
+    <div id="feedUnitList"><div class="empty">Loading...</div></div>
   </div>
 
   <!-- RAW MATERIAL MOVEMENTS -->
@@ -200,11 +215,11 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
     <div id="rawCategoryList"></div>
   </div>
 
-  <!-- FEED UNIT -->
-  <div class="card">
-    <div class="card-title"><h2>🌾 Feed Unit</h2><span>Product-wise details</span></div>
-    <div id="feedUnitList"><div class="empty">Loading...</div></div>
-  </div>
+    <!-- PP BAGS -->
+    <div class="card">
+      <div class="card-title"><h2>🛍 PP Bags</h2><span>Tap product</span></div>
+      <div class="pp-grid" id="bagGrid"><div class="empty">Loading...</div></div>
+    </div>
 
   <!-- TRENDS -->
   <div class="card" id="trendsSection">
@@ -535,9 +550,8 @@ function renderStock(){
   const mats=getMaterials();
   list.innerHTML=mats.slice().sort((a,b)=>{const av=num(getMaterial(a)?.closing)||0,bv=num(getMaterial(b)?.closing)||0;return (bv>0)-(av>0)||bv-av}).map(m=>{
     const x=getMaterial(m),closing=num(x?.closing)||0,avg=avgConsumption(m),s=stockStatus(closing,avg);
-    const symbol=s.status==="REORDER"?"!":s.status==="WATCH"?"●":s.status==="OK"?"●":"—";
     return `<div class="stock-row" onclick="openMaterialDetails('${jsq(m)}')">
-      <strong>${esc(m)}</strong><span>${fmt(closing)} ${esc(x?.unit||"MT")}</span><span>${avg?fmt(avg):"--"}</span><span>${s.cover!==null?fmt(s.cover)+" d":"--"}</span><span class="${s.cls} status-symbol" title="${esc(s.status)}" aria-label="${esc(s.status)}">${symbol}</span>
+      <strong class="reorder-material">${esc(m)}</strong><span>${fmt(closing)} ${esc(x?.unit||"MT")}</span><span>${avg?fmt(avg):"--"}</span><span>${s.cover!==null?fmt(s.cover)+" d":"--"}</span><span class="${s.cls} status-text">${esc(s.status)}</span>
     </div>`;
   }).join("")||"<div class='empty'>No stock data</div>";
 }
