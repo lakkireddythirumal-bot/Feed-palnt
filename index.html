@@ -372,7 +372,11 @@ function latestFeedClosingTotal(){
   },0);
 }
 function openFeedClosingDetails(){
-  const rows=latestFeedRows();
+  const rows=latestFeedRows().slice().sort((a,b)=>{
+    const av=num(a.Closing_Day_MT??a.closing_day_mt??a.Closing_Day??a.closing_day??a.Closing??a.closing)||0;
+    const bv=num(b.Closing_Day_MT??b.closing_day_mt??b.Closing_Day??b.closing_day??b.Closing??b.closing)||0;
+    return (bv>0)-(av>0)||bv-av;
+  });
   const total=latestFeedClosingTotal();
   showModal("Feed Closing Stock",`<div class="detail-section">${detail("Total Closing Stock",fmtMT(total))}</div>`+rows.map(r=>{
     const p=r.Product||r.product||"--";
