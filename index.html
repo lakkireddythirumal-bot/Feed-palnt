@@ -231,15 +231,13 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 .close{cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.05);font-weight:600;color:#147ff5}
 .modal.show .modal-box{animation:modalUp .22s ease both}
 @keyframes modalUp{from{transform:translateY(18px);opacity:.7}to{transform:translateY(0);opacity:1}}
-/* ===== Premium Manager UI — non-duplicating enhancement ===== */
-.smart-greeting{font-size:10px;color:#777;margin-bottom:2px;font-weight:600;letter-spacing:.2px}.smart-title{display:flex;align-items:center;gap:7px}.smart-title h1{font-size:23px}.selected-date-chip{display:inline-flex;align-items:center;padding:3px 7px;border-radius:20px;background:#eef2ff;color:#315efb;font-size:9px;font-weight:700;margin-top:5px}.date-strip{display:grid;grid-template-columns:38px 1fr 38px;gap:6px;align-items:center;margin:0 0 10px}.date-strip button{border:0;background:#fff;border-radius:11px;height:36px;font-size:16px;box-shadow:0 2px 9px rgba(0,0,0,.04);cursor:pointer}.date-strip-main{background:#fff;border-radius:12px;padding:7px 10px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 9px rgba(0,0,0,.04);cursor:pointer}.date-strip-main strong{font-size:12px}.date-strip-main small{font-size:9px;color:#888;display:block;margin-top:2px}.date-strip-main .date-state{font-size:9px;font-weight:700;color:#315efb}.quick-kpi{position:relative;overflow:hidden}.quick-kpi strong{font-variant-numeric:tabular-nums}.spark{height:20px;margin-top:5px;display:flex;align-items:flex-end;gap:2px;opacity:.72}.spark i{display:block;flex:1;min-width:2px;background:#cfd6e6;border-radius:3px 3px 1px 1px;transform-origin:bottom;animation:sparkIn .35s ease both}.spark i:nth-child(2){animation-delay:.03s}.spark i:nth-child(3){animation-delay:.06s}.spark i:nth-child(4){animation-delay:.09s}.spark i:nth-child(5){animation-delay:.12s}.spark i:nth-child(6){animation-delay:.15s}.spark i:nth-child(7){animation-delay:.18s}@keyframes sparkIn{from{transform:scaleY(.15);opacity:.2}to{transform:scaleY(1);opacity:1}}.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}.quick-action{border:0;background:#f7f8fa;border-radius:11px;padding:8px 4px;font-size:10px;color:#303846;cursor:pointer}.quick-action:active{transform:scale(.97)}.quick-action b{display:block;font-size:16px;margin-bottom:2px}.attention-pill{display:inline-flex;align-items:center;gap:4px;padding:4px 7px;border-radius:20px;background:#f7f8fa;font-size:9px;font-weight:700;color:#777}.attention-pill.hot{background:#fff1f1;color:#c0392b}.attention-pill.warn{background:#fff7df;color:#9a6b00}.intel-item{transition:transform .15s ease,box-shadow .15s ease}.intel-item:hover{box-shadow:0 5px 16px rgba(0,0,0,.05)}@media(max-width:420px){.quick-action{font-size:9px;padding:7px 2px}.quick-action b{font-size:15px}.smart-title h1{font-size:21px}}
 </style>
 
 </head>
 <body>
 <div class="container">
   <div class="header">
-    <div><div class="smart-greeting" id="smartGreeting">GOOD MORNING, SIR</div><div class="smart-title"><h1>Feed Plant Control Center</h1></div><p>Manager Dashboard • <span id="reportDate">Latest</span></p><span class="selected-date-chip" id="selectedDateChip">Latest</span></div>
+    <div><h1>Manager Dashboard</h1><p>Feed Plant • <span id="reportDate">Latest</span></p></div>
     <div class="header-actions">
       <button class="header-tool" onclick="openGlobalSearch()" aria-label="Search">🔎</button>
       <button class="header-tool" onclick="openDateSelector()" aria-label="Date selector">📅</button>
@@ -256,19 +254,13 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
     <button id="installBtn" class="install" onclick="installPWA()">Install</button>
   </div>
 
-  <div class="date-strip" aria-label="Date navigation">
-    <button onclick="shiftViewDate(-1)" aria-label="Previous date">‹</button>
-    <div class="date-strip-main" onclick="openDateSelector()"><div><strong id="dateStripTitle">Latest available day</strong><small id="dateStripSub">Tap to change date</small></div><span class="date-state" id="dateStripState">LATEST</span></div>
-    <button onclick="shiftViewDate(1)" aria-label="Next date">›</button>
-  </div>
-
   <!-- MANAGEMENT QUICK VIEW -->
   <div class="card">
     <div class="card-title"><h2>⚡ Management Quick View</h2><span>Tap for details</span></div>
     <div class="quick-grid">
-      <div class="quick quick-kpi" onclick="openFeedTotals('production_day')"><p>Day Production</p><strong id="qProdDay">-- MT</strong><div class="spark" id="sparkProd"></div></div>
+      <div class="quick" onclick="openFeedTotals('production_day')"><p>Day Production</p><strong id="qProdDay">-- MT</strong></div>
       <div class="quick" onclick="openFeedTotals('production_month')"><p>Month Production</p><strong id="qProdMonth">-- MT</strong></div>
-      <div class="quick quick-kpi" onclick="openFeedTotals('dispatch_day')"><p>Day Dispatch</p><strong id="qDispDay">-- MT</strong><div class="spark" id="sparkDisp"></div></div>
+      <div class="quick" onclick="openFeedTotals('dispatch_day')"><p>Day Dispatch</p><strong id="qDispDay">-- MT</strong></div>
       <div class="quick" onclick="openFeedTotals('dispatch_month')"><p>Month Dispatch</p><strong id="qDispMonth">-- MT</strong></div>
     </div>
     <div style="height:8px"></div>
@@ -277,12 +269,6 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
       <div class="mini" onclick="openRawCategory('CONSUMPTION')"><p>RM Consumption</p><strong id="qConsumption">--</strong></div>
       <div class="mini" onclick="openStockDetails()"><p>RM Closing</p><strong id="qClosing">--</strong></div>
       <div class="mini" onclick="openFeedClosingDetails()"><p>Feed Closing Stock</p><strong id="qFeedClosing">-- MT</strong></div>
-    </div>
-    <div class="quick-actions">
-      <button class="quick-action" onclick="openStockDetails()"><b>📦</b>Stock</button>
-      <button class="quick-action" onclick="openProductionDetails()"><b>🏭</b>Production</button>
-      <button class="quick-action" onclick="setRawTab(document.querySelector('.section-tabs button:nth-child(4)'),'TRANSFER');document.getElementById('rawCategoryList')?.scrollIntoView({behavior:'smooth',block:'center'})"><b>↔️</b>Movements</button>
-      <button class="quick-action" onclick="shareDailyReport()"><b>↗</b>Report</button>
     </div>
   </div>
 
@@ -310,7 +296,7 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 
   <!-- MANAGER INTELLIGENCE -->
   <div class="card">
-    <div class="card-title"><h2>🎯 Manager Intelligence</h2><span class="attention-pill" id="intelStatusPill">Checking…</span></div>
+    <div class="card-title"><h2>🎯 Manager Intelligence</h2><span id="intelDate">Selected day</span></div>
     <div class="intel-grid">
       <div class="intel-item" onclick="openManagerActions()"><p>Attention</p><strong id="intelAttention">--</strong><small>items need review</small></div>
       <div class="intel-item" onclick="openStockForecast()"><p>Low Coverage</p><strong id="intelCoverage">--</strong><small>materials below 3 days</small></div>
@@ -880,7 +866,6 @@ function renderGlobalSearch(q){
 }
 
 function renderDashboard(){
-  renderSmartHeader();
   renderQuick();
   renderControlCenter();
   renderManagerIntelligence();
@@ -910,35 +895,7 @@ function renderQuick(){
   setText("qReceived",fmt(received)+" MT");setText("qConsumption",fmt(cons)+" MT");setText("qClosing",fmt(closing)+" MT");
   // Feed Closing Stock is taken directly from FEED_UNIT_DATA Closing_Day_MT.
   setText("qFeedClosing",fmtMT(latestFeedClosingTotal()));
-  renderKpiSparks();
 }
-function renderSmartHeader(){
-  const d=selectedDateForIntelligence()||dateOnly(DATA.report_date)||"";
-  setText("reportDate",d||"Latest");
-  setText("selectedDateChip",VIEW_DATE?d:"Latest");
-  setText("dateStripTitle",d?d:"Latest available day");
-  setText("dateStripSub",VIEW_DATE?"Selected dashboard date":"Tap to select another day");
-  setText("dateStripState",VIEW_DATE?"SELECTED":"LATEST");
-  const h=new Date().getHours();
-  setText("smartGreeting",h<12?"GOOD MORNING, SIR":h<17?"GOOD AFTERNOON, SIR":"GOOD EVENING, SIR");
-}
-function renderKpiSparks(){
-  const dates=allAvailableDates().slice().sort().slice(-7);
-  const prod=dates.map(d=>dateFeedMetrics(d).production);
-  const disp=dates.map(d=>dateFeedMetrics(d).dispatch);
-  const draw=(id,vals)=>{const el=document.getElementById(id);if(!el)return;const max=Math.max(...vals,0),min=Math.min(...vals.filter(v=>Number.isFinite(v)),0),range=max-min||1;el.innerHTML=vals.map(v=>`<i style="height:${Math.max(3,Math.round(((v-min)/range)*17)+3)}px"></i>`).join("")};
-  draw("sparkProd",prod);draw("sparkDisp",disp);
-}
-function shiftViewDate(dir){
-  const dates=allAvailableDates().slice().sort();
-  if(!dates.length)return;
-  const current=selectedDateForIntelligence()||dates[dates.length-1];
-  let idx=dates.indexOf(dateOnly(current));
-  if(idx<0)idx=dates.length-1;
-  const next=dates[Math.max(0,Math.min(dates.length-1,idx+dir))];
-  if(next)setViewDate(next);
-}
-
 function avgConsumption(material){
   const vals=Array.isArray(DATA.usage[material])?DATA.usage[material].map(Number).filter(Number.isFinite):[];
   if(vals.length)return vals.reduce((a,b)=>a+b,0)/vals.length;
@@ -1404,8 +1361,6 @@ function renderManagerIntelligence(){
   const lc=latestCompleted?dateFeedMetrics(latestCompleted):null,pc=previousCompleted?dateFeedMetrics(previousCompleted):null;
   if(lc&&pc&&pc.production){const delta=((lc.production-pc.production)/pc.production)*100;setText("intelCompare",(delta>=0?"+":"")+fmt(delta)+"%")}else setText("intelCompare","--");
   const note=localStorage.getItem("manager_note_"+currentViewKey())||"";setText("intelNote",note?"Saved":"Add note");
-  const pill=document.getElementById("intelStatusPill");
-  if(pill){pill.className="attention-pill"+(items.some(x=>x.level==="critical")?" hot":items.length?" warn":"");pill.textContent=items.some(x=>x.level==="critical")?"🔴 ACTION NEEDED":items.length?"🟠 CHECK":"✓ NORMAL";}
 }
 function openManagerActions(){
   const items=managerAttentionItems();
