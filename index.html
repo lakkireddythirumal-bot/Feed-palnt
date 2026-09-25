@@ -300,52 +300,100 @@ function setConnection(ok,text){
 ===================================================== */
 function loadDashboard(){
   return new Promise(function(resolve,reject){
-    const callbackName="managerDashboardCallback";
-    const script=document.createElement("script");
-    let finished=false;
-    const timeout=setTimeout(function(){
-      if(finished)return;
-      finished=true;
+
+    const callbackName =
+      "managerDashboardCallback_" + Date.now();
+
+    const script = document.createElement("script");
+
+    let finished = false;
+
+    const timeout = setTimeout(function(){
+      if(finished) return;
+
+      finished = true;
       cleanup();
+
       reject(new Error("API timeout"));
-    },15000);
+    },20000);
 
     function cleanup(){
       clearTimeout(timeout);
-      if(script.parentNode)script.parentNode.removeChild(script);
+
+      if(script.parentNode){
+        script.parentNode.removeChild(script);
+      }
+
+      try{
+        delete window[callbackName];
+      }catch(e){
+        window[callbackName] = undefined;
+      }
     }
 
-    window[callbackName]=function(apiData){
-      if(finished)return;
-      finished=true;
+    /*
+      Google Apps Script JSONP callback
+    */
+    window[callbackName] = function(apiData){
+
+      if(finished) return;
+
+      finished = true;
+
       try{
-        if(!apiData || apiData.status!=="success"){
+
+        if(!apiData || apiData.status !== "success"){
           throw new Error("Invalid API response");
         }
+
         applyData(apiData,false);
+
         cleanup();
+
         resolve(apiData);
+
       }catch(error){
+
         cleanup();
+
         reject(error);
       }
     };
 
-    script.onload=function(){
-      /* JSONP callback normally completes the request.
-         Keep the callback installed until response arrives. */
-    };
+    /*
+      If browser reports script loading error
+    */
+    script.onerror = function(){
 
-    script.onerror=function(){
-      if(finished)return;
-      finished=true;
+      if(finished) return;
+
+      finished = true;
+
       cleanup();
-      reject(new Error("Google Apps Script connection failed"));
+
+      reject(
+        new Error(
+          "Google Apps Script connection failed"
+        )
+      );
     };
 
-    script.async=true;
-    script.referrerPolicy="no-referrer";
-    script.src=API_URL+"?callback="+callbackName+"&t="+Date.now();
+    /*
+      Important:
+      Do NOT force no-referrer.
+      Android Chrome can behave differently
+      with cross-origin Apps Script requests.
+    */
+
+    script.async = true;
+
+    script.src =
+      API_URL +
+      "?callback=" +
+      encodeURIComponent(callbackName) +
+      "&t=" +
+      Date.now();
+
     document.head.appendChild(script);
   });
 }
