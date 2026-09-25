@@ -371,6 +371,20 @@ function latestFeedClosingTotal(){
     return sum+feedValueInMT(v,product);
   },0);
 }
+function feedClosingBagSize(product){
+  const name=String(product||"").toUpperCase();
+  if(/\bLOOSE\b/.test(name))return null;
+  if(/50\s*KG?\b/.test(name))return 50;
+  if(/60\s*KG?\b/.test(name))return 60;
+  if(/FINISHER\s*MASH|LAYER\s*MASH\s*\/\s*PLM/.test(name))return 75;
+  return 70;
+}
+function fmtFeedClosingBags(value,product){
+  const bagKg=feedClosingBagSize(product);
+  if(bagKg===null||value===null||value===undefined||value==="")return "";
+  const mt=feedValueInMT(value,product);
+  return fmt(mt*1000/bagKg)+" Bags ("+bagKg+" KG)";
+}
 function openFeedClosingDetails(){
   const rows=latestFeedRows().slice().sort((a,b)=>{
     const av=num(a.Closing_Day_MT??a.closing_day_mt??a.Closing_Day??a.closing_day??a.Closing??a.closing)||0;
@@ -381,7 +395,7 @@ function openFeedClosingDetails(){
   showModal("Feed Closing Stock",`<div class="detail-section">${detail("Total Closing Stock",fmtMT(total))}</div>`+rows.map(r=>{
     const p=r.Product||r.product||"--";
     const v=num(r.Closing_Day_MT??r.closing_day_mt??r.Closing_Day??r.closing_day??r.Closing??r.closing);
-    return `<div class="feed-row" onclick="closeModal();openFeedProductDetails('${jsq(p)}')"><div class="row-name">${esc(p)}</div><div class="row-right"><strong>${fmtFeed(v,p)}</strong><small>Closing Stock</small></div></div>`;
+    return `<div class="feed-row" onclick="closeModal();openFeedProductDetails('${jsq(p)}')"><div class="row-name">${esc(p)}</div><div class="row-right"><strong>${fmtFeed(v,p)}</strong><small>Closing Stock</small>${feedClosingBagSize(p)===null?"":`<small>${fmtFeedClosingBags(v,p)}</small>`}</div></div>`;
   }).join(""));
 }
 function setText(id,v){const e=document.getElementById(id);if(e)e.textContent=v}
