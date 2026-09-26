@@ -260,7 +260,7 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 <body>
 <div class="container">
   <div class="header">
-    <div><div class="smart-greeting" id="smartGreeting">GOOD MORNING, SIR</div><div class="smart-title"><h1>Feed Plant Control Center</h1></div><p>Manager Dashboard • <span id="reportDate">Latest</span></p><span class="selected-date-chip" id="selectedDateChip">Latest</span></div>
+    <div><div class="smart-greeting" id="smartGreeting">GOOD MORNING, SIR</div><div class="smart-title"><h1>Feed Plant Control Center</h1></div><p>Manager Dashboard • <span id="todayDate">--</span> • Latest Activity: <span id="reportDate">Latest</span></p><span class="selected-date-chip" id="selectedDateChip">Latest</span></div>
     <div class="header-actions">
       <button class="header-tool" onclick="openGlobalSearch()" aria-label="Search">🔎</button>
       <button class="header-tool" onclick="openDateSelector()" aria-label="Date selector">📅</button>
@@ -590,9 +590,9 @@ function applyData(apiData,fromCache=false){
     consumption:apiData.consumption??null,
     efficiency:apiData.efficiency??null,
     processLoss:apiData.processLoss??null,
-    report_date:apiData.report_date??null
+    report_date:apiData.report_date??null,
+    stock_report_date:apiData.stock_report_date??apiData.report_date??null
   };
-  if(DATA.report_date)setText("reportDate",VIEW_DATE||DATA.report_date);
   renderDashboard();
   if(!fromCache)saveCache(apiData);
 }
@@ -698,19 +698,6 @@ function dateOnly(v){
   if(!s)return "";
   const m=s.match(/(\d{4}-\d{2}-\d{2})/);
   return m?m[1]:s.slice(0,10);
-}
-function currentCalendarDate(){
-  const d=new Date();
-  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,"0"),day=String(d.getDate()).padStart(2,"0");
-  return `${y}-${m}-${day}`;
-}
-function latestStockActivityDate(){
-  const dates=[];
-  (DATA.stock||[]).forEach(x=>(x.transactions||[]).forEach(t=>{const d=dateOnly(rowDate(t));if(d)dates.push(d)}));
-  return dates.sort().pop()||"";
-}
-function effectiveActivityDate(){
-  return VIEW_DATE?dateOnly(VIEW_DATE):latestStockActivityDate()||dateOnly(DATA.report_date)||"";
 }
 function latestTransactionDate(material){
   const ds=transactions(material).map(t=>dateOnly(rowDate(t))).filter(Boolean).sort();
@@ -941,12 +928,16 @@ function renderQuick(){
   renderKpiSparks();
 }
 function renderSmartHeader(){
-  const activity=effectiveActivityDate();
-  setText("reportDate",currentCalendarDate());
-  setText("selectedDateChip",activity||"No activity date");
-  setText("dateStripTitle",activity||"No activity date");
-  setText("dateStripSub",VIEW_DATE?"Selected activity date":"Latest activity date");
-  setText("dateStripState",VIEW_DATE?"SELECTED":"LATEST ACTIVITY");
+  const now=new Date();
+  const today=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
+  const latestActivity=dateOnly(DATA.stock_report_date||DATA.report_date)||"Latest";
+  const d=selectedDateForIntelligence()||latestActivity||"";
+  setText("todayDate",today);
+  setText("reportDate",latestActivity);
+  setText("selectedDateChip",VIEW_DATE?d:"Latest");
+  setText("dateStripTitle",d?d:"Latest available day");
+  setText("dateStripSub",VIEW_DATE?"Selected dashboard date":"Tap to select another day");
+  setText("dateStripState",VIEW_DATE?"SELECTED":"LATEST");
   const h=new Date().getHours();
   setText("smartGreeting",h<12?"GOOD MORNING, SIR":h<17?"GOOD AFTERNOON, SIR":"GOOD EVENING, SIR");
 }
@@ -1119,7 +1110,7 @@ function openMaterialDetails(material){
   const groups=["OPENING STOCK","PURCHASE","TRANSFER FROM SOYA DIVISION","GAIN","SALE","SHORTAGE","CONSUMPTION","CL. STOCK"];
   const unit=materialUnit(material,x?.unit||"MT");
   const rec=materialReconciliation(material);
-  let html=`<div class="detail-section"><h3>${esc(material)}</h3>${detail("Activity Date",effectiveActivityDate()||"--")}${detail("Current Stock",fmt(closing)+" "+unit)}${detail("Average Daily Consumption",avg?fmt(avg)+" "+unit+"/day":"Insufficient history")}${detail("Safety Days",DEFAULT_SAFETY_DAYS+" days")}${detail("Stock Coverage",s.cover!==null?fmt(s.cover)+" days":"--")}${detail("Calculated Reorder Level",fmt(reorder)+" "+unit)}${detail("Status",s.status)}</div>`;
+  let html=`<div class="detail-section"><h3>${esc(material)}</h3>${detail("Current Stock",fmt(closing)+" "+unit)}${detail("Average Daily Consumption",avg?fmt(avg)+" "+unit+"/day":"Insufficient history")}${detail("Safety Days",DEFAULT_SAFETY_DAYS+" days")}${detail("Stock Coverage",s.cover!==null?fmt(s.cover)+" days":"--")}${detail("Calculated Reorder Level",fmt(reorder)+" "+unit)}${detail("Status",s.status)}</div>`;
   if(rec.status==="MATCH"||rec.status==="MISMATCH"){
     const cls=rec.status==="MATCH"?"reconcile-ok":"reconcile-bad";
     html+=`<div class="detail-section ${cls}"><h3>🔎 Stock Reconciliation • ${esc(rec.date||"Latest")}</h3>${detail("Opening",fmt(rec.opening)+" "+unit)}${detail("Additions",fmt(rec.add)+" "+unit)}${detail("Other deductions",fmt(rec.otherOut)+" "+unit)}${detail("Actual Closing",fmt(rec.closing)+" "+unit)}${detail("Calculated Consumption",fmt(rec.calculated)+" "+unit)}${detail("Recorded Consumption",fmt(rec.recorded)+" "+unit)}${detail("Difference",fmt(rec.diff)+" "+unit)}${detail("Result",rec.status==="MATCH"?"✓ MATCH":"⚠ CHECK — possible missing/wrong transaction")}</div>`;
@@ -1133,7 +1124,7 @@ function openMaterialDetails(material){
   html+="</div>";
   if(rows.length){
     html+=`<div class="detail-section"><h3>Transactions</h3>`;
-    rows.forEach(t=>{html+=`<div class="transaction"><div class="transaction-title"><strong>${esc(txName(t.transaction||t.type||"Movement"))}</strong><span>Activity Date: ${esc(dateOnly(rowDate(t))||"--")}</span></div><div class="transaction-values"><div class="transaction-value"><span>FOR DAY</span><strong>${fmt(t.for_day)}</strong></div><div class="transaction-value"><span>FOR MONTH</span><strong>${fmt(t.for_month)}</strong></div><div class="transaction-value"><span>FOR YEAR</span><strong>${fmt(t.for_year)}</strong></div></div></div>`});
+    rows.forEach(t=>{html+=`<div class="transaction"><div class="transaction-title"><strong>${esc(txName(t.transaction||t.type||"Movement"))}</strong><span>${esc(rowDate(t))}</span></div><div class="transaction-values"><div class="transaction-value"><span>FOR DAY</span><strong>${fmt(t.for_day)}</strong></div><div class="transaction-value"><span>FOR MONTH</span><strong>${fmt(t.for_month)}</strong></div><div class="transaction-value"><span>FOR YEAR</span><strong>${fmt(t.for_year)}</strong></div></div></div>`});
     html+="</div>";
   }
   showModal(material,html);
@@ -1225,8 +1216,8 @@ function goTrend(){document.getElementById("trendsSection").scrollIntoView({beha
 ===================================================== */
 let VIEW_DATE=null;
 
-function viewDate(){return effectiveActivityDate();}
-function isViewDate(d){return dateOnly(d)===effectiveActivityDate();}
+function viewDate(){return VIEW_DATE?dateOnly(VIEW_DATE):dateOnly(DATA.report_date);}
+function isViewDate(d){return !VIEW_DATE || dateOnly(d)===dateOnly(VIEW_DATE);}
 function viewStockRows(){
   return (DATA.stock||[]).map(x=>{
     const tx=(Array.isArray(x.transactions)?x.transactions:[]).filter(t=>isViewDate(rowDate(t)));
@@ -1247,15 +1238,15 @@ function transactions(material){
 }
 function selectedProduction(){
   const rows=Array.isArray(DATA.production)?DATA.production:[];
-  return rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===effectiveActivityDate());
+  return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):rows;
 }
 function selectedBags(){
   const rows=Array.isArray(DATA.bags)?DATA.bags:[];
-  return rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===effectiveActivityDate());
+  return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):rows;
 }
 function selectedFeedRows(){
   const rows=Array.isArray(DATA.feedUnitData)?DATA.feedUnitData:[];
-  return rows.filter(r=>dateOnly(r.Report_Date||r.report_date)===effectiveActivityDate());
+  return VIEW_DATE?rows.filter(r=>dateOnly(r.Report_Date||r.report_date)===dateOnly(VIEW_DATE)):rows;
 }
 function latestFeedRows(){
   const rows=selectedFeedRows(), latest={};
@@ -1309,7 +1300,6 @@ function renderQuick(){
   });
   setText("qReceived",fmt(received)+" MT");setText("qConsumption",fmt(cons)+" MT");setText("qClosing",fmt(closing)+" MT");
   setText("qFeedClosing",fmtMT(latestFeedClosingTotal()));
-  setText("reportDate",VIEW_DATE||DATA.report_date||"Latest");
 }
 function renderFeedUnit(){
   const rows=latestFeedRows(),list=document.getElementById("feedUnitList");
@@ -1384,7 +1374,7 @@ function dailyControlMetrics(){
   const damage=selectedBags().reduce((a,r)=>a+(num(r.damage)||0),0);
   return {reorder,mismatches,abnormal,efficiency:outs.length?outs.reduce((a,b)=>a+b,0)/outs.length:null,loss:losses.length?losses.reduce((a,b)=>a+b,0)/losses.length:null,premix,damage};
 }
-function currentViewKey(){return effectiveActivityDate()||"latest"}
+function currentViewKey(){return VIEW_DATE?dateOnly(VIEW_DATE):dateOnly(DATA.report_date)||"latest"}
 function allAvailableDates(){return getAvailableDates()}
 function feedRowsForDate(d){
   return (DATA.feedUnitData||[]).filter(r=>dateOnly(r.Report_Date||r.report_date)===dateOnly(d));
@@ -1400,7 +1390,7 @@ function dateFeedMetrics(d){
     rows:rows.length
   };
 }
-function selectedDateForIntelligence(){return effectiveActivityDate()}
+function selectedDateForIntelligence(){return VIEW_DATE?dateOnly(VIEW_DATE):dateOnly(DATA.report_date)}
 function previousAvailableDate(d){
   const dates=allAvailableDates();
   const idx=dates.indexOf(dateOnly(d));
@@ -1483,13 +1473,16 @@ function setViewDate(date){
 }
 function getAvailableDates(){
   const s=new Set();
-  // Activity dates come only from STOCK_DATA.report_date.
   (DATA.stock||[]).forEach(x=>(x.transactions||[]).forEach(t=>{const d=dateOnly(rowDate(t));if(d)s.add(d)}));
+  (DATA.production||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
+  (DATA.bags||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
+  (DATA.feedUnitData||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
+  if(DATA.report_date)s.add(dateOnly(DATA.report_date));
   return [...s].filter(Boolean).sort().reverse();
 }
 function openDateSelector(){
   const dates=getAvailableDates();
-  const buttons=(VIEW_DATE?`<button class="date-btn" onclick="setViewDate(null)"><strong>Latest Activity Date</strong><small>Return to latest activity</small></button>`:"")+dates.map(d=>`<button class="date-btn" onclick="setViewDate('${jsq(d)}')"><strong>${esc(d)}</strong><small>${d===latestStockActivityDate()?"Latest activity date":"View activity date →"}</small></button>`).join("");
+  const buttons=(VIEW_DATE?`<button class="date-btn" onclick="setViewDate(null)"><strong>Latest / Today</strong><small>Return to latest dashboard</small></button>`:"")+dates.map(d=>`<button class="date-btn" onclick="setViewDate('${jsq(d)}')"><strong>${esc(d)}</strong><small>${d===dateOnly(DATA.report_date)?"Latest API date":"View complete dashboard →"}</small></button>`).join("");
   showModal("Date Selector",`<div class="detail-section"><h3>📅 Dashboard Date</h3><div class="small-note">Selecting a date now changes the entire dashboard, not just the summary popup.</div><div class="date-list">${buttons||"<div class='empty'>No dated records available.</div>"}</div></div>`);
 }
 function openDateSummary(date){setViewDate(date);}
