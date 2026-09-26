@@ -171,6 +171,28 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
   .control-item{min-height:51px}
 }
 
+
+/* ===== V22 WORLD-CLASS SYSTEM LAYER ===== */
+:root{--bg:#f4f6f9;--surface:#fff;--surface2:#f7f8fa;--ink:#172033;--muted:#778092;--line:#e7eaf0;--brand:#315efb;--ok:#198754;--warn:#a66b00;--bad:#c0392b;--shadow:0 10px 32px rgba(23,32,51,.07)}
+body{background:var(--bg);color:var(--ink)}
+body.dark{--bg:#0d1117;--surface:#151b23;--surface2:#1c2430;--ink:#eef2f7;--muted:#9aa5b5;--line:#2b3441;--brand:#7c9cff;--ok:#4bc48a;--warn:#e6b35a;--bad:#ff7b72;--shadow:0 12px 34px rgba(0,0,0,.28)}
+body.dark .card,body.dark .bottom-nav,body.dark .date-strip button,body.dark .date-strip-main,body.dark .notify-btn,body.dark .refresh,body.dark .plant,body.dark .modal-box,body.dark select,body.dark .search-input{background:var(--surface);color:var(--ink);border-color:var(--line)}
+body.dark .quick,body.dark .mini,body.dark .intel-item,body.dark .radar-item,body.dark .k,body.dark .detail-section,body.dark .transaction,body.dark .trend-card,body.dark .pp-item{background:var(--surface2);border-color:var(--line)}
+.card{box-shadow:var(--shadow);border:1px solid rgba(120,130,150,.08)}
+.v22-hero{background:linear-gradient(135deg,#172033 0%,#25365d 52%,#315efb 100%);color:#fff;border-radius:22px;padding:16px;margin-bottom:11px;box-shadow:0 14px 38px rgba(49,94,251,.20);position:relative;overflow:hidden}
+.v22-hero:after{content:"";position:absolute;width:180px;height:180px;border-radius:50%;right:-75px;top:-90px;background:rgba(255,255,255,.09)}
+.v22-hero h2{font-size:18px}.v22-hero p{font-size:10px;opacity:.76;margin-top:4px}.v22-hero-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}.v22-hero-kpi{background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:8px;backdrop-filter:blur(8px)}.v22-hero-kpi small{display:block;font-size:8px;opacity:.72}.v22-hero-kpi strong{display:block;font-size:15px;margin-top:3px;font-variant-numeric:tabular-nums}.v22-toolbar{display:flex;gap:6px;overflow:auto;margin:0 0 10px;padding-bottom:2px;scrollbar-width:none}.v22-toolbar::-webkit-scrollbar{display:none}.v22-tool{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:11px;padding:8px 10px;font-size:10px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+.v22-section{scroll-margin-top:12px}.v22-section-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:9px}.v22-section-head h2{font-size:16px}.v22-section-head small{font-size:9px;color:var(--muted)}
+.v22-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.v22-card{background:var(--surface2);border:1px solid var(--line);border-radius:13px;padding:10px}.v22-card small{font-size:8px;color:var(--muted)}.v22-card strong{display:block;font-size:17px;margin-top:3px;font-variant-numeric:tabular-nums}.v22-card p{font-size:9px;color:var(--muted);margin-top:3px}.v22-wide{grid-column:1/-1}
+.v22-risk{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:9px;border:1px solid var(--line);background:var(--surface);border-radius:11px;margin-bottom:6px}.v22-risk:last-child{margin-bottom:0}.v22-risk-main{min-width:0}.v22-risk-main strong{font-size:11px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v22-risk-main small{font-size:8px;color:var(--muted);display:block;margin-top:2px}.v22-pill{font-size:8px;font-weight:800;padding:4px 7px;border-radius:18px;white-space:nowrap}.v22-pill.bad{background:#fff0ef;color:var(--bad)}.v22-pill.warn{background:#fff7df;color:var(--warn)}.v22-pill.ok{background:#ebf8f1;color:var(--ok)}.v22-pill.info{background:#eef2ff;color:var(--brand)}
+.v22-progress{height:6px;background:var(--line);border-radius:10px;overflow:hidden;margin-top:6px}.v22-progress i{display:block;height:100%;width:0;background:var(--brand);border-radius:10px}.v22-table{overflow:auto;border:1px solid var(--line);border-radius:12px}.v22-table table{width:100%;border-collapse:collapse;font-size:9px;min-width:540px}.v22-table th,.v22-table td{text-align:left;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}.v22-table th{background:var(--surface2);color:var(--muted);font-weight:700}.v22-table tr:last-child td{border-bottom:0}.v22-btnrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.v22-btn{border:0;border-radius:10px;background:var(--ink);color:var(--surface);padding:8px 10px;font-size:9px;font-weight:700}.v22-btn.alt{background:var(--surface2);color:var(--ink);border:1px solid var(--line)}
+.v22-history-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.v22-day{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:7px 4px;text-align:center;cursor:pointer}.v22-day strong{display:block;font-size:10px}.v22-day small{display:block;font-size:7px;color:var(--muted);margin-top:2px}.v22-day.active{background:var(--ink);color:var(--surface)}.v22-day.active small{color:inherit;opacity:.7}.v22-date-compare{display:grid;grid-template-columns:1fr 1fr;gap:6px}.v22-date-compare select{width:100%;max-width:none}.v22-empty{padding:14px;text-align:center;color:var(--muted);font-size:10px;border:1px dashed var(--line);border-radius:12px}
+.v22-bottom-space{height:4px}.v22-fab{position:fixed;right:16px;bottom:82px;width:46px;height:46px;border:0;border-radius:50%;background:var(--ink);color:var(--surface);font-size:19px;z-index:120;box-shadow:0 8px 22px rgba(0,0,0,.18)}
+.v22-print{display:none}
+@media(min-width:700px){.container{max-width:1180px}.v22-grid{grid-template-columns:repeat(4,1fr)}.v22-wide{grid-column:auto}.v22-history-grid{grid-template-columns:repeat(14,1fr)}.v22-date-compare{grid-template-columns:1fr 1fr}.v22-hero{padding:20px}.v22-hero h2{font-size:21px}}
+@media(max-width:520px){.v22-hero-grid{grid-template-columns:repeat(2,1fr)}.v22-history-grid{grid-template-columns:repeat(4,1fr)}}
+@media print{body{background:#fff!important;padding:0!important}.container,.bottom-nav,.v22-fab,.modal{display:none!important}.v22-print{display:block!important;font-family:Arial,sans-serif;color:#111;padding:20px}.v22-print h1{font-size:22px;margin-bottom:3px}.v22-print h2{font-size:14px;margin:18px 0 7px}.v22-print p,.v22-print td,.v22-print th{font-size:9px}.v22-print table{width:100%;border-collapse:collapse}.v22-print th,.v22-print td{padding:5px;border:1px solid #ddd;text-align:left}.v22-print .print-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.v22-print .pk{border:1px solid #ddd;padding:8px}.v22-print .pk strong{display:block;font-size:14px;margin-top:3px}}
+
 </style>
 <style id="reorder-ui-polish">.stock-row .reorder-material,.stock-row strong.reorder-material{font-size:13px!important;font-weight:500!important;line-height:1.15!important;letter-spacing:0!important}.stock-row .avg-sub{font-size:9.5px!important;font-weight:400!important;color:#858a94!important;line-height:1.05!important;margin-top:3px!important}.stock-row>span{font-size:12px!important;font-weight:700!important;line-height:1.1!important;white-space:nowrap}.stock-row>span:last-child{font-size:9px!important;font-weight:700!important;letter-spacing:.15px}.stock-head,.stock-row{grid-template-columns:minmax(0,1.72fr) .82fr .72fr .82fr .58fr!important;column-gap:9px!important}.stock-head{font-size:9.5px!important;letter-spacing:.15px}.stock-row{min-height:52px!important;padding:7px 0!important}.reorder-material-wrap{min-width:0;padding-right:3px}@media(max-width:520px){.stock-head,.stock-row{grid-template-columns:minmax(0,1.62fr) .82fr .72fr .82fr .56fr!important;column-gap:6px!important}.stock-row .reorder-material,.stock-row strong.reorder-material{font-size:12px!important}.stock-row .avg-sub{font-size:9px!important}.stock-row>span{font-size:11.5px!important}.stock-row>span:last-child{font-size:8px!important}}</style>
 
@@ -465,6 +487,103 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
     </div>
     <div class="dots" id="trendDots"></div>
   </div>
+
+
+
+  <!-- V22 WORLD-CLASS MANAGER LAYER -->
+  <section class="v22-section" id="v22ManagerLayer">
+    <div class="v22-hero">
+      <h2>🏭 Plant Command Center</h2>
+      <p>One validated view for Inventory • Production • Premix • PP Bags • Accuracy • History</p>
+      <div class="v22-hero-grid">
+        <div class="v22-hero-kpi"><small>RM Stock</small><strong id="v22RmStock">--</strong></div>
+        <div class="v22-hero-kpi"><small>Production</small><strong id="v22Production">--</strong></div>
+        <div class="v22-hero-kpi"><small>Action Items</small><strong id="v22Actions">--</strong></div>
+        <div class="v22-hero-kpi"><small>Data Quality</small><strong id="v22Quality">--%</strong></div>
+      </div>
+    </div>
+    <div class="v22-toolbar">
+      <button class="v22-tool" onclick="v22OpenHub('history')">📅 History</button>
+      <button class="v22-tool" onclick="v22OpenHub('accuracy')">✓ Accuracy</button>
+      <button class="v22-tool" onclick="v22OpenHub('production')">🏭 Production</button>
+      <button class="v22-tool" onclick="v22OpenHub('premix')">🧪 Premix</button>
+      <button class="v22-tool" onclick="v22OpenHub('bags')">👜 PP Bags</button>
+      <button class="v22-tool" onclick="v22OpenHub('procurement')">🛒 Procurement</button>
+      <button class="v22-tool" onclick="v22GeneratePDF()">🧾 PDF Report</button>
+      <button class="v22-tool" onclick="v22ToggleDark()">◐ Theme</button>
+    </div>
+    <div class="card">
+      <div class="v22-section-head"><div><h2>🎯 Manager Overview</h2><small>Exceptions first • calculated from current API payload</small></div><span id="v22StatusPill" class="v22-pill info">ANALYZING</span></div>
+      <div class="v22-grid">
+        <div class="v22-card"><small>🔴 Critical / Reorder</small><strong id="v22Critical">--</strong><p>stock needs action</p></div>
+        <div class="v22-card"><small>🟠 Low Coverage</small><strong id="v22Coverage">--</strong><p>below 3 days</p></div>
+        <div class="v22-card"><small>⚠ Data Issues</small><strong id="v22DataIssues">--</strong><p>duplicates / mismatch / missing</p></div>
+        <div class="v22-card"><small>📈 Consumption Anomaly</small><strong id="v22Anomaly">--</strong><p>above baseline</p></div>
+        <div class="v22-card v22-wide"><small>Management Action Board</small><div id="v22ActionBoard" style="margin-top:7px"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="v22-section-head"><div><h2>📦 Inventory Intelligence</h2><small>Stock • coverage • 7-day need • risk</small></div><button class="v22-btn alt" onclick="v22OpenHub('inventory')">Open all</button></div>
+      <div class="v22-grid">
+        <div class="v22-card"><small>Inventory</small><strong id="v22Inventory">--</strong><p>MT after unit-safe conversion</p></div>
+        <div class="v22-card"><small>7-Day Need</small><strong id="v22Need7">--</strong><p>from recorded average</p></div>
+        <div class="v22-card"><small>Average Coverage</small><strong id="v22AvgCover">--</strong><p>days</p></div>
+        <div class="v22-card"><small>Stock-out Watch</small><strong id="v22Stockout">--</strong><p>items projected &lt; 7 days</p></div>
+        <div class="v22-card v22-wide"><div id="v22RiskList"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="v22-section-head"><div><h2>🧪 Premix Control</h2><small>Bommakal transfer → closing → bag equivalent</small></div><button class="v22-btn alt" onclick="v22OpenHub('premix')">Details</button></div>
+      <div class="v22-grid">
+        <div class="v22-card"><small>Bommakal Transfer</small><strong id="v22PremixTransfer">--</strong><p>latest available date</p></div>
+        <div class="v22-card"><small>Premix Closing</small><strong id="v22PremixClosing">--</strong><p>from Feed Unit</p></div>
+        <div class="v22-card"><small>Bag Equivalent</small><strong id="v22PremixBags">--</strong><p>only when bag size is explicit</p></div>
+        <div class="v22-card"><small>Conversion Quality</small><strong id="v22PremixConv">--</strong><p>master-data based</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="v22-section-head"><div><h2>👜 PP Bag Efficiency</h2><small>Opening • receipt • issue • damage • closing</small></div><button class="v22-btn alt" onclick="v22OpenHub('bags')">Details</button></div>
+      <div class="v22-grid">
+        <div class="v22-card"><small>Bag Closing</small><strong id="v22BagClosing">--</strong><p>available records</p></div>
+        <div class="v22-card"><small>Issued</small><strong id="v22BagIssue">--</strong><p>bags</p></div>
+        <div class="v22-card"><small>Damage</small><strong id="v22BagDamage">--</strong><p>bags</p></div>
+        <div class="v22-card"><small>Damage %</small><strong id="v22BagDamagePct">--</strong><p>damage ÷ issue</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="v22-section-head"><div><h2>📅 Date-wise History & Comparison</h2><small>Only dates actually present in the API payload are shown</small></div><button class="v22-btn" onclick="v22OpenHistory()">Open History</button></div>
+      <div id="v22HistoryStrip" class="v22-history-grid"></div>
+      <div class="v22-date-compare" style="margin-top:9px"><select id="v22DateA"></select><select id="v22DateB"></select></div>
+      <div class="v22-btnrow"><button class="v22-btn" onclick="v22CompareDates()">Compare Dates</button><button class="v22-btn alt" onclick="v22OpenAudit()">Audit Trail</button></div>
+      <div id="v22CompareResult" style="margin-top:8px"></div>
+    </div>
+
+    <div class="card">
+      <div class="v22-section-head"><div><h2>✓ Data Accuracy Engine</h2><small>Raw API values preserved; UI calculations are transparent</small></div><span id="v22QualityBadge" class="v22-pill info">CHECKING</span></div>
+      <div class="v22-grid">
+        <div class="v22-card"><small>Duplicate Transactions</small><strong id="v22Dup">--</strong></div>
+        <div class="v22-card"><small>Reconciliation</small><strong id="v22Recon">--</strong></div>
+        <div class="v22-card"><small>Near-zero Noise</small><strong id="v22NearZero">--</strong></div>
+        <div class="v22-card"><small>Missing / Invalid</small><strong id="v22Missing">--</strong></div>
+        <div class="v22-card v22-wide"><div id="v22AccuracyDetails"></div></div>
+      </div>
+      <div class="v22-btnrow"><button class="v22-btn" onclick="v22OpenAccuracy()">Open Full Accuracy Report</button><button class="v22-btn alt" onclick="exportDashboardSnapshot()">Export JSON Snapshot</button></div>
+    </div>
+
+    <div class="card">
+      <div class="v22-section-head"><div><h2>🧾 Reporting</h2><small>Manager-ready daily report • print to PDF</small></div></div>
+      <div class="v22-btnrow"><button class="v22-btn" onclick="v22GeneratePDF()">🧾 Generate PDF</button><button class="v22-btn alt" onclick="shareDailyReport()">↗ Share</button><button class="v22-btn alt" onclick="v22DownloadCSV()">⬇ CSV</button><button class="v22-btn alt" onclick="exportDashboardSnapshot()">⬇ JSON</button></div>
+      <div class="small-note">PDF uses the browser's print engine, so it works on desktop/iPad/iPhone without requiring a server-side PDF library.</div>
+    </div>
+  </section>
+  <div class="v22-bottom-space"></div>
+  <button class="v22-fab" onclick="v22OpenHub('actions')" aria-label="Manager actions">⚡</button>
+
+  <div id="v22PrintReport" class="v22-print"></div>
 
   <div class="bottom-nav">
     <div class="nav-item active" onclick="goHome()"><div>⌂</div>Home</div>
@@ -1265,7 +1384,7 @@ function bagTrend(){
    NAVIGATION
 ===================================================== */
 function goHome(){window.scrollTo({top:0,behavior:"smooth"})}
-function goTrend(){document.getElementById("trendsSection").scrollIntoView({behavior:"smooth"})}
+function goTrend(){if(typeof v22OpenHub==="function")v22OpenHub("history");else document.getElementById("trendsSection").scrollIntoView({behavior:"smooth"})}
 
 
 /* =====================================================
@@ -1720,6 +1839,70 @@ let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;document.getElementById("installBtn").style.display="block"});
 async function installPWA(){if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById("installBtn").style.display="none"}
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(console.warn))}
+
+
+/* =====================================================
+   V22 WORLD-CLASS SYSTEM ENGINE
+   Source of truth: DATA populated from the existing working API.
+   No API endpoint or API payload is modified.
+===================================================== */
+function v22Zero(v){const n=num(v);return n!==null&&Math.abs(n)<0.001?0:n}
+function v22DateLabel(d){if(!d)return"--";try{return new Date(d+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short"})}catch(e){return d}}
+function v22ExplicitBagKg(product,row){
+  const text=(clean(product)+" "+clean(row?.remarks)+" "+clean(row?.bag_size)+" "+clean(row?.packing)).toUpperCase();
+  const m=text.match(/(?:^|\D)(25|30|40|50|60|70|75|80)\s*KG(?:\b|\D)/);
+  return m?Number(m[1]):null;
+}
+function v22PremixRows(){return latestFeedRows().filter(r=>isPremixProduct(r.Product||r.product))}
+function v22PremixTransferTotal(){return premixBommakalTransfers().reduce((a,r)=>a+r.value,0)}
+function v22PremixClosingTotal(){return v22PremixRows().reduce((a,r)=>a+Math.max(0,feedValueInMT(num(r.Closing_Day_MT??r.closing_day_mt??r.Closing??r.closing),r.Product||r.product)),0)}
+function v22PremixBagInfo(){let bags=0,explicit=0,unknown=0;v22PremixRows().forEach(r=>{const p=r.Product||r.product||"";const kg=v22ExplicitBagKg(p,r);const c=num(r.Closing_Day_MT??r.closing_day_mt??r.Closing??r.closing);if(c===null)return;if(kg){bags+=(feedValueInMT(c,p)*1000/kg);explicit++}else unknown++});return{bags,explicit,unknown}}
+function v22BagMetrics(){const rows=selectedBags();const closing=rows.reduce((a,r)=>a+(num(r.closing)||0),0),issue=rows.reduce((a,r)=>a+(num(r.issue)||0),0),damage=rows.reduce((a,r)=>a+(num(r.damage)||0),0),received=rows.reduce((a,r)=>a+(num(r.received)||0),0);return{closing,issue,damage,received,damagePct:issue?damage/issue*100:null}}
+function v22InventoryRows(){return getMaterials().map(m=>{const x=getMaterial(m)||{},c=v22Zero(x.closing),avg=avgConsumption(m),cover=avg>0&&c!==null?c/avg:null,rl=num(x.reorder_level),reorder=!!x.reorder_required||(rl!==null&&c!==null&&c<rl),near=c!==null&&Math.abs(c)<0.001;return{m,x,c,avg,cover,rl,reorder,near}}).filter(r=>r.c!==null)}
+function v22DuplicateCount(){let count=0;getMaterials().forEach(m=>{const seen=new Map();transactions(m).forEach(t=>{const key=[dateOnly(rowDate(t)),tType(t),clean(t.for_day),clean(t.for_month),clean(t.for_year)].join("|");seen.set(key,(seen.get(key)||0)+1)});for(const n of seen.values())if(n>1)count+=n-1});return count}
+function v22NearZeroCount(){return getMaterials().filter(m=>{const c=num(getMaterial(m)?.closing);return c!==null&&Math.abs(c)<0.001}).length}
+function v22MissingCount(){let n=0;getMaterials().forEach(m=>{const x=getMaterial(m)||{};if(num(x.closing)===null)n++;transactions(m).forEach(t=>{if(!dateOnly(rowDate(t)))n++;if(t.for_day===null||t.for_day===undefined||t.for_day==="")n++})});return n}
+function v22UnitIssues(){let n=0;getMaterials().forEach(m=>{const x=getMaterial(m);if(!x?.unit)n++});return n}
+function v22Reconciliation(){return reconciliationItems().filter(x=>x.r.status==="MISMATCH").length}
+function v22Quality(){const inv=v22InventoryRows(),dup=v22DuplicateCount(),mis=v22MissingCount(),rec=v22Reconciliation(),neg=inv.filter(x=>x.c<0&&Math.abs(x.c)>=.001).length,near=v22NearZeroCount();let score=100;score-=Math.min(25,dup*4);score-=Math.min(30,rec*3);score-=Math.min(20,mis*1.5);score-=Math.min(15,neg*5);score=Math.max(0,Math.round(score));return{score,dup,mis,rec,neg,near,unit:v22UnitIssues(),checked:inv.length}}
+function v22ActionItems(){const inv=v22InventoryRows();const q=v22Quality(),items=[];inv.filter(x=>x.reorder||x.c<=0).sort((a,b)=>(a.cover??999)-(b.cover??999)).slice(0,6).forEach(x=>items.push({type:"critical",title:x.m,msg:`Stock ${fmt(x.c)} ${x.x.unit||""} • cover ${x.cover===null?"--":fmt(x.cover)+" d"}`}));inv.filter(x=>!x.reorder&&x.cover!==null&&x.cover<3).slice(0,5).forEach(x=>items.push({type:"warning",title:x.m,msg:`Low coverage ${fmt(x.cover)} days`}));if(q.rec)items.push({type:"data",title:"Stock reconciliation",msg:`${q.rec} mismatch item(s) need audit`});if(q.dup)items.push({type:"data",title:"Duplicate transactions",msg:`${q.dup} duplicate row(s) detected`});if(q.mis)items.push({type:"data",title:"Missing/blank data",msg:`${q.mis} missing field(s) detected`});return items.slice(0,10)}
+function v22DateMetrics(d){
+  const stock=(DATA.stock||[]).map(x=>{const m=clean(x.material);const rows=(Array.isArray(x.transactions)?x.transactions:[]).filter(t=>dateOnly(rowDate(t))===d),cl=rows.filter(t=>tType(t)==="CL. STOCK");return{m,rows,closing:cl.length?tVal(cl[cl.length-1]):null}}).filter(x=>x.m&&x.rows.length);
+  const rmCons=stock.reduce((a,x)=>a+x.rows.filter(t=>tType(t).includes("CONSUMPTION")).reduce((s,t)=>s+materialValueInMT(tVal(t),x.m),0),0);
+  const received=stock.reduce((a,x)=>a+x.rows.filter(t=>["PURCHASE","RECEIVED"].includes(tType(t))).reduce((s,t)=>s+materialValueInMT(tVal(t),x.m),0),0);
+  const transfers=stock.reduce((a,x)=>a+x.rows.filter(t=>isBommakalTransfer(t)).reduce((s,t)=>s+materialValueInMT(tVal(t),x.m),0),0);
+  const prod=productionRowsForDate(d);const bags=bagRowsForDate(d);const feed=dateFeedMetrics(d);
+  const prodBags=prod.reduce((a,r)=>a+(num(r.actual_output)||0),0);const loss=prod.map(r=>num(r.process_loss)).filter(v=>v!==null);const output=prod.map(r=>num(r.output_percentage)).filter(v=>v!==null);const issue=bags.reduce((a,r)=>a+(num(r.issue)||0),0),damage=bags.reduce((a,r)=>a+(num(r.damage)||0),0);
+  return{d,rmCons,received,transfers,production:feed.production||0,dispatch:feed.dispatch||0,feedClosing:feed.closing||0,prodBags,loss:loss.length?loss.reduce((a,b)=>a+b,0)/loss.length:null,output:output.length?output.reduce((a,b)=>a+b,0)/output.length:null,bagIssue:issue,bagDamage:damage,bagDamagePct:issue?damage/issue*100:null,stock:stock.reduce((a,x)=>a+(x.closing===null?0:materialValueInMT(x.closing,x.m)),0),materials:stock.length};
+}
+function v22DateSet(){return allAvailableDates().slice().sort()}
+function v22OpenHub(type){
+  const map={history:["📅 Date-wise History",v22HistoryHTML()],accuracy:["✓ Accuracy & Data Quality",v22AccuracyHTML()],production:["🏭 Production Cockpit",v22ProductionHTML()],premix:["🧪 Premix & Bommakal Control",v22PremixHTML()],bags:["👜 PP Bag Control",v22BagsHTML()],procurement:["🛒 Procurement Intelligence",v22ProcurementHTML()],inventory:["📦 Inventory Intelligence",v22InventoryHTML()],actions:["⚡ Manager Action Board",v22ActionsHTML()]};
+  const x=map[type]||map.actions;showModal(x[0],x[1]);
+}
+function v22ActionsHTML(){const items=v22ActionItems();return `<div class="detail-section"><h3>⚡ What needs attention</h3>${items.map((x,i)=>`<div class="v22-risk"><div class="v22-risk-main"><strong>${i+1}. ${esc(x.title)}</strong><small>${esc(x.msg)}</small></div><span class="v22-pill ${x.type==='critical'?'bad':x.type==='warning'?'warn':'info'}">${x.type.toUpperCase()}</span></div>`).join("")||`<div class="v22-empty">No active action items detected from the available API data.</div>`}</div>`}
+function v22InventoryHTML(){const rows=v22InventoryRows().sort((a,b)=>(a.cover??999)-(b.cover??999));return `<div class="detail-section"><h3>📦 Inventory Risk Radar</h3>${rows.slice(0,30).map(x=>`<div class="v22-risk" onclick="closeModal();openMaterialDetails('${jsq(x.m)}')"><div class="v22-risk-main"><strong>${esc(x.m)}</strong><small>Stock ${fmt(x.c)} ${esc(x.x.unit||"")} • Avg ${fmt(x.avg)} • Cover ${x.cover===null?"--":fmt(x.cover)+" d"} • Reorder ${x.reorder?"YES":"NO"}</small></div><span class="v22-pill ${x.reorder||x.c<=0?'bad':x.cover!==null&&x.cover<3?'warn':'ok'}">${x.reorder?"REORDER":x.cover!==null&&x.cover<3?"WATCH":"HEALTHY"}</span></div>`).join("")}</div>`}
+function v22AccuracyHTML(){const q=v22Quality(),bad=reconciliationItems().filter(x=>x.r.status==="MISMATCH");return `<div class="detail-section"><h3>✓ Data Quality Score: ${q.score}%</h3>${detail("Materials checked",q.checked)}${detail("Duplicate transaction rows",q.dup)}${detail("Reconciliation mismatches",q.rec)}${detail("Near-zero values",q.near)}${detail("Material closing missing",getMaterials().filter(m=>num(getMaterial(m)?.closing)===null).length)}${detail("Negative meaningful stock",q.neg)}${detail("Missing/blank transaction fields",q.mis)}${detail("Materials without unit",q.unit)}<div class="small-note">Near-zero values are normalized only in this presentation/calculation layer. Original API payload remains unchanged.</div></div>${bad.length?`<div class="detail-section"><h3>🔎 Reconciliation exceptions</h3>${bad.map(x=>`<div class="v22-risk" onclick="closeModal();openMaterialDetails('${jsq(x.material)}')"><div class="v22-risk-main"><strong>${esc(x.material)}</strong><small>${esc(x.r.date||"")} • calculated ${fmt(x.r.calculated)} • recorded ${fmt(x.r.recorded)} • variance ${fmt(x.r.diff)}</small></div><span class="v22-pill bad">CHECK</span></div>`).join("")}</div>`:""}`}
+function v22ProductionHTML(){const rows=selectedProduction();const total=rows.reduce((a,r)=>a+(num(r.actual_output)||0),0),out=rows.map(r=>num(r.output_percentage)).filter(v=>v!==null),loss=rows.map(r=>num(r.process_loss)).filter(v=>v!==null),feed=latestTotal("Production_Day_MT");return `<div class="detail-section"><h3>🏭 Production Cockpit</h3>${detail("Actual production",fmt(total)+" Bags")}${detail("Feed production",fmt(feed)+" MT")}${detail("Average output %",out.length?fmt(out.reduce((a,b)=>a+b,0)/out.length)+" %":"--")}${detail("Average process loss",loss.length?fmt(loss.reduce((a,b)=>a+b,0)/loss.length)+" %":"--")}${detail("Production records",rows.length)}</div><div class="detail-section"><h3>Material/Product performance</h3>${rows.map(r=>`<div class="v22-risk"><div class="v22-risk-main"><strong>${esc(r.product||"Product")}</strong><small>Actual ${fmtBags(r.actual_output)} • Standard ${fmtBags(r.standard_output)} • Output ${fmt(r.output_percentage)}% • Loss ${fmt(r.process_loss)}%</small></div><span class="v22-pill ${num(r.process_loss)>1?'warn':'ok'}">${num(r.process_loss)!==null?fmt(r.process_loss)+"% LOSS":"--"}</span></div>`).join("")||`<div class="v22-empty">No production records for this date.</div>`}</div>`}
+function v22PremixHTML(){const tr=premixBommakalTransfers(),info=v22PremixBagInfo();return `<div class="detail-section"><h3>🧪 Premix Flow</h3>${detail("Bommakal transfer",fmt(v22PremixTransferTotal())+" KG")}${detail("Premix closing",fmt(v22PremixClosingTotal())+" MT")}${detail("Explicit bag conversion",info.explicit+" product(s)")}${detail("Unresolved bag size",info.unknown+" product(s)")}${detail("Bag equivalent",info.explicit?fmt(info.bags)+" Bags":"Not calculated")}</div><div class="detail-section"><h3>Transfers by material</h3>${tr.map(r=>`<div class="v22-risk"><div class="v22-risk-main"><strong>${esc(r.material)}</strong><small>Transfer from Bommakal</small></div><span class="v22-pill info">${fmt(r.value)} KG</span></div>`).join("")||`<div class="v22-empty">No Bommakal premix transfer found.</div>`}</div>`}
+function v22BagsHTML(){const b=v22BagMetrics(),prod=selectedProduction().reduce((a,r)=>a+(num(r.actual_output)||0),0);return `<div class="detail-section"><h3>👜 PP Bag Control</h3>${detail("Opening",fmt(selectedBags().reduce((a,r)=>a+(num(r.opening)||0),0))+" Bags")}${detail("Received",fmt(b.received)+" Bags")}${detail("Issue",fmt(b.issue)+" Bags")}${detail("Damage",fmt(b.damage)+" Bags")}${detail("Closing",fmt(b.closing)+" Bags")}${detail("Damage %",b.damagePct===null?"--":fmt(b.damagePct)+" %")}${detail("Production",fmt(prod)+" Bags")}${detail("Bags / 1000 production",prod?fmt(b.issue/prod*1000):"--")}</div>`}
+function v22ProcurementHTML(){const rows=v22InventoryRows().filter(x=>x.avg>0&&(x.reorder||(x.cover!==null&&x.cover<7))).sort((a,b)=>(a.cover??999)-(b.cover??999));return `<div class="detail-section"><h3>🛒 Procurement Queue</h3><div class="small-note">7-day planning need only. Supplier lead time, MOQ, price and open PO are not assumed because they are not present in the current API response.</div>${rows.map(x=>{const need=Math.max(0,x.avg*7-(x.c||0));return `<div class="v22-risk"><div class="v22-risk-main"><strong>${esc(x.m)}</strong><small>Stock ${fmt(x.c)} ${esc(x.x.unit||"")} • Avg/day ${fmt(x.avg)} • 7-day requirement ${fmt(x.avg*7)}</small></div><span class="v22-pill ${x.reorder?'bad':'warn'}">${fmt(need)} ${esc(x.x.unit||"")}</span></div>`}).join("")||`<div class="v22-empty">No materials currently enter the planning queue.</div>`}</div>`}
+function v22HistoryHTML(){const dates=v22DateSet();return `<div class="detail-section"><h3>📅 Available history</h3><div class="small-note">History is limited to dates actually present in the current API payload. The API currently returns the latest report snapshot plus embedded transaction/history records; no dates are invented.</div><div class="v22-history-grid" style="margin-top:8px">${dates.map(d=>`<button class="v22-day ${dateOnly(selectedDateForIntelligence())===d?'active':''}" onclick="setViewDate('${jsq(d)}');closeModal();"><strong>${esc(v22DateLabel(d))}</strong><small>${esc(d)}</small></button>`).join("")||`<div class="v22-empty">No dated history.</div>`}</div></div>`}
+function v22OpenHistory(){v22OpenHub('history')}
+function v22CompareDates(){const a=document.getElementById("v22DateA")?.value,b=document.getElementById("v22DateB")?.value;if(!a||!b){showToast("Select two dates");return}const x=v22DateMetrics(a),y=v22DateMetrics(b);const rows=[['RM consumption',x.rmCons,y.rmCons,'MT'],['RM received',x.received,y.received,'MT'],['Premix transfer',x.transfers,y.transfers,'MT'],['Feed production',x.production,y.production,'MT'],['Feed dispatch',x.dispatch,y.dispatch,'MT'],['Feed closing',x.feedClosing,y.feedClosing,'MT'],['Actual production',x.prodBags,y.prodBags,'Bags'],['Process loss',x.loss,y.loss,'%'],['PP bag issue',x.bagIssue,y.bagIssue,'Bags'],['PP bag damage',x.bagDamage,y.bagDamage,'Bags']];document.getElementById("v22CompareResult").innerHTML=`<div class="v22-table"><table><thead><tr><th>Metric</th><th>${esc(a)}</th><th>${esc(b)}</th><th>Δ</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r[0])}</td><td>${r[2]===null?'--':fmt(r[2])} ${r[3]}</td><td>${r[1]===null?'--':fmt(r[1])} ${r[3]}</td><td>${r[1]===null||r[2]===null?'--':fmt(r[2]-r[1])} ${r[3]}</td></tr>`).join("")}</tbody></table></div>`}
+function v22OpenAudit(){const d=document.getElementById("v22DateA")?.value||selectedDateForIntelligence();if(!d){showToast("No date selected");return}const items=[];getMaterials().forEach(m=>{const rows=transactions(m).filter(t=>dateOnly(rowDate(t))===d);if(!rows.length)return;const opening=rows.filter(t=>tType(t)==="OPENING STOCK").reduce((a,t)=>a+tVal(t),0),closing=rows.filter(t=>tType(t)==="CL. STOCK").reduce((a,t)=>a+tVal(t),0),cons=rows.filter(t=>tType(t).includes("CONSUMPTION")).reduce((a,t)=>a+tVal(t),0),add=rows.filter(t=>['PURCHASE','RECEIVED','GAIN'].includes(tType(t))||isBommakalTransfer(t)).reduce((a,t)=>a+tVal(t),0),out=rows.filter(t=>['SALE','SHORTAGE'].includes(tType(t))||tType(t).includes('TRANSFER TO')).reduce((a,t)=>a+tVal(t),0);const expected=opening+add-out-cons;items.push({m,opening,add,out,cons,closing,variance:expected-closing})});showModal(`🔎 Audit Trail • ${d}`,`<div class="detail-section"><div class="small-note">Expected closing = Opening + additions − other deductions − consumption. This is a transparent audit calculation; it does not modify source data.</div>${items.map(x=>`<div class="v22-risk"><div class="v22-risk-main"><strong>${esc(x.m)}</strong><small>Open ${fmt(x.opening)} • Add ${fmt(x.add)} • Other out ${fmt(x.out)} • Consumption ${fmt(x.cons)} • Reported close ${fmt(x.closing)}</small></div><span class="v22-pill ${Math.abs(x.variance)<=.01?'ok':'bad'}">Var ${fmt(x.variance)}</span></div>`).join("")||`<div class="v22-empty">No transactions for ${esc(d)}.</div>`}</div>`)}
+function v22OpenAccuracy(){v22OpenHub('accuracy')}
+function v22PopulateHistory(){const dates=v22DateSet();const strip=document.getElementById("v22HistoryStrip");if(strip)strip.innerHTML=dates.slice(-14).map(d=>`<button class="v22-day ${dateOnly(selectedDateForIntelligence())===d?'active':''}" onclick="setViewDate('${jsq(d)}')"><strong>${esc(v22DateLabel(d))}</strong><small>${esc(d.slice(5))}</small></button>`).join("")||`<div class="v22-empty">No history</div>`;const a=document.getElementById("v22DateA"),b=document.getElementById("v22DateB");if(a&&b){const opts=dates.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join("");a.innerHTML=opts;b.innerHTML=opts;if(dates.length){a.value=selectedDateForIntelligence()&&dates.includes(selectedDateForIntelligence())?selectedDateForIntelligence():dates[dates.length-1];const idx=Math.max(0,dates.indexOf(a.value)-1);b.value=dates[idx]||dates[0]}}}
+function v22Render(){const q=v22Quality(),inv=v22InventoryRows(),acts=v22ActionItems(),low=inv.filter(x=>x.cover!==null&&x.cover<3),critical=inv.filter(x=>x.reorder||x.c<=0),anomaly=abnormalConsumptionItems(),b=v22BagMetrics(),p=v22PremixBagInfo();setText("v22RmStock",fmt(inv.reduce((a,x)=>a+materialValueInMT(x.c,x.m),0))+" MT");setText("v22Production",fmt(latestTotal("Production_Day_MT"))+" MT");setText("v22Actions",String(acts.length));setText("v22Quality",q.score+"%");setText("v22Critical",String(critical.length));setText("v22Coverage",String(low.length));setText("v22DataIssues",String(q.dup+q.rec+q.mis));setText("v22Anomaly",String(anomaly.length));setText("v22Inventory",fmt(inv.reduce((a,x)=>a+materialValueInMT(x.c,x.m),0))+" MT");setText("v22Need7",fmt(inv.reduce((a,x)=>a+x.avg*7,0))+" MT*");const cov=inv.map(x=>x.cover).filter(v=>v!==null);setText("v22AvgCover",cov.length?fmt(cov.reduce((a,b)=>a+b,0)/cov.length)+" d":"--");setText("v22Stockout",String(inv.filter(x=>x.cover!==null&&x.cover<7).length));setText("v22PremixTransfer",fmt(v22PremixTransferTotal())+" KG");setText("v22PremixClosing",fmt(v22PremixClosingTotal())+" MT");setText("v22PremixBags",p.explicit?fmt(p.bags):"--");setText("v22PremixConv",p.unknown?`${p.explicit} explicit / ${p.unknown} unresolved`:"Verified");setText("v22BagClosing",fmt(b.closing));setText("v22BagIssue",fmt(b.issue));setText("v22BagDamage",fmt(b.damage));setText("v22BagDamagePct",b.damagePct===null?"--":fmt(b.damagePct)+"%");setText("v22Dup",String(q.dup));setText("v22Recon",String(q.rec));setText("v22NearZero",String(q.near));setText("v22Missing",String(q.mis));const badge=document.getElementById("v22QualityBadge"),pill=document.getElementById("v22StatusPill");if(badge){badge.textContent=q.score>=90?"GOOD":q.score>=75?"WATCH":"CHECK";badge.className="v22-pill "+(q.score>=90?"ok":q.score>=75?"warn":"bad")}if(pill){pill.textContent=critical.length?"ACTION NEEDED":(low.length||acts.length?"WATCH":"STABLE");pill.className="v22-pill "+(critical.length?"bad":low.length||acts.length?"warn":"ok")}const ab=document.getElementById("v22ActionBoard");if(ab)ab.innerHTML=acts.slice(0,5).map(x=>`<div class="v22-risk"><div class="v22-risk-main"><strong>${esc(x.title)}</strong><small>${esc(x.msg)}</small></div><span class="v22-pill ${x.type==='critical'?'bad':x.type==='warning'?'warn':'info'}">${x.type}</span></div>`).join("")||`<div class="v22-empty">No active action items.</div>`;const rl=document.getElementById("v22RiskList");if(rl)rl.innerHTML=inv.slice().sort((a,b)=>(a.cover??999)-(b.cover??999)).slice(0,8).map(x=>`<div class="v22-risk"><div class="v22-risk-main"><strong>${esc(x.m)}</strong><small>${fmt(x.c)} ${esc(x.x.unit||"")} • cover ${x.cover===null?'--':fmt(x.cover)+" d"}</small></div><span class="v22-pill ${x.reorder||x.c<=0?'bad':x.cover!==null&&x.cover<3?'warn':'ok'}">${x.reorder?'REORDER':x.cover!==null&&x.cover<3?'WATCH':'OK'}</span></div>`).join("");const ad=document.getElementById("v22AccuracyDetails");if(ad)ad.innerHTML=`<div class="v22-progress"><i style="width:${q.score}%"></i></div><div class="small-note">Score ${q.score}% • duplicates ${q.dup} • reconciliation ${q.rec} • missing/blank ${q.mis} • near-zero ${q.near} • meaningful negative ${q.neg}</div>`;v22PopulateHistory()}
+function v22DownloadCSV(){const rows=v22InventoryRows();const csv=[['Material','Closing','Unit','Avg/Day','Coverage Days','Reorder Required'],...rows.map(x=>[x.m,x.c,x.x.unit||'',x.avg,x.cover===null?'':x.cover,x.reorder?'YES':'NO'])].map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=`Feed_Plant_Inventory_${currentViewKey()}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(u),500);showToast('CSV exported')}
+function v22PrintData(){const q=v22Quality(),inv=v22InventoryRows(),b=v22BagMetrics(),p=v22PremixBagInfo(),acts=v22ActionItems();return `<h1>Feed Plant Manager Report</h1><p>Date: ${esc(selectedDateForIntelligence()||DATA.report_date||'Latest')} • Generated: ${esc(new Date().toLocaleString('en-IN'))}</p><div class="print-kpis"><div class="pk"><small>Production</small><strong>${fmt(latestTotal('Production_Day_MT'))} MT</strong></div><div class="pk"><small>RM Stock</small><strong>${fmt(inv.reduce((a,x)=>a+materialValueInMT(x.c,x.m),0))} MT</strong></div><div class="pk"><small>Actions</small><strong>${acts.length}</strong></div><div class="pk"><small>Data Quality</small><strong>${q.score}%</strong></div></div><h2>Management Actions</h2><table><tr><th>Priority</th><th>Item</th><th>Details</th></tr>${acts.map(x=>`<tr><td>${esc(x.type)}</td><td>${esc(x.title)}</td><td>${esc(x.msg)}</td></tr>`).join('')||'<tr><td colspan="3">No active actions</td></tr>'}</table><h2>Inventory Risk</h2><table><tr><th>Material</th><th>Stock</th><th>Avg/Day</th><th>Coverage</th><th>Status</th></tr>${inv.slice().sort((a,b)=>(a.cover??999)-(b.cover??999)).slice(0,25).map(x=>`<tr><td>${esc(x.m)}</td><td>${fmt(x.c)} ${esc(x.x.unit||'')}</td><td>${fmt(x.avg)}</td><td>${x.cover===null?'--':fmt(x.cover)+' d'}</td><td>${x.reorder?'REORDER':x.cover!==null&&x.cover<3?'WATCH':'OK'}</td></tr>`).join('')}</table><h2>Premix & PP Bags</h2><table><tr><th>Metric</th><th>Value</th></tr><tr><td>Bommakal Premix Transfer</td><td>${fmt(v22PremixTransferTotal())} KG</td></tr><tr><td>Premix Closing</td><td>${fmt(v22PremixClosingTotal())} MT</td></tr><tr><td>Explicit Bag Equivalent</td><td>${p.explicit?fmt(p.bags)+' Bags':'Not calculated'}</td></tr><tr><td>PP Bag Closing</td><td>${fmt(b.closing)} Bags</td></tr><tr><td>PP Bag Issue</td><td>${fmt(b.issue)} Bags</td></tr><tr><td>PP Bag Damage</td><td>${fmt(b.damage)} Bags (${b.damagePct===null?'--':fmt(b.damagePct)+'%'})</td></tr></table><h2>Data Accuracy</h2><table><tr><th>Check</th><th>Count</th></tr><tr><td>Duplicates</td><td>${q.dup}</td></tr><tr><td>Reconciliation mismatches</td><td>${q.rec}</td></tr><tr><td>Near-zero</td><td>${q.near}</td></tr><tr><td>Missing/blank</td><td>${q.mis}</td></tr><tr><td>Meaningful negative stock</td><td>${q.neg}</td></tr></table>`}
+function v22GeneratePDF(){const el=document.getElementById('v22PrintReport');if(!el)return;el.innerHTML=v22PrintData();window.print()}
+function v22ToggleDark(){document.body.classList.toggle('dark');try{localStorage.setItem('feed_manager_theme',document.body.classList.contains('dark')?'dark':'light')}catch(e){} }
+try{if(localStorage.getItem('feed_manager_theme')==='dark')document.body.classList.add('dark')}catch(e){}
+
+const v22OldRenderDashboard=window.renderDashboard;
+window.renderDashboard=function(){v22OldRenderDashboard();v22Render()}
+
 </script>
 </body>
 </html>
