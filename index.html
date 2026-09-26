@@ -254,6 +254,40 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
  .stock-row>span{font-size:11px !important;}
  .stock-row>span:last-child{font-size:7.6px !important;}
 }
+
+/* ===== V21 Manager Cockpit ===== */
+.cockpit-card{background:linear-gradient(180deg,#fff,#f9fafc)}
+.cockpit-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.cockpit-head h2{margin:0;font-size:15px}
+.cockpit-head p{margin:3px 0 0;color:#7a7f88;font-size:9px}
+.cockpit-badge{font-size:9px;font-weight:700;padding:5px 8px;border-radius:20px;background:#eef2ff;color:#315efb;white-space:nowrap}
+.radar-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:10px}
+.radar-item{border:1px solid #eceef1;background:#fff;border-radius:12px;padding:10px;cursor:pointer}
+.radar-item strong{display:block;font-size:18px;line-height:1.1}
+.radar-item span{display:block;font-size:9px;color:#777;margin-top:4px}
+.radar-item.critical strong{color:#c0392b}
+.radar-item.warn strong{color:#9a6b00}
+.radar-item.good strong{color:#258a55}
+.cockpit-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:9px}
+.cockpit-actions button{border:0;border-radius:10px;background:#202938;color:#fff;padding:9px;font-size:10px;font-weight:600}
+.cockpit-actions button.alt{background:#f0f2f5;color:#202938}
+.risk-list{display:flex;flex-direction:column;gap:6px;margin-top:9px}
+.risk-row{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid #eceef1;border-radius:10px;padding:8px;background:#fff}
+.risk-main{min-width:0}.risk-main strong{display:block;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.risk-main small{display:block;color:#888;font-size:8px;margin-top:2px}
+.risk-score{font-size:9px;font-weight:700;padding:4px 6px;border-radius:16px;background:#fff1f1;color:#c0392b;white-space:nowrap}
+.risk-score.warn{background:#fff7df;color:#9a6b00}
+.risk-score.good{background:#eef8f1;color:#258a55}
+.kpi-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.kpi-strip .k{background:#f7f8fa;border-radius:10px;padding:8px}
+.kpi-strip small{display:block;font-size:8px;color:#888}.k strong{display:block;font-size:13px;margin-top:3px}
+.mini-progress{height:5px;background:#e9ebef;border-radius:10px;overflow:hidden;margin-top:5px}
+.mini-progress i{display:block;height:100%;background:#315efb;border-radius:10px;width:0}
+.search-filter-row{display:flex;gap:6px;margin:8px 0}
+.cockpit-search{flex:1;border:1px solid #ddd;border-radius:10px;padding:9px;font-size:11px;outline:none}
+.filter-chip{border:0;border-radius:10px;background:#f0f2f5;padding:0 10px;font-size:10px}
+@media(min-width:520px){.radar-grid{grid-template-columns:repeat(4,1fr)}.cockpit-actions{grid-template-columns:repeat(4,1fr)}}
+
 </style>
 
 </head>
@@ -333,6 +367,33 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
       <div class="intel-item" onclick="openManagerNotes()"><p>Manager Note</p><strong id="intelNote">--</strong><small>saved for this date</small></div>
     </div>
     <button class="intel-action" onclick="openManagerActions()">VIEW WHAT NEEDS MY ATTENTION →</button>
+  </div>
+
+
+  <!-- V21 MANAGER COCKPIT -->
+  <div class="card cockpit-card" id="managerCockpit">
+    <div class="cockpit-head">
+      <div><h2>🚦 Manager Cockpit</h2><p>Decision view • derived only from the current API data</p></div>
+      <span class="cockpit-badge" id="cockpitBadge">ANALYZING</span>
+    </div>
+    <div class="radar-grid">
+      <div class="radar-item critical" onclick="openCockpitList('critical')"><strong id="cpCritical">--</strong><span>Critical stock / action</span></div>
+      <div class="radar-item warn" onclick="openCockpitList('coverage')"><strong id="cpCoverage">--</strong><span>Low coverage &lt; 3 days</span></div>
+      <div class="radar-item warn" onclick="openCockpitList('anomaly')"><strong id="cpAnomaly">--</strong><span>Consumption anomalies</span></div>
+      <div class="radar-item good" onclick="openCockpitList('healthy')"><strong id="cpHealthy">--</strong><span>Healthy stock items</span></div>
+    </div>
+    <div class="kpi-strip">
+      <div class="k"><small>Inventory MT*</small><strong id="cpInventory">--</strong></div>
+      <div class="k"><small>7-Day Need*</small><strong id="cpSevenDay">--</strong></div>
+      <div class="k"><small>Coverage*</small><strong id="cpAvgCover">--</strong></div>
+    </div>
+    <div class="cockpit-actions">
+      <button onclick="openProcurementQueue()">🛒 Procurement Queue</button>
+      <button onclick="openRiskRadar()">🎯 Risk Radar</button>
+      <button class="alt" onclick="exportDashboardSnapshot()">⬇ Snapshot</button>
+      <button class="alt" onclick="openDataQualityPro()">✓ Data Quality</button>
+    </div>
+    <div class="small-note">*Inventory/need metrics use material-level numeric values as supplied by the API; units are not forcibly converted or mixed in the totals.</div>
   </div>
 
   <!-- BOMMAKAL PREMIX TRANSFERS -->
@@ -1510,6 +1571,143 @@ function bagTrend(){
   rows.forEach((r,i)=>{labels.push(r.product||"P"+(i+1));values.push((num(r.issue)||0)+(num(r.damage)||0))});
   return {labels,values}
 }
+
+
+/* =====================================================
+   V21 MANAGER COCKPIT
+   Presentation/decision layer only.
+   Source of truth remains DATA from the working API.
+===================================================== */
+function v21SafeNumber(v){
+  const n=num(v);
+  return n!==null && Math.abs(n)<0.001 ? 0 : n;
+}
+function v21MaterialStock(m){
+  const x=getMaterial(m);
+  return x ? v21SafeNumber(x.closing) : null;
+}
+function v21RiskRows(){
+  return getMaterials().map(m=>{
+    const x=getMaterial(m)||{}, c=v21MaterialStock(m), avg=avgConsumption(m);
+    const s=stockStatus(c||0,avg);
+    const reorder=stockStatus(c||0,avg).status==="REORDER" || !!x.reorder_required;
+    const cover=s.cover;
+    let score=0;
+    if(c!==null && c<=0.001)score+=60;
+    if(reorder)score+=25;
+    if(cover!==null && cover<3)score+=15;
+    if(abnormalConsumptionItems().some(a=>a.material===m))score+=10;
+    return {m,x,c,avg,s,reorder,cover,score};
+  }).filter(x=>x.c!==null);
+}
+function v21CockpitMetrics(){
+  const rows=v21RiskRows();
+  const critical=rows.filter(x=>x.reorder || (x.c!==null&&x.c<0)).sort((a,b)=>b.score-a.score);
+  const coverage=rows.filter(x=>x.cover!==null&&x.cover<3).sort((a,b)=>a.cover-b.cover);
+  const anomaly=abnormalConsumptionItems();
+  const healthy=rows.filter(x=>!x.reorder && (x.cover===null || x.cover>=3) && x.c>0).length;
+  const inv=rows.filter(x=>x.c>0).reduce((a,x)=>a+x.c,0);
+  const seven=rows.filter(x=>x.avg>0 && x.c>0).reduce((a,x)=>a+x.avg*7,0);
+  const covers=rows.map(x=>x.cover).filter(v=>v!==null&&Number.isFinite(v));
+  const avgCover=covers.length?covers.reduce((a,b)=>a+b,0)/covers.length:null;
+  return {rows,critical,coverage,anomaly,healthy,inv,seven,avgCover};
+}
+function renderManagerCockpit(){
+  const m=v21CockpitMetrics();
+  setText("cpCritical",String(m.critical.length));
+  setText("cpCoverage",String(m.coverage.length));
+  setText("cpAnomaly",String(m.anomaly.length));
+  setText("cpHealthy",String(m.healthy));
+  setText("cpInventory",fmt(m.inv));
+  setText("cpSevenDay",fmt(m.seven));
+  setText("cpAvgCover",m.avgCover===null?"--":fmt(m.avgCover)+" d");
+  const b=document.getElementById("cockpitBadge");
+  if(b){
+    if(m.critical.length){b.textContent="ACTION NEEDED";b.style.background="#fff1f1";b.style.color="#c0392b"}
+    else if(m.coverage.length||m.anomaly.length){b.textContent="WATCH";b.style.background="#fff7df";b.style.color="#9a6b00"}
+    else {b.textContent="STABLE";b.style.background="#eef8f1";b.style.color="#258a55"}
+  }
+}
+function cockpitRowsHtml(rows,empty="No items."){
+  return rows.length?`<div class="risk-list">${rows.slice(0,30).map(x=>{
+    const unit=x.x?.unit||"";
+    const c=fmtMaterial(x.c,x.m,unit);
+    const cov=x.cover===null?"--":fmt(x.cover)+" d";
+    const label=x.reorder?"REORDER":(x.cover!==null&&x.cover<3?"LOW COVER":"WATCH");
+    const cls=x.reorder?"":"warn";
+    return `<div class="risk-row" onclick="closeModal();openMaterialDetails('${jsq(x.m)}')"><div class="risk-main"><strong>${esc(x.m)}</strong><small>Stock ${esc(c)} • Avg ${fmt(x.avg)} ${esc(unit)}/day • Cover ${cov}</small></div><span class="risk-score ${cls}">${label}</span></div>`;
+  }).join("")}</div>`:`<div class="empty">${esc(empty)}</div>`;
+}
+function openCockpitList(type){
+  const m=v21CockpitMetrics();
+  let title="", rows=[], note="";
+  if(type==="critical"){title="🔴 Critical Stock";rows=m.critical;note="Items currently at/under reorder level or explicitly flagged by the API."}
+  else if(type==="coverage"){title="🟠 Low Coverage";rows=m.coverage;note="Coverage is estimated from recorded consumption history."}
+  else if(type==="anomaly"){title="⚠ Consumption Anomalies";note="Current recorded consumption is materially above the dashboard's existing comparison baseline.";showModal(title,`<div class="detail-section"><div class="small-note">${esc(note)}</div>${cockpitRowsHtml(m.anomaly.map(a=>({m:a.material,x:getMaterial(a.material)||{},c:v21MaterialStock(a.material),avg:a.avg,cover:stockStatus(v21MaterialStock(a.material)||0,a.avg).cover,reorder:false})),"No consumption anomalies detected.")}</div>`);return}
+  else {title="🟢 Healthy Stock";rows=m.rows.filter(x=>!x.reorder&&(x.cover===null||x.cover>=3)&&x.c>0);note="Items not currently flagged by the dashboard's reorder/coverage rules."}
+  showModal(title,`<div class="detail-section"><div class="small-note">${esc(note)}</div>${cockpitRowsHtml(rows,"No items in this category.")}</div>`);
+}
+function openRiskRadar(){
+  const m=v21CockpitMetrics();
+  const top=m.rows.slice().sort((a,b)=>b.score-a.score).slice(0,15);
+  const html=`<div class="detail-section"><h3>🎯 Risk Radar</h3><div class="small-note">Composite priority is a UI aid, not a new source value. It combines reorder flag, near-zero stock, low coverage and the existing abnormal-consumption check.</div>${cockpitRowsHtml(top,"No stock risk detected.")}</div>`;
+  showModal("🎯 Inventory Risk Radar",html);
+}
+function openProcurementQueue(){
+  const m=v21CockpitMetrics();
+  const rows=m.rows.filter(x=>x.avg>0 && ((x.reorder)||(x.cover!==null&&x.cover<7))).sort((a,b)=>{
+    const ac=a.cover===null?999:a.cover,bc=b.cover===null?999:b.cover; return ac-bc;
+  }).slice(0,30);
+  const html=`<div class="detail-section"><h3>🛒 Procurement Queue</h3><div class="small-note">Planning queue only. Suggested 7-day requirement = average daily consumption × 7. It does not assume supplier lead time, price, MOQ or open purchase orders because those fields are not present in the current API response.</div>${rows.length?`<div class="risk-list">${rows.map(x=>{
+    const need=Math.max(0,(x.avg*7)-(x.c||0));
+    const unit=x.x?.unit||"";
+    return `<div class="risk-row" onclick="closeModal();openMaterialDetails('${jsq(x.m)}')"><div class="risk-main"><strong>${esc(x.m)}</strong><small>Stock ${fmt(x.c)} ${esc(unit)} • Avg ${fmt(x.avg)} ${esc(unit)}/day • 7-day need ${fmt(x.avg*7)} ${esc(unit)}</small></div><span class="risk-score ${x.reorder?"":"warn"}">${fmt(need)} ${esc(unit)}</span></div>`;
+  }).join("")}</div>`:"<div class='empty'>No items currently enter the planning queue.</div>"}</div>`;
+  showModal("🛒 Procurement Queue",html);
+}
+function openDataQualityPro(){
+  const m=v21CockpitMetrics();
+  const nearZero=m.rows.filter(x=>x.c!==null && Math.abs(Number(x.c))<0.001);
+  const negative=m.rows.filter(x=>x.c!==null && Number(x.c)<0);
+  const missing=m.rows.filter(x=>x.c===null);
+  const mismatch=reconciliationItems().filter(x=>x.r.status==="MISMATCH");
+  const html=`<div class="detail-section"><h3>✓ Data Quality</h3>
+    <div class="kpi-strip">
+      <div class="k"><small>Near-zero</small><strong>${nearZero.length}</strong></div>
+      <div class="k"><small>Negative</small><strong>${negative.length}</strong></div>
+      <div class="k"><small>Missing closing</small><strong>${missing.length}</strong></div>
+    </div>
+    <div class="small-note">Near-zero values below 0.001 are treated as zero only for this UI's risk calculations; the API payload remains unchanged.</div>
+    <h3 style="margin-top:12px">Reconciliation mismatches</h3>${mismatch.length?cockpitRowsHtml(mismatch.map(z=>({m:z.material,x:getMaterial(z.material)||{},c:v21MaterialStock(z.material),avg:avgConsumption(z.material),cover:stockStatus(v21MaterialStock(z.material)||0,avgConsumption(z.material)).cover,reorder:false}))):"<div class='empty'>No reconciliation mismatches detected.</div>"}
+  </div>`;
+  showModal("✓ Data Quality",html);
+}
+function exportDashboardSnapshot(){
+  const m=v21CockpitMetrics();
+  const payload={
+    exported_at:new Date().toISOString(),
+    report_date:VIEW_DATE||DATA.report_date||null,
+    source:"Working API data",
+    cockpit:{
+      critical:m.critical.map(x=>({material:x.m,stock:x.c,unit:x.x?.unit||"",coverage_days:x.cover})),
+      low_coverage:m.coverage.map(x=>({material:x.m,stock:x.c,unit:x.x?.unit||"",coverage_days:x.cover})),
+      anomalies:m.anomaly,
+      healthy_count:m.healthy
+    },
+    data:DATA
+  };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`feed-plant-dashboard-${VIEW_DATE||dateOnly(DATA.report_date)||"latest"}.json`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  showToast("Dashboard snapshot exported");
+}
+
+/* Extend the existing dashboard render without replacing its logic. */
+const v21OriginalRenderDashboard=window.renderDashboard;
+window.renderDashboard=function(){
+  v21OriginalRenderDashboard();
+  renderManagerCockpit();
+};
+
 
 /* =====================================================
    START
