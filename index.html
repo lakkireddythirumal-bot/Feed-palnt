@@ -438,7 +438,7 @@ const DEFAULT_SAFETY_DAYS=7;
    DATA
 ===================================================== */
 let DATA={
-  stock:[],production:[],bags:[],feedUnitData:[],feedUnitTotals:[],
+  stock:[],stockHistory:[],production:[],productionHistory:[],bags:[],bagsHistory:[],feedUnitData:[],feedUnitTotals:[],
   productionTrend:[],usage:{},reorder_items:[],consumption:null,
   efficiency:null,processLoss:null,report_date:null
 };
@@ -580,8 +580,11 @@ function cachedData(){
 function applyData(apiData,fromCache=false){
   DATA={
     stock:Array.isArray(apiData.stock)?apiData.stock:[],
+    stockHistory:Array.isArray(apiData.stock_history)?apiData.stock_history:[],
     production:Array.isArray(apiData.production)?apiData.production:[],
+    productionHistory:Array.isArray(apiData.production_history)?apiData.production_history:[],
     bags:Array.isArray(apiData.pp_bags)?apiData.pp_bags:[],
+    bagsHistory:Array.isArray(apiData.pp_bags_history)?apiData.pp_bags_history:[],
     feedUnitData:Array.isArray(apiData.feedUnitData)?apiData.feedUnitData:[],
     feedUnitTotals:Array.isArray(apiData.feedUnitTotals)?apiData.feedUnitTotals:(apiData.feedUnitTotals||[]),
     productionTrend:Array.isArray(apiData.productionTrend)?apiData.productionTrend:[],
@@ -1219,6 +1222,17 @@ let VIEW_DATE=null;
 function viewDate(){return VIEW_DATE?dateOnly(VIEW_DATE):dateOnly(DATA.report_date);}
 function isViewDate(d){return !VIEW_DATE || dateOnly(d)===dateOnly(VIEW_DATE);}
 function viewStockRows(){
+  if(VIEW_DATE && Array.isArray(DATA.stockHistory) && DATA.stockHistory.length){
+    const map={};
+    DATA.stockHistory.filter(t=>dateOnly(t.report_date||t.Report_Date)===dateOnly(VIEW_DATE)).forEach(t=>{
+      const material=clean(t.material); if(!material)return;
+      const key=normalize(material);
+      if(!map[key])map[key]={material,closing:null,reorder_level:null,unit:"MT",transactions:[]};
+      map[key].transactions.push(t);
+      if(tType(t)==="CL. STOCK")map[key].closing=tVal(t);
+    });
+    return Object.values(map);
+  }
   return (DATA.stock||[]).map(x=>{
     const tx=(Array.isArray(x.transactions)?x.transactions:[]).filter(t=>isViewDate(rowDate(t)));
     const closingRows=tx.filter(t=>tType(t)==="CL. STOCK");
@@ -1237,11 +1251,11 @@ function transactions(material){
   return x&&Array.isArray(x.transactions)?x.transactions:[];
 }
 function selectedProduction(){
-  const rows=Array.isArray(DATA.production)?DATA.production:[];
+  const rows=(VIEW_DATE && Array.isArray(DATA.productionHistory) && DATA.productionHistory.length)?DATA.productionHistory:(Array.isArray(DATA.production)?DATA.production:[]);
   return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):rows;
 }
 function selectedBags(){
-  const rows=Array.isArray(DATA.bags)?DATA.bags:[];
+  const rows=(VIEW_DATE && Array.isArray(DATA.bagsHistory) && DATA.bagsHistory.length)?DATA.bagsHistory:(Array.isArray(DATA.bags)?DATA.bags:[]);
   return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):rows;
 }
 function selectedFeedRows(){
@@ -1473,9 +1487,13 @@ function setViewDate(date){
 }
 function getAvailableDates(){
   const s=new Set();
+  const stockSource=(DATA.stockHistory&&DATA.stockHistory.length)?DATA.stockHistory:[];
+  stockSource.forEach(t=>{const d=dateOnly(t.report_date||t.Report_Date);if(d)s.add(d)});
   (DATA.stock||[]).forEach(x=>(x.transactions||[]).forEach(t=>{const d=dateOnly(rowDate(t));if(d)s.add(d)}));
-  (DATA.production||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
-  (DATA.bags||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
+  const prodSource=(DATA.productionHistory&&DATA.productionHistory.length)?DATA.productionHistory:DATA.production||[];
+  prodSource.forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
+  const bagSource=(DATA.bagsHistory&&DATA.bagsHistory.length)?DATA.bagsHistory:DATA.bags||[];
+  bagSource.forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
   (DATA.feedUnitData||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
   if(DATA.report_date)s.add(dateOnly(DATA.report_date));
   return [...s].filter(Boolean).sort().reverse();
