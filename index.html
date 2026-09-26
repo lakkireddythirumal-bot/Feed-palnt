@@ -440,7 +440,8 @@ const DEFAULT_SAFETY_DAYS=7;
 let DATA={
   stock:[],production:[],bags:[],feedUnitData:[],feedUnitTotals:[],
   productionTrend:[],usage:{},reorder_items:[],consumption:null,
-  efficiency:null,processLoss:null,report_date:null
+  efficiency:null,processLoss:null,report_date:null,
+  stockHistory:[],productionHistory:[],bagsHistory:[]
 };
 let ALERTS=[];
 let DISMISSED_ALERTS=new Set();
@@ -590,7 +591,13 @@ function applyData(apiData,fromCache=false){
     consumption:apiData.consumption??null,
     efficiency:apiData.efficiency??null,
     processLoss:apiData.processLoss??null,
-    report_date:apiData.report_date??null
+    report_date:apiData.report_date??null,
+    /* Full multi-day history arrays from the API — required so that
+       selecting a past date shows real historical stock/production/pp-bag
+       data instead of only today's single-day snapshot. */
+    stockHistory:Array.isArray(apiData.stock_history)?apiData.stock_history:[],
+    productionHistory:Array.isArray(apiData.production_history)?apiData.production_history:[],
+    bagsHistory:Array.isArray(apiData.pp_bags_history)?apiData.pp_bags_history:[]
   };
   if(DATA.report_date)setText("reportDate",VIEW_DATE||DATA.report_date);
   renderDashboard();
@@ -694,6 +701,11 @@ function manualRefresh(){refreshData()}
    MANAGER CONTROL FEATURES
 ===================================================== */
 function dateOnly(v){
+  /* The report_date on each record IS the activity date, exactly as
+     given — read it literally, no timezone shifting. (A +5:30 IST
+     correction was tried and made things worse: it pushed each row's
+     date one day forward, so today's activity showed up filed under
+     tomorrow. Reverted.) */
   const s=clean(v);
   if(!s)return "";
   const m=s.match(/(\d{4}-\d{2}-\d{2})/);
@@ -1214,12 +1226,56 @@ let VIEW_DATE=null;
 
 function viewDate(){return VIEW_DATE?dateOnly(VIEW_DATE):dateOnly(DATA.report_date);}
 function isViewDate(d){return !VIEW_DATE || dateOnly(d)===dateOnly(VIEW_DATE);}
+/* Flat list of every stock transaction available: today's live "stock"
+   rows (grouped by material) plus every row from "stock_history". Both
+   shapes carry report_date + material + transaction, so once flattened
+   they can be filtered/grouped by date the same way. */
+function allStockTransactionsFlat(){
+  /* The API repeats today's rows inside stock_history as well as in the
+     live "stock" array, so merge with a de-dupe signature or today's
+     figures (consumption, closing, etc.) get counted twice. */
+  const seen=new Set(),rows=[];
+  const sig=t=>[t.material,t.transaction,t.report_date,t.for_day,t.for_month,t.for_year].join("|");
+  (DATA.stock||[]).forEach(x=>{
+    (Array.isArray(x.transactions)?x.transactions:[]).forEach(t=>{
+      const row={...t,material:t.material||x.material};
+      seen.add(sig(row));rows.push(row);
+    });
+  });
+  (DATA.stockHistory||[]).forEach(t=>{if(!seen.has(sig(t))){seen.add(sig(t));rows.push(t)}});
+  return rows;
+}
+/* Static-ish per-material info (reorder level, unit) isn't repeated in
+   stock_history, so fall back to today's "stock" / "reorder_items" rows. */
+function materialRef(material){
+  return (DATA.stock||[]).find(x=>normalize(x.material)===normalize(material))
+    ||(DATA.reorder_items||[]).find(x=>normalize(x.material)===normalize(material))
+    ||null;
+}
 function viewStockRows(){
-  return (DATA.stock||[]).map(x=>{
-    const tx=(Array.isArray(x.transactions)?x.transactions:[]).filter(t=>isViewDate(rowDate(t)));
+  if(!VIEW_DATE)return (DATA.stock||[]);
+  const vd=dateOnly(VIEW_DATE);
+  const flat=allStockTransactionsFlat().filter(t=>dateOnly(rowDate(t))===vd);
+  const byMaterial={};
+  flat.forEach(t=>{
+    const m=clean(t.material);
+    if(!m)return;
+    (byMaterial[m]=byMaterial[m]||[]).push(t);
+  });
+  return Object.keys(byMaterial).map(m=>{
+    const tx=byMaterial[m];
     const closingRows=tx.filter(t=>tType(t)==="CL. STOCK");
     const latestClosing=closingRows.length?closingRows[closingRows.length-1]:null;
-    return {...x,transactions:tx,closing:latestClosing? tVal(latestClosing) : null};
+    const ref=materialRef(m);
+    return {
+      material:m,
+      transactions:tx,
+      closing:latestClosing?tVal(latestClosing):(ref?ref.closing:null),
+      reorder_level:ref?ref.reorder_level:null,
+      unit:ref?ref.unit:"MT",
+      reorder_required:ref?ref.reorder_required:false,
+      shortage:ref?ref.shortage:0
+    };
   }).filter(x=>x.transactions.length || x.closing!==null);
 }
 function getMaterials(){
@@ -1232,13 +1288,24 @@ function transactions(material){
   const x=getMaterial(material);
   return x&&Array.isArray(x.transactions)?x.transactions:[];
 }
+/* Merge today's live rows with the corresponding *_history array so a
+   selected past date resolves to real recorded data, not an empty list. */
+/* Merge live rows with the *_history array, de-duping rows the API
+   already repeats in both places (today's date is present in both). */
+function mergeWithHistory(live,history){
+  const seen=new Set(),rows=[];
+  const sig=r=>[r.report_date||r.Report_Date,r.product||r.Product,r.material||r.Material].join("|");
+  (live||[]).forEach(r=>{seen.add(sig(r));rows.push(r)});
+  (history||[]).forEach(r=>{if(!seen.has(sig(r))){seen.add(sig(r));rows.push(r)}});
+  return rows;
+}
 function selectedProduction(){
-  const rows=Array.isArray(DATA.production)?DATA.production:[];
-  return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):rows;
+  const rows=mergeWithHistory(DATA.production,DATA.productionHistory);
+  return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):(DATA.production||[]);
 }
 function selectedBags(){
-  const rows=Array.isArray(DATA.bags)?DATA.bags:[];
-  return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):rows;
+  const rows=mergeWithHistory(DATA.bags,DATA.bagsHistory);
+  return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):(DATA.bags||[]);
 }
 function selectedFeedRows(){
   const rows=Array.isArray(DATA.feedUnitData)?DATA.feedUnitData:[];
@@ -1376,8 +1443,8 @@ function allAvailableDates(){return getAvailableDates()}
 function feedRowsForDate(d){
   return (DATA.feedUnitData||[]).filter(r=>dateOnly(r.Report_Date||r.report_date)===dateOnly(d));
 }
-function productionRowsForDate(d){return (DATA.production||[]).filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(d))}
-function bagRowsForDate(d){return (DATA.bags||[]).filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(d))}
+function productionRowsForDate(d){return mergeWithHistory(DATA.production,DATA.productionHistory).filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(d))}
+function bagRowsForDate(d){return mergeWithHistory(DATA.bags,DATA.bagsHistory).filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(d))}
 function dateFeedMetrics(d){
   const rows=feedRowsForDate(d);
   return {
@@ -1471,8 +1538,11 @@ function setViewDate(date){
 function getAvailableDates(){
   const s=new Set();
   (DATA.stock||[]).forEach(x=>(x.transactions||[]).forEach(t=>{const d=dateOnly(rowDate(t));if(d)s.add(d)}));
+  (DATA.stockHistory||[]).forEach(t=>{const d=dateOnly(rowDate(t));if(d)s.add(d)});
   (DATA.production||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
+  (DATA.productionHistory||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
   (DATA.bags||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
+  (DATA.bagsHistory||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
   (DATA.feedUnitData||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
   if(DATA.report_date)s.add(dateOnly(DATA.report_date));
   return [...s].filter(Boolean).sort().reverse();
