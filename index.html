@@ -235,6 +235,27 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 .smart-greeting{font-size:10px;color:#777;margin-bottom:2px;font-weight:600;letter-spacing:.2px}.smart-title{display:flex;align-items:center;gap:7px}.smart-title h1{font-size:23px}.selected-date-chip{display:inline-flex;align-items:center;padding:3px 7px;border-radius:20px;background:#eef2ff;color:#315efb;font-size:9px;font-weight:700;margin-top:5px}.date-strip{display:grid;grid-template-columns:38px 1fr 38px;gap:6px;align-items:center;margin:0 0 10px}.date-strip button{border:0;background:#fff;border-radius:11px;height:36px;font-size:16px;box-shadow:0 2px 9px rgba(0,0,0,.04);cursor:pointer}.date-strip-main{background:#fff;border-radius:12px;padding:7px 10px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 9px rgba(0,0,0,.04);cursor:pointer}.date-strip-main strong{font-size:12px}.date-strip-main small{font-size:9px;color:#888;display:block;margin-top:2px}.date-strip-main .date-state{font-size:9px;font-weight:700;color:#315efb}.quick-kpi{position:relative;overflow:hidden}.quick-kpi strong{font-variant-numeric:tabular-nums}.spark{height:20px;margin-top:5px;display:flex;align-items:flex-end;gap:2px;opacity:.72}.spark i{display:block;flex:1;min-width:2px;background:#cfd6e6;border-radius:3px 3px 1px 1px;transform-origin:bottom;animation:sparkIn .35s ease both}.spark i:nth-child(2){animation-delay:.03s}.spark i:nth-child(3){animation-delay:.06s}.spark i:nth-child(4){animation-delay:.09s}.spark i:nth-child(5){animation-delay:.12s}.spark i:nth-child(6){animation-delay:.15s}.spark i:nth-child(7){animation-delay:.18s}@keyframes sparkIn{from{transform:scaleY(.15);opacity:.2}to{transform:scaleY(1);opacity:1}}.attention-pill{display:inline-flex;align-items:center;gap:4px;padding:4px 7px;border-radius:20px;background:#f7f8fa;font-size:9px;font-weight:700;color:#777}.attention-pill.hot{background:#fff1f1;color:#c0392b}.attention-pill.warn{background:#fff7df;color:#9a6b00}.intel-item{transition:transform .15s ease,box-shadow .15s ease}.intel-item:hover{box-shadow:0 5px 16px rgba(0,0,0,.05)}@media(max-width:420px){.smart-title h1{font-size:21px}}
 </style>
 
+
+<style id="reorder-columns-v20">
+/* Clean five-column Raw Material Reorder: Material | Stock | Avg/Day | Cover | Status */
+.stock-head,.stock-row{grid-template-columns:minmax(0,1.62fr) .90fr .92fr .82fr .62fr !important;column-gap:7px !important;}
+.stock-head{font-size:9.5px !important;}
+.stock-row{min-height:48px !important;padding:7px 0 !important;}
+.stock-row .reorder-material-wrap{padding-right:2px !important;min-width:0 !important;}
+.stock-row .reorder-material,.stock-row strong.reorder-material{font-size:12.5px !important;font-weight:500 !important;line-height:1.12 !important;}
+.stock-row .avg-sub{display:none !important;}
+.stock-row>span{font-size:12px !important;font-weight:700 !important;line-height:1.1 !important;white-space:nowrap !important;}
+.stock-row>span:last-child{font-size:8.5px !important;font-weight:700 !important;letter-spacing:.1px !important;}
+@media(max-width:520px){
+ .stock-head,.stock-row{grid-template-columns:minmax(0,1.58fr) .90fr .94fr .82fr .56fr !important;column-gap:5px !important;}
+ .stock-head{font-size:8.5px !important;}
+ .stock-row{min-height:47px !important;padding:6px 0 !important;}
+ .stock-row .reorder-material,.stock-row strong.reorder-material{font-size:11.5px !important;}
+ .stock-row>span{font-size:11px !important;}
+ .stock-row>span:last-child{font-size:7.6px !important;}
+}
+</style>
+
 </head>
 <body>
 <div class="container">
@@ -328,7 +349,7 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
         <div class="stock-head"><span>Material</span><span>Stock</span><span>Avg/Day</span><span>Cover</span><span>Status</span></div>
         <div id="stockList"><div class="empty">Loading...</div></div>
       </div>
-      <div class="small-note">Avg/Day uses the consumption history available from the API. Reorder Level = Avg Daily Consumption × Safety Days. Default Safety Days is 7 and can be changed in the code.</div>
+      <div class="small-note">Avg/Day = recorded average daily consumption. Cover = estimated stock coverage based on the available consumption history.</div>
     </div>
 
     <!-- PRODUCTION -->
@@ -1317,7 +1338,7 @@ function renderStock(){
     return (bv>0)-(av>0)||bv-av;
   }).map(m=>{
     const x=getMaterial(m),closing=num(x?.closing)||0,avg=avgConsumption(m),s=stockStatus(closing,avg),reorder=avg*DEFAULT_SAFETY_DAYS,unit=x?.unit||"MT";
-    return `<div class="stock-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="reorder-material-wrap"><strong class="reorder-material">${esc(m)}</strong><small class="avg-sub">${avg?`Avg ${fmt(avg)} ${esc(unit)}/day`:"Avg --"}</small></div><span>${fmt(closing)} ${esc(unit)}</span><span>${s.cover!==null?fmt(s.cover)+" d":"--"}</span><span>${avg?`${fmt(reorder)} ${esc(unit)}`:"--"}</span><span class="${s.cls} status-text">${esc(s.status)}</span></div>`;
+    return `<div class="stock-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="reorder-material-wrap"><strong class="reorder-material">${esc(m)}</strong></div><span>${fmt(closing)} ${esc(unit)}</span><span>${avg?`${fmt(avg)} ${esc(unit)}/day`:"--"}</span><span>${s.cover!==null?fmt(s.cover)+" d":"--"}</span><span class="${s.cls} status-text">${esc(s.status)}</span></div>`;
   }).join("")||"<div class='empty'>No stock data for this date</div>";
 }
 function renderRawCategory(tab){
