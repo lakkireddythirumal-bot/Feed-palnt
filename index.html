@@ -440,7 +440,8 @@ const DEFAULT_SAFETY_DAYS=7;
 let DATA={
   stock:[],production:[],bags:[],feedUnitData:[],feedUnitTotals:[],
   productionTrend:[],usage:{},reorder_items:[],consumption:null,
-  efficiency:null,processLoss:null,report_date:null
+  efficiency:null,processLoss:null,report_date:null,today_date:null,
+  stock_report_date:null,production_report_date:null,pp_bags_report_date:null,feed_unit_report_date:null
 };
 let ALERTS=[];
 let DISMISSED_ALERTS=new Set();
@@ -515,7 +516,13 @@ function feedField(r,key){
   return null;
 }
 function latestFeedRows(){
-  const rows=Array.isArray(DATA.feedUnitData)?DATA.feedUnitData:[];
+  const all=Array.isArray(DATA.feedUnitData)?DATA.feedUnitData:[];
+  // Default dashboard uses the Feed Unit sheet's own latest activity date.
+  // A product must not silently fall back to an older record.
+  const target=dateOnly(DATA.feed_unit_report_date||"");
+  const rows=target
+    ? all.filter(r=>dateOnly(r.Report_Date||r.report_date)===target)
+    : all;
   const latest={};
   rows.forEach(r=>{
     const p=clean(r.Product||r.product);
@@ -590,7 +597,12 @@ function applyData(apiData,fromCache=false){
     consumption:apiData.consumption??null,
     efficiency:apiData.efficiency??null,
     processLoss:apiData.processLoss??null,
-    report_date:apiData.report_date??null
+    report_date:apiData.report_date??null,
+    today_date:apiData.today_date??null,
+    stock_report_date:apiData.stock_report_date??null,
+    production_report_date:apiData.production_report_date??null,
+    pp_bags_report_date:apiData.pp_bags_report_date??null,
+    feed_unit_report_date:apiData.feed_unit_report_date??null
   };
   if(DATA.report_date)setText("reportDate",VIEW_DATE||DATA.report_date);
   renderDashboard();
@@ -929,11 +941,12 @@ function renderQuick(){
 }
 function renderSmartHeader(){
   const d=selectedDateForIntelligence()||dateOnly(DATA.report_date)||"";
-  setText("reportDate",d||"Latest");
-  setText("selectedDateChip",VIEW_DATE?d:"Latest");
-  setText("dateStripTitle",d?d:"Latest available day");
-  setText("dateStripSub",VIEW_DATE?"Selected dashboard date":"Tap to select another day");
-  setText("dateStripState",VIEW_DATE?"SELECTED":"LATEST");
+  const today=dateOnly(DATA.today_date)||dateOnly(new Date().toISOString());
+  setText("reportDate",VIEW_DATE?d:(today?`Today • ${today}`:"Today"));
+  setText("selectedDateChip",VIEW_DATE?d:"Today");
+  setText("dateStripTitle",VIEW_DATE?d:(today?`Today • ${today}`:"Today"));
+  setText("dateStripSub",VIEW_DATE?"Selected dashboard date":"Activity data uses each sheet's latest report date");
+  setText("dateStripState",VIEW_DATE?"SELECTED":"TODAY");
   const h=new Date().getHours();
   setText("smartGreeting",h<12?"GOOD MORNING, SIR":h<17?"GOOD AFTERNOON, SIR":"GOOD EVENING, SIR");
 }
@@ -1296,7 +1309,6 @@ function renderQuick(){
   });
   setText("qReceived",fmt(received)+" MT");setText("qConsumption",fmt(cons)+" MT");setText("qClosing",fmt(closing)+" MT");
   setText("qFeedClosing",fmtMT(latestFeedClosingTotal()));
-  setText("reportDate",VIEW_DATE||DATA.report_date||"Latest");
 }
 function renderFeedUnit(){
   const rows=latestFeedRows(),list=document.getElementById("feedUnitList");
