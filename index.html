@@ -440,8 +440,7 @@ const DEFAULT_SAFETY_DAYS=7;
 let DATA={
   stock:[],production:[],bags:[],feedUnitData:[],feedUnitTotals:[],
   productionTrend:[],usage:{},reorder_items:[],consumption:null,
-  efficiency:null,processLoss:null,report_date:null,
-  stockHistory:[],productionHistory:[],bagsHistory:[]
+  efficiency:null,processLoss:null,report_date:null
 };
 let ALERTS=[];
 let DISMISSED_ALERTS=new Set();
@@ -591,13 +590,7 @@ function applyData(apiData,fromCache=false){
     consumption:apiData.consumption??null,
     efficiency:apiData.efficiency??null,
     processLoss:apiData.processLoss??null,
-    report_date:apiData.report_date??null,
-    /* Full multi-day history arrays from the API — required so that
-       selecting a past date shows real historical stock/production/pp-bag
-       data instead of only today's single-day snapshot. */
-    stockHistory:Array.isArray(apiData.stock_history)?apiData.stock_history:[],
-    productionHistory:Array.isArray(apiData.production_history)?apiData.production_history:[],
-    bagsHistory:Array.isArray(apiData.pp_bags_history)?apiData.pp_bags_history:[]
+    report_date:apiData.report_date??null
   };
   if(DATA.report_date)setText("reportDate",VIEW_DATE||DATA.report_date);
   renderDashboard();
@@ -1221,49 +1214,12 @@ let VIEW_DATE=null;
 
 function viewDate(){return VIEW_DATE?dateOnly(VIEW_DATE):dateOnly(DATA.report_date);}
 function isViewDate(d){return !VIEW_DATE || dateOnly(d)===dateOnly(VIEW_DATE);}
-/* Flat list of every stock transaction available: today's live "stock"
-   rows (grouped by material) plus every row from "stock_history". Both
-   shapes carry report_date + material + transaction, so once flattened
-   they can be filtered/grouped by date the same way. */
-function allStockTransactionsFlat(){
-  const rows=[];
-  (DATA.stock||[]).forEach(x=>{
-    (Array.isArray(x.transactions)?x.transactions:[]).forEach(t=>rows.push({...t,material:t.material||x.material}));
-  });
-  (DATA.stockHistory||[]).forEach(t=>rows.push(t));
-  return rows;
-}
-/* Static-ish per-material info (reorder level, unit) isn't repeated in
-   stock_history, so fall back to today's "stock" / "reorder_items" rows. */
-function materialRef(material){
-  return (DATA.stock||[]).find(x=>normalize(x.material)===normalize(material))
-    ||(DATA.reorder_items||[]).find(x=>normalize(x.material)===normalize(material))
-    ||null;
-}
 function viewStockRows(){
-  if(!VIEW_DATE)return (DATA.stock||[]);
-  const vd=dateOnly(VIEW_DATE);
-  const flat=allStockTransactionsFlat().filter(t=>dateOnly(rowDate(t))===vd);
-  const byMaterial={};
-  flat.forEach(t=>{
-    const m=clean(t.material);
-    if(!m)return;
-    (byMaterial[m]=byMaterial[m]||[]).push(t);
-  });
-  return Object.keys(byMaterial).map(m=>{
-    const tx=byMaterial[m];
+  return (DATA.stock||[]).map(x=>{
+    const tx=(Array.isArray(x.transactions)?x.transactions:[]).filter(t=>isViewDate(rowDate(t)));
     const closingRows=tx.filter(t=>tType(t)==="CL. STOCK");
     const latestClosing=closingRows.length?closingRows[closingRows.length-1]:null;
-    const ref=materialRef(m);
-    return {
-      material:m,
-      transactions:tx,
-      closing:latestClosing?tVal(latestClosing):(ref?ref.closing:null),
-      reorder_level:ref?ref.reorder_level:null,
-      unit:ref?ref.unit:"MT",
-      reorder_required:ref?ref.reorder_required:false,
-      shortage:ref?ref.shortage:0
-    };
+    return {...x,transactions:tx,closing:latestClosing? tVal(latestClosing) : null};
   }).filter(x=>x.transactions.length || x.closing!==null);
 }
 function getMaterials(){
@@ -1276,15 +1232,13 @@ function transactions(material){
   const x=getMaterial(material);
   return x&&Array.isArray(x.transactions)?x.transactions:[];
 }
-/* Merge today's live rows with the corresponding *_history array so a
-   selected past date resolves to real recorded data, not an empty list. */
 function selectedProduction(){
-  const rows=[...(Array.isArray(DATA.production)?DATA.production:[]),...(Array.isArray(DATA.productionHistory)?DATA.productionHistory:[])];
-  return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):(DATA.production||[]);
+  const rows=Array.isArray(DATA.production)?DATA.production:[];
+  return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):rows;
 }
 function selectedBags(){
-  const rows=[...(Array.isArray(DATA.bags)?DATA.bags:[]),...(Array.isArray(DATA.bagsHistory)?DATA.bagsHistory:[])];
-  return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):(DATA.bags||[]);
+  const rows=Array.isArray(DATA.bags)?DATA.bags:[];
+  return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):rows;
 }
 function selectedFeedRows(){
   const rows=Array.isArray(DATA.feedUnitData)?DATA.feedUnitData:[];
@@ -1422,8 +1376,8 @@ function allAvailableDates(){return getAvailableDates()}
 function feedRowsForDate(d){
   return (DATA.feedUnitData||[]).filter(r=>dateOnly(r.Report_Date||r.report_date)===dateOnly(d));
 }
-function productionRowsForDate(d){return [...(DATA.production||[]),...(DATA.productionHistory||[])].filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(d))}
-function bagRowsForDate(d){return [...(DATA.bags||[]),...(DATA.bagsHistory||[])].filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(d))}
+function productionRowsForDate(d){return (DATA.production||[]).filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(d))}
+function bagRowsForDate(d){return (DATA.bags||[]).filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(d))}
 function dateFeedMetrics(d){
   const rows=feedRowsForDate(d);
   return {
@@ -1517,11 +1471,8 @@ function setViewDate(date){
 function getAvailableDates(){
   const s=new Set();
   (DATA.stock||[]).forEach(x=>(x.transactions||[]).forEach(t=>{const d=dateOnly(rowDate(t));if(d)s.add(d)}));
-  (DATA.stockHistory||[]).forEach(t=>{const d=dateOnly(rowDate(t));if(d)s.add(d)});
   (DATA.production||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
-  (DATA.productionHistory||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
   (DATA.bags||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
-  (DATA.bagsHistory||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
   (DATA.feedUnitData||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
   if(DATA.report_date)s.add(dateOnly(DATA.report_date));
   return [...s].filter(Boolean).sort().reverse();
