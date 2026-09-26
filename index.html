@@ -260,7 +260,7 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 <body>
 <div class="container">
   <div class="header">
-    <div><div class="smart-greeting" id="smartGreeting">GOOD MORNING, SIR</div><div class="smart-title"><h1>Feed Plant Control Center</h1></div><p>Manager Dashboard • <span id="todayDate">--</span> • Latest Activity: <span id="reportDate">Latest</span></p><span class="selected-date-chip" id="selectedDateChip">Latest</span></div>
+    <div><div class="smart-greeting" id="smartGreeting">GOOD MORNING, SIR</div><div class="smart-title"><h1>Feed Plant Control Center</h1></div><p>Manager Dashboard • <span id="reportDate">Latest</span></p><span class="selected-date-chip" id="selectedDateChip">Latest</span></div>
     <div class="header-actions">
       <button class="header-tool" onclick="openGlobalSearch()" aria-label="Search">🔎</button>
       <button class="header-tool" onclick="openDateSelector()" aria-label="Date selector">📅</button>
@@ -438,9 +438,10 @@ const DEFAULT_SAFETY_DAYS=7;
    DATA
 ===================================================== */
 let DATA={
-  stock:[],stockHistory:[],production:[],productionHistory:[],bags:[],bagsHistory:[],feedUnitData:[],feedUnitTotals:[],
+  stock:[],production:[],bags:[],feedUnitData:[],feedUnitTotals:[],
   productionTrend:[],usage:{},reorder_items:[],consumption:null,
-  efficiency:null,processLoss:null,report_date:null
+  efficiency:null,processLoss:null,report_date:null,
+  stockHistory:[],productionHistory:[],bagsHistory:[]
 };
 let ALERTS=[];
 let DISMISSED_ALERTS=new Set();
@@ -580,11 +581,8 @@ function cachedData(){
 function applyData(apiData,fromCache=false){
   DATA={
     stock:Array.isArray(apiData.stock)?apiData.stock:[],
-    stockHistory:Array.isArray(apiData.stock_history)?apiData.stock_history:[],
     production:Array.isArray(apiData.production)?apiData.production:[],
-    productionHistory:Array.isArray(apiData.production_history)?apiData.production_history:[],
     bags:Array.isArray(apiData.pp_bags)?apiData.pp_bags:[],
-    bagsHistory:Array.isArray(apiData.pp_bags_history)?apiData.pp_bags_history:[],
     feedUnitData:Array.isArray(apiData.feedUnitData)?apiData.feedUnitData:[],
     feedUnitTotals:Array.isArray(apiData.feedUnitTotals)?apiData.feedUnitTotals:(apiData.feedUnitTotals||[]),
     productionTrend:Array.isArray(apiData.productionTrend)?apiData.productionTrend:[],
@@ -594,8 +592,11 @@ function applyData(apiData,fromCache=false){
     efficiency:apiData.efficiency??null,
     processLoss:apiData.processLoss??null,
     report_date:apiData.report_date??null,
-    stock_report_date:apiData.stock_report_date??apiData.report_date??null
+    stockHistory:Array.isArray(apiData.stock_history)?apiData.stock_history:[],
+    productionHistory:Array.isArray(apiData.production_history)?apiData.production_history:[],
+    bagsHistory:Array.isArray(apiData.pp_bags_history)?apiData.pp_bags_history:[]
   };
+  setText("reportDate",todayKey());
   renderDashboard();
   if(!fromCache)saveCache(apiData);
 }
@@ -701,6 +702,11 @@ function dateOnly(v){
   if(!s)return "";
   const m=s.match(/(\d{4}-\d{2}-\d{2})/);
   return m?m[1]:s.slice(0,10);
+}
+function todayKey(){
+  const d=new Date();
+  const p=n=>String(n).padStart(2,"0");
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());
 }
 function latestTransactionDate(material){
   const ds=transactions(material).map(t=>dateOnly(rowDate(t))).filter(Boolean).sort();
@@ -850,11 +856,18 @@ function showToast(msg){
 }
 function getAvailableDates(){
   const s=new Set();
-  DATA.stock.forEach(x=>(x.transactions||[]).forEach(t=>{const d=dateOnly(rowDate(t));if(d)s.add(d)}));
-  DATA.production.forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date||DATA.report_date);if(d)s.add(d)});
-  DATA.bags.forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date||DATA.report_date);if(d)s.add(d)});
-  DATA.feedUnitData.forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
-  if(DATA.report_date)s.add(dateOnly(DATA.report_date));
+  // Activity-date master: STOCK_DATA transaction report_date only.
+  (DATA.stockHistory||[]).forEach(t=>{
+    const d=dateOnly(t.report_date||t.date||t.Report_Date);
+    if(d)s.add(d);
+  });
+  // Fallback for cached/old API responses that do not contain history.
+  if(!s.size){
+    (DATA.stock||[]).forEach(x=>(x.transactions||[]).forEach(t=>{
+      const d=dateOnly(t.report_date||t.date||t.Report_Date);
+      if(d)s.add(d);
+    }));
+  }
   return [...s].filter(Boolean).sort().reverse();
 }
 function openDateSelector(){
@@ -931,13 +944,9 @@ function renderQuick(){
   renderKpiSparks();
 }
 function renderSmartHeader(){
-  const now=new Date();
-  const today=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
-  const latestActivity=dateOnly(DATA.stock_report_date||DATA.report_date)||"Latest";
-  const d=selectedDateForIntelligence()||latestActivity||"";
-  setText("todayDate",today);
-  setText("reportDate",latestActivity);
-  setText("selectedDateChip",VIEW_DATE?d:"Latest");
+  const d=selectedDateForIntelligence()||dateOnly(DATA.report_date)||"";
+  setText("reportDate",d||"Latest");
+  setText("selectedDateChip",VIEW_DATE?d:"Latest Activity");
   setText("dateStripTitle",d?d:"Latest available day");
   setText("dateStripSub",VIEW_DATE?"Selected dashboard date":"Tap to select another day");
   setText("dateStripState",VIEW_DATE?"SELECTED":"LATEST");
@@ -1221,24 +1230,31 @@ let VIEW_DATE=null;
 
 function viewDate(){return VIEW_DATE?dateOnly(VIEW_DATE):dateOnly(DATA.report_date);}
 function isViewDate(d){return !VIEW_DATE || dateOnly(d)===dateOnly(VIEW_DATE);}
+function stockHistoryRowsForDate(date){
+  const rows=Array.isArray(DATA.stockHistory)?DATA.stockHistory:[];
+  return rows.filter(t=>dateOnly(t.report_date||t.date||t.Report_Date)===dateOnly(date));
+}
 function viewStockRows(){
-  if(VIEW_DATE && Array.isArray(DATA.stockHistory) && DATA.stockHistory.length){
-    const map={};
-    DATA.stockHistory.filter(t=>dateOnly(t.report_date||t.Report_Date)===dateOnly(VIEW_DATE)).forEach(t=>{
-      const material=clean(t.material); if(!material)return;
-      const key=normalize(material);
-      if(!map[key])map[key]={material,closing:null,reorder_level:null,unit:"MT",transactions:[]};
-      map[key].transactions.push(t);
-      if(tType(t)==="CL. STOCK")map[key].closing=tVal(t);
+  if(!VIEW_DATE){
+    return (DATA.stock||[]).map(x=>{
+      const tx=Array.isArray(x.transactions)?x.transactions:[];
+      return {...x,transactions:tx};
     });
-    return Object.values(map);
   }
-  return (DATA.stock||[]).map(x=>{
-    const tx=(Array.isArray(x.transactions)?x.transactions:[]).filter(t=>isViewDate(rowDate(t)));
-    const closingRows=tx.filter(t=>tType(t)==="CL. STOCK");
-    const latestClosing=closingRows.length?closingRows[closingRows.length-1]:null;
-    return {...x,transactions:tx,closing:latestClosing? tVal(latestClosing) : null};
-  }).filter(x=>x.transactions.length || x.closing!==null);
+  const rows=stockHistoryRowsForDate(VIEW_DATE);
+  const map={};
+  rows.forEach(t=>{
+    const material=clean(t.material);
+    if(!material)return;
+    const key=normalize(material);
+    if(!map[key]){
+      const base=(DATA.stock||[]).find(x=>normalize(x.material)===key)||{};
+      map[key]={...base,material,transactions:[],closing:null};
+    }
+    map[key].transactions.push(t);
+    if(tType(t)==="CL. STOCK") map[key].closing=num(t.for_day);
+  });
+  return Object.values(map);
 }
 function getMaterials(){
   return [...new Set(viewStockRows().map(x=>clean(x.material)).filter(Boolean))];
@@ -1251,11 +1267,11 @@ function transactions(material){
   return x&&Array.isArray(x.transactions)?x.transactions:[];
 }
 function selectedProduction(){
-  const rows=(VIEW_DATE && Array.isArray(DATA.productionHistory) && DATA.productionHistory.length)?DATA.productionHistory:(Array.isArray(DATA.production)?DATA.production:[]);
+  const rows=VIEW_DATE&&DATA.productionHistory.length?DATA.productionHistory:(Array.isArray(DATA.production)?DATA.production:[]);
   return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):rows;
 }
 function selectedBags(){
-  const rows=(VIEW_DATE && Array.isArray(DATA.bagsHistory) && DATA.bagsHistory.length)?DATA.bagsHistory:(Array.isArray(DATA.bags)?DATA.bags:[]);
+  const rows=VIEW_DATE&&DATA.bagsHistory.length?DATA.bagsHistory:(Array.isArray(DATA.bags)?DATA.bags:[]);
   return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):rows;
 }
 function selectedFeedRows(){
@@ -1314,6 +1330,7 @@ function renderQuick(){
   });
   setText("qReceived",fmt(received)+" MT");setText("qConsumption",fmt(cons)+" MT");setText("qClosing",fmt(closing)+" MT");
   setText("qFeedClosing",fmtMT(latestFeedClosingTotal()));
+  setText("reportDate",todayKey());
 }
 function renderFeedUnit(){
   const rows=latestFeedRows(),list=document.getElementById("feedUnitList");
@@ -1487,21 +1504,17 @@ function setViewDate(date){
 }
 function getAvailableDates(){
   const s=new Set();
-  const stockSource=(DATA.stockHistory&&DATA.stockHistory.length)?DATA.stockHistory:[];
-  stockSource.forEach(t=>{const d=dateOnly(t.report_date||t.Report_Date);if(d)s.add(d)});
   (DATA.stock||[]).forEach(x=>(x.transactions||[]).forEach(t=>{const d=dateOnly(rowDate(t));if(d)s.add(d)}));
-  const prodSource=(DATA.productionHistory&&DATA.productionHistory.length)?DATA.productionHistory:DATA.production||[];
-  prodSource.forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
-  const bagSource=(DATA.bagsHistory&&DATA.bagsHistory.length)?DATA.bagsHistory:DATA.bags||[];
-  bagSource.forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
+  (DATA.production||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
+  (DATA.bags||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
   (DATA.feedUnitData||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
   if(DATA.report_date)s.add(dateOnly(DATA.report_date));
   return [...s].filter(Boolean).sort().reverse();
 }
 function openDateSelector(){
   const dates=getAvailableDates();
-  const buttons=(VIEW_DATE?`<button class="date-btn" onclick="setViewDate(null)"><strong>Latest / Today</strong><small>Return to latest dashboard</small></button>`:"")+dates.map(d=>`<button class="date-btn" onclick="setViewDate('${jsq(d)}')"><strong>${esc(d)}</strong><small>${d===dateOnly(DATA.report_date)?"Latest API date":"View complete dashboard →"}</small></button>`).join("");
-  showModal("Date Selector",`<div class="detail-section"><h3>📅 Dashboard Date</h3><div class="small-note">Selecting a date now changes the entire dashboard, not just the summary popup.</div><div class="date-list">${buttons||"<div class='empty'>No dated records available.</div>"}</div></div>`);
+  const buttons=(VIEW_DATE?`<button class="date-btn" onclick="setViewDate(null)"><strong>Latest / Today</strong><small>Return to latest dashboard</small></button>`:"")+dates.map(d=>`<button class="date-btn" onclick="setViewDate('${jsq(d)}')"><strong>${esc(d)}</strong><small>Activity date • View complete dashboard →</small></button>`).join("");
+  showModal("Date Selector",`<div class="detail-section"><h3>📅 Activity Date</h3><div class="small-note">Select a STOCK_DATA activity date. The complete dashboard will use that activity date.</div><div class="date-list">${buttons||"<div class='empty'>No activity dates available.</div>"}</div></div>`);
 }
 function openDateSummary(date){setViewDate(date);}
 
