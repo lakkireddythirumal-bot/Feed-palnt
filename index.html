@@ -409,7 +409,7 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 /* =====================================================
    WORKING GOOGLE APPS SCRIPT URL — KEEP UNCHANGED • UI REFINEMENT
 ===================================================== */
-const API_URL="https://script.google.com/macros/s/AKfycbxR89vkLpDxXdzhphWiWco7d_sj_9EL8S3pfuDx-nof8CysTL51YZeBVj3Zl7rVZ9RR/exec";
+const API_URL="https://script.google.com/macros/s/AKfycbxhiO5LAGwqkvDHW9DjH8jynYzYlyjAvNxgYlV9J3Y1GGZJxGb_3oXCvk-Bzefp74oa/exec";
 
 /* =====================================================
    SETTINGS
@@ -580,10 +580,7 @@ function cachedData(){
 function applyData(apiData,fromCache=false){
   DATA={
     stock:Array.isArray(apiData.stock)?apiData.stock:[],
-    stockHistory:Array.isArray(apiData.stock_history)?apiData.stock_history:[],
     production:Array.isArray(apiData.production)?apiData.production:[],
-    productionHistory:Array.isArray(apiData.production_history)?apiData.production_history:[],
-    bagsHistory:Array.isArray(apiData.pp_bags_history)?apiData.pp_bags_history:[],
     bags:Array.isArray(apiData.pp_bags)?apiData.pp_bags:[],
     feedUnitData:Array.isArray(apiData.feedUnitData)?apiData.feedUnitData:[],
     feedUnitTotals:Array.isArray(apiData.feedUnitTotals)?apiData.feedUnitTotals:(apiData.feedUnitTotals||[]),
@@ -593,6 +590,7 @@ function applyData(apiData,fromCache=false){
     consumption:apiData.consumption??null,
     efficiency:apiData.efficiency??null,
     processLoss:apiData.processLoss??null,
+    stockHistory:Array.isArray(apiData.stock_history)?apiData.stock_history:[],
     report_date:apiData.report_date??null
   };
   if(DATA.report_date)setText("reportDate",VIEW_DATE||DATA.report_date);
@@ -699,6 +697,13 @@ function manualRefresh(){refreshData()}
 function dateOnly(v){
   const s=clean(v);
   if(!s)return "";
+  if(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(s))return s;
+  if(/[T]\d{2}:\d{2}/.test(s)){
+    const dt=new Date(s);
+    if(!Number.isNaN(dt.getTime())){
+      try{return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(dt)}catch(e){}
+    }
+  }
   const m=s.match(/(\d{4}-\d{2}-\d{2})/);
   return m?m[1]:s.slice(0,10);
 }
@@ -1221,34 +1226,34 @@ function isViewDate(d){return !VIEW_DATE || dateOnly(d)===dateOnly(VIEW_DATE);}
 function historyStockRowsForDate(date){
   const d=dateOnly(date);
   if(!d)return [];
-  const byMaterial={};
-  (DATA.stockHistory||[]).forEach(t=>{
-    const td=dateOnly(t.report_date||t.Report_Date);
+  const byMaterial=new Map();
+  (Array.isArray(DATA.stockHistory)?DATA.stockHistory:[]).forEach(t=>{
+    const td=dateOnly(t.report_date||t.Report_Date||t.date);
     if(td!==d)return;
-    const m=clean(t.material);
-    if(!m)return;
-    (byMaterial[m] ||= []).push(t);
+    const material=clean(t.material||t.Material);
+    if(!material)return;
+    const key=normalize(material);
+    if(!byMaterial.has(key))byMaterial.set(key,{material,transactions:[]});
+    byMaterial.get(key).transactions.push(t);
   });
   const master=new Map((DATA.stock||[]).map(x=>[normalize(x.material),x]));
-  return Object.entries(byMaterial).map(([material,tx])=>{
-    const base=master.get(normalize(material))||{};
-    const closingRows=tx.filter(t=>tType(t)==="CL. STOCK");
+  return [...byMaterial.values()].map(g=>{
+    const base=master.get(normalize(g.material))||{};
+    const closingRows=g.transactions.filter(t=>tType(t)==="CL. STOCK");
     const latestClosing=closingRows.length?closingRows[closingRows.length-1]:null;
-    return {...base,material,transactions:tx,closing:latestClosing?tVal(latestClosing):null};
+    return {...base,material:g.material,transactions:g.transactions,closing:latestClosing?num(latestClosing.for_day??latestClosing.value??latestClosing.quantity):null};
   });
 }
 function viewStockRows(){
   if(VIEW_DATE){
     const historical=historyStockRowsForDate(VIEW_DATE);
-    // The API's report_date can be one day newer than stock_history (e.g. latest report snapshot).
-    // In that case keep the current stock snapshot instead of showing an empty material list.
-    if(historical.length || dateOnly(VIEW_DATE)!==dateOnly(DATA.report_date)) return historical;
+    if(historical.length)return historical;
   }
   return (DATA.stock||[]).map(x=>{
-    const tx=(Array.isArray(x.transactions)?x.transactions:[]);
+    const tx=Array.isArray(x.transactions)?x.transactions:[];
     const closingRows=tx.filter(t=>tType(t)==="CL. STOCK");
     const latestClosing=closingRows.length?closingRows[closingRows.length-1]:null;
-    return {...x,transactions:tx,closing:latestClosing?tVal(latestClosing):num(x.closing)};
+    return {...x,transactions:tx,closing:latestClosing?num(latestClosing.for_day??latestClosing.value??latestClosing.quantity):num(x.closing)};
   }).filter(x=>x.material);
 }
 function getMaterials(){
@@ -1260,10 +1265,6 @@ function getMaterial(material){
 function transactions(material){
   const x=getMaterial(material);
   return x&&Array.isArray(x.transactions)?x.transactions:[];
-}
-function historicalConsumptionRows(material,uptoDate){
-  const target=dateOnly(uptoDate||DATA.report_date);
-  return (DATA.stockHistory||[]).filter(t=>normalize(t.material)===normalize(material) && tType(t).includes("CONSUMPTION") && dateOnly(t.report_date||t.Report_Date) && dateOnly(t.report_date||t.Report_Date)<=target);
 }
 function selectedProduction(){
   const rows=Array.isArray(DATA.production)?DATA.production:[];
@@ -1299,9 +1300,7 @@ function latestFeedClosingTotal(){
   },0);
 }
 function avgConsumption(material){
-  const history=historicalConsumptionRows(material,viewDate());
-  const rows=(history.length?history:transactions(material).filter(t=>tType(t).includes("CONSUMPTION")))
-    .map(t=>tVal(t)).filter(v=>v>0);
+  const rows=transactions(material).filter(t=>tType(t).includes("CONSUMPTION")).map(t=>tVal(t)).filter(v=>v>0);
   if(!rows.length)return 0;
   return rows.reduce((a,b)=>a+b,0)/rows.length;
 }
@@ -1501,11 +1500,11 @@ function setViewDate(date){
 }
 function getAvailableDates(){
   const s=new Set();
-  (DATA.stockHistory||[]).forEach(t=>{const d=dateOnly(rowDate(t));if(d)s.add(d)});
+  (DATA.stockHistory||[]).forEach(t=>{const d=dateOnly(t.report_date||t.Report_Date||t.date);if(d)s.add(d)});
   (DATA.stock||[]).forEach(x=>(x.transactions||[]).forEach(t=>{const d=dateOnly(rowDate(t));if(d)s.add(d)}));
   (DATA.production||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
   (DATA.bags||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
-  (DATA.feedUnitData||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
+  (DATA.feedUnitData||[]).forEach(r=>{const d=dateOnly(r.Report_Date||r.report_date);if(d)s.add(d)});
   if(DATA.report_date)s.add(dateOnly(DATA.report_date));
   return [...s].filter(Boolean).sort().reverse();
 }
