@@ -582,7 +582,9 @@ function applyData(apiData,fromCache=false){
     stock:Array.isArray(apiData.stock)?apiData.stock:[],
     stockHistory:Array.isArray(apiData.stock_history)?apiData.stock_history:[],
     production:Array.isArray(apiData.production)?apiData.production:[],
+    productionHistory:Array.isArray(apiData.production_history)?apiData.production_history:[],
     bags:Array.isArray(apiData.pp_bags)?apiData.pp_bags:[],
+    bagsHistory:Array.isArray(apiData.pp_bags_history)?apiData.pp_bags_history:[],
     feedUnitData:Array.isArray(apiData.feedUnitData)?apiData.feedUnitData:[],
     feedUnitTotals:Array.isArray(apiData.feedUnitTotals)?apiData.feedUnitTotals:(apiData.feedUnitTotals||[]),
     productionTrend:Array.isArray(apiData.productionTrend)?apiData.productionTrend:[],
@@ -1132,13 +1134,13 @@ function openRawCategory(tab){const rows=getMaterials().map(m=>({m,v:rawTotal(m,
 function openProductionDetails(){const rows=selectedProduction().slice().sort((a,b)=>{const av=num(a.actual_output)||0,bv=num(b.actual_output)||0;return (bv>0)-(av>0)||bv-av});showModal("Production",rows.map(r=>`<div class="feed-row" onclick="closeModal();openProductDetails('${jsq(r.product)}')"><div class="row-name">${esc(r.product)}</div><div class="row-right"><strong>${fmtBags(r.actual_output)}</strong><small>Output ${fmt(r.output_percentage)}%</small></div></div>`).join("")||"<div class='empty'>No production data</div>")}
 function packingFromRemarks(v){const m=clean(v).match(/(\d+(?:\.\d+)?)\s*(?:bags?|Bags?).*?(\d+(?:\.\d+)?)\s*kg/i);return m?`${m[1]} Bags × ${m[2]} kg/bag`:clean(v)}
 function openProductDetails(product){
-  const r=DATA.production.find(x=>normalize(x.product)===normalize(product));
+  const r=selectedProduction().find(x=>normalize(x.product)===normalize(product));
   if(!r){showModal(product,"<div class='empty'>No data</div>");return}
   let html=`<div class="detail-section"><h3>${esc(product)}</h3>${detail("Standard Output",fmtBags(r.standard_output))}${detail("Actual Output",fmtBags(r.actual_output))}${detail("Output %",fmt(r.output_percentage)+" %")}${detail("Process Loss %",fmt(r.process_loss)+" %")}${detail("Remarks / Packing",packingFromRemarks(r.remarks))}</div>`;
   showModal(product,html);
 }
 function openPPBagDetails(){showModal("PP Bags",selectedBags().map(r=>`<div class="detail-section"><h3>${esc(r.product||"PP Bags")}</h3>${detail("Opening",fmt(r.opening))}${detail("Received",fmt(r.received))}${detail("Issue",fmt(r.issue))}${detail("Damage",fmt(r.damage))}${detail("Closing",fmt(r.closing))}</div>`).join("")||"<div class='empty'>No PP Bag data</div>")}
-function openBagProduct(product){const r=DATA.bags.find(x=>normalize(x.product||"PP Bags")===normalize(product));if(!r)return;showModal(product,`<div class="detail-section"><h3>${esc(product)}</h3>${detail("Opening",fmt(r.opening))}${detail("Received",fmt(r.received))}${detail("Issue",fmt(r.issue))}${detail("Damage",fmt(r.damage))}${detail("Closing",fmt(r.closing))}</div>`)}
+function openBagProduct(product){const r=selectedBags().find(x=>normalize(x.product||"PP Bags")===normalize(product));if(!r)return;showModal(product,`<div class="detail-section"><h3>${esc(product)}</h3>${detail("Opening",fmt(r.opening))}${detail("Received",fmt(r.received))}${detail("Issue",fmt(r.issue))}${detail("Damage",fmt(r.damage))}${detail("Closing",fmt(r.closing))}</div>`)}
 function openFeedTotals(type){
   const label={production_day:"Day Production",production_month:"Month Production",dispatch_day:"Day Dispatch",dispatch_month:"Month Dispatch"}[type]||"Feed Unit";
   const key={production_day:"Production_Day_MT",production_month:"Production_Month_MT",dispatch_day:"Dispatch_Day_MT",dispatch_month:"Dispatch_Month_MT"}[type];
@@ -1258,12 +1260,16 @@ function transactions(material){
   return x&&Array.isArray(x.transactions)?x.transactions:[];
 }
 function selectedProduction(){
-  const rows=Array.isArray(DATA.production)?DATA.production:[];
-  return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):rows;
+  if(!VIEW_DATE)return Array.isArray(DATA.production)?DATA.production:[];
+  const d=dateOnly(VIEW_DATE);
+  const history=Array.isArray(DATA.productionHistory)?DATA.productionHistory:[];
+  return history.filter(r=>dateOnly(r.report_date||r.Report_Date)===d);
 }
 function selectedBags(){
-  const rows=Array.isArray(DATA.bags)?DATA.bags:[];
-  return VIEW_DATE?rows.filter(r=>dateOnly(r.report_date||r.Report_Date)===dateOnly(VIEW_DATE)):rows;
+  if(!VIEW_DATE)return Array.isArray(DATA.bags)?DATA.bags:[];
+  const d=dateOnly(VIEW_DATE);
+  const history=Array.isArray(DATA.bagsHistory)?DATA.bagsHistory:[];
+  return history.filter(r=>dateOnly(r.report_date||r.Report_Date)===d);
 }
 function selectedFeedRows(){
   const rows=Array.isArray(DATA.feedUnitData)?DATA.feedUnitData:[];
