@@ -730,6 +730,36 @@ function materialReconciliation(material){
 function reconciliationItems(){
   return getMaterials().map(material=>({material,r:materialReconciliation(material)}));
 }
+function productionReconciliationItems(){
+  const rows=selectedProduction();
+  return rows.map(r=>{
+    const product=clean(r.product)||'--';
+    const standard=num(r.standard_output);
+    const actual=num(r.actual_output);
+    const recordedPct=num(r.output_percentage);
+    const recordedLoss=num(r.process_loss);
+    let status='MATCH',expectedPct=null,expectedLoss=null,diffPct=0,diffLoss=0;
+    if(standard!==null && standard>0){
+      expectedPct=(actual||0)/standard*100;
+      expectedLoss=100-expectedPct;
+      diffPct=(recordedPct===null?expectedPct:recordedPct)-expectedPct;
+      diffLoss=(recordedLoss===null?expectedLoss:recordedLoss)-expectedLoss;
+      if(Math.abs(diffPct)>0.05 || Math.abs(diffLoss)>0.05)status='MISMATCH';
+    }else if((actual||0)!==0 || (recordedPct!==null && Math.abs(recordedPct)>0.05) || (recordedLoss!==null && Math.abs(recordedLoss)>0.05)){
+      status='MISMATCH';
+    }
+    return {product,standard,actual,recordedPct,recordedLoss,expectedPct,expectedLoss,diffPct,diffLoss,status,date:dateOnly(r.report_date||r.Report_Date)||selectedDateForIntelligence()};
+  });
+}
+function ppBagsReconciliationItems(){
+  return selectedBags().map(r=>{
+    const product=clean(r.product)||'--';
+    const opening=num(r.opening)||0, received=num(r.received)||0, issue=num(r.issue)||0, damage=num(r.damage)||0, closing=num(r.closing)||0;
+    const calculated=opening+received-issue-damage;
+    const diff=calculated-closing;
+    return {product,opening,received,issue,damage,closing,calculated,diff,status:Math.abs(diff)<=0.01?'MATCH':'MISMATCH',date:dateOnly(r.report_date||r.Report_Date)||selectedDateForIntelligence()};
+  });
+}
 function abnormalConsumptionItems(){
   const out=[];
   getMaterials().forEach(m=>{
@@ -745,7 +775,7 @@ function abnormalConsumptionItems(){
 }
 function dailyControlMetrics(){
   const reorder=getMaterials().filter(m=>stockStatus(num(getMaterial(m)?.closing)||0,avgConsumption(m)).status==="REORDER").length;
-  const mismatches=reconciliationItems().filter(x=>x.r.status==="MISMATCH").length;
+  const mismatches=reconciliationItems().filter(x=>x.r.status==="MISMATCH").length+productionReconciliationItems().filter(x=>x.status==="MISMATCH").length+ppBagsReconciliationItems().filter(x=>x.status==="MISMATCH").length;
   const abnormal=abnormalConsumptionItems().length;
   const outs=DATA.production.map(r=>num(r.output_percentage)).filter(v=>v!==null);
   const losses=DATA.production.map(r=>num(r.process_loss)).filter(v=>v!==null);
@@ -771,11 +801,25 @@ function duplicateTransactionCount(){let count=0;getMaterials().forEach(m=>{cons
 function openDataHealth(){
   const rec=reconciliationItems(),bad=rec.filter(x=>x.r.status==="MISMATCH"),no=rec.filter(x=>x.r.status==="NO DATA");
   const abnormal=abnormalConsumptionItems();
+  const prodRec=productionReconciliationItems();
+  const prodBad=prodRec.filter(x=>x.status==="MISMATCH");
+  const ppRec=ppBagsReconciliationItems();
+  const ppBad=ppRec.filter(x=>x.status==="MISMATCH");
   const dupCount=duplicateTransactionCount();
-  let html=`<div class="detail-section"><h3>⚠ Data Issues</h3>${detail("Materials checked",rec.length)}${detail("Stock mismatches",bad.length)}${detail("Duplicate transactions",dupCount)}${detail("Abnormal consumption",abnormal.length)}${detail("Materials without daily pair",no.length)}</div>`;
+  let html=`<div class="detail-section"><h3>⚠ Data Issues</h3>${detail("Materials checked",rec.length)}${detail("Stock mismatches",bad.length)}${detail("Production checked",prodRec.length)}${detail("Production mismatches",prodBad.length)}${detail("PP Bags checked",ppRec.length)}${detail("PP Bags mismatches",ppBad.length)}${detail("Duplicate transactions",dupCount)}${detail("Abnormal consumption",abnormal.length)}${detail("Materials without daily pair",no.length)}</div>`;
   if(bad.length){
     html+=`<div class="detail-section"><h3>⚠ Stock Reconciliation</h3>`;
     bad.forEach(x=>{const u=materialUnit(x.material,getMaterial(x.material)?.unit||"MT");html+=`<div class="transaction" onclick="closeModal();openMaterialDetails('${jsq(x.material)}')"><div class="transaction-title"><strong>${esc(x.material)}</strong><span>${esc(x.r.date||"--")}</span></div>${detail("Calculated consumption",fmt(x.r.calculated)+" "+u)}${detail("Recorded consumption",fmt(x.r.recorded)+" "+u)}${detail("Difference",fmt(x.r.diff)+" "+u)}</div>`});
+    html+="</div>";
+  }
+  if(prodRec.length){
+    html+=`<div class="detail-section"><h3>🌾 Feed Unit • Production Reconciliation • ${esc(selectedDateForIntelligence()||"Latest")}</h3>`;
+    prodRec.forEach(x=>{html+=`<div class="transaction"><div class="transaction-title"><strong>${esc(x.product)}</strong><span class="${x.status==="MATCH"?"status-good":"status-bad"}">${x.status}</span></div>${detail("Standard Output",fmtBags(x.standard))}${detail("Actual Output",fmtBags(x.actual))}${detail("Recorded Output %",x.recordedPct===null?"--":fmt(x.recordedPct)+" %")}${detail("Expected Output %",x.expectedPct===null?"--":fmt(x.expectedPct)+" %")}${detail("Recorded Process Loss",x.recordedLoss===null?"--":fmt(x.recordedLoss)+" %")}${detail("Expected Process Loss",x.expectedLoss===null?"--":fmt(x.expectedLoss)+" %")}</div>`});
+    html+="</div>";
+  }
+  if(ppRec.length){
+    html+=`<div class="detail-section"><h3>🛍 PP Bags • Stock Reconciliation • ${esc(selectedDateForIntelligence()||"Latest")}</h3>`;
+    ppRec.forEach(x=>{html+=`<div class="transaction"><div class="transaction-title"><strong>${esc(x.product)}</strong><span class="${x.status==="MATCH"?"status-good":"status-bad"}">${x.status}</span></div>${detail("Opening",fmt(x.opening))}${detail("Received",fmt(x.received))}${detail("Issue",fmt(x.issue))}${detail("Damage",fmt(x.damage))}${detail("Actual Closing",fmt(x.closing))}${detail("Calculated Closing",fmt(x.calculated))}${detail("Difference",fmt(x.diff))}</div>`});
     html+="</div>";
   }
   if(abnormal.length){
@@ -783,7 +827,7 @@ function openDataHealth(){
     abnormal.slice(0,10).forEach(a=>{html+=`<div class="transaction" onclick="closeModal();openMaterialDetails('${jsq(a.material)}')">${detail("Material",a.material)}${detail("Latest consumption",fmt(a.current)+" "+materialUnit(a.material,getMaterial(a.material)?.unit||"MT"))}${detail("Average",fmt(a.avg)+" "+materialUnit(a.material,getMaterial(a.material)?.unit||"MT")+"/day")}${detail("Above average",fmt(a.ratio*100-100)+" %")}</div>`});
     html+="</div>";
   }
-  if(!bad.length&&!abnormal.length)html+=`<div class="detail-section reconcile-ok"><h3>✓ Data Issues</h3><div class="empty">No reconciliation or abnormal-consumption issues detected in the available data.</div></div>`;
+  if(!bad.length&&!prodBad.length&&!ppBad.length&&!abnormal.length)html+=`<div class="detail-section reconcile-ok"><h3>✓ Data Issues</h3><div class="empty">No reconciliation or abnormal-consumption issues detected in the available data.</div></div>`;
   showModal("Data Issues",html);
 }
 function openDailySummary(){
@@ -1411,7 +1455,7 @@ function renderControlCenter(){
 }
 function dailyControlMetrics(){
   const reorder=getMaterials().filter(m=>stockStatus(num(getMaterial(m)?.closing)||0,avgConsumption(m)).status==="REORDER").length;
-  const mismatches=reconciliationItems().filter(x=>x.r.status==="MISMATCH").length;
+  const mismatches=reconciliationItems().filter(x=>x.r.status==="MISMATCH").length+productionReconciliationItems().filter(x=>x.status==="MISMATCH").length+ppBagsReconciliationItems().filter(x=>x.status==="MISMATCH").length;
   const abnormal=abnormalConsumptionItems().length;
   const rows=selectedProduction(),outs=rows.map(r=>num(r.output_percentage)).filter(v=>v!==null),losses=rows.map(r=>num(r.process_loss)).filter(v=>v!==null);
   const premix=premixBommakalTransfers().reduce((a,r)=>a+r.value,0)/1000;
