@@ -710,7 +710,8 @@ function materialReconciliation(material){
   const rows=transactions(material);
   if(!rows.length)return {status:"NO DATA",message:"No transaction history available."};
   const dates=rows.map(t=>dateOnly(rowDate(t))).filter(Boolean).sort();
-  const latest=dates.length?dates[dates.length-1]:"";
+  const selected=dateOnly(VIEW_DATE);
+  const latest=selected && dates.includes(selected) ? selected : (dates.length?dates[dates.length-1]:"");
   const dayRows=latest?rows.filter(t=>dateOnly(rowDate(t))===latest):rows.slice();
   let opening=null,closing=null,add=0,otherOut=0,recorded=0;
   dayRows.forEach(t=>{
@@ -799,35 +800,55 @@ function renderControlCenter(){
 }
 function duplicateTransactionCount(){let count=0;getMaterials().forEach(m=>{const seen=new Set();transactions(m).forEach(t=>{const key=[dateOnly(rowDate(t)),tType(t),tVal(t),clean(t.for_day),clean(t.for_month),clean(t.for_year)].join("|");if(seen.has(key))count++;else seen.add(key);});});return count;}
 function openDataHealth(){
-  const rec=reconciliationItems(),bad=rec.filter(x=>x.r.status==="MISMATCH"),no=rec.filter(x=>x.r.status==="NO DATA");
+  const rec=reconciliationItems(),bad=rec.filter(x=>x.r.status==="MISMATCH");
   const abnormal=abnormalConsumptionItems();
-  const prodRec=productionReconciliationItems();
-  const prodBad=prodRec.filter(x=>x.status==="MISMATCH");
-  const ppRec=ppBagsReconciliationItems();
-  const ppBad=ppRec.filter(x=>x.status==="MISMATCH");
+  const prodBad=productionReconciliationItems().filter(x=>x.status==="MISMATCH");
+  const ppBad=ppBagsReconciliationItems().filter(x=>x.status==="MISMATCH");
   const dupCount=duplicateTransactionCount();
-  let html=`<div class="detail-section"><h3>⚠ Data Issues</h3>${detail("Materials checked",rec.length)}${detail("Stock mismatches",bad.length)}${detail("Production checked",prodRec.length)}${detail("Production mismatches",prodBad.length)}${detail("PP Bags checked",ppRec.length)}${detail("PP Bags mismatches",ppBad.length)}${detail("Duplicate transactions",dupCount)}${detail("Abnormal consumption",abnormal.length)}${detail("Materials without daily pair",no.length)}</div>`;
+
+  let html="";
+
   if(bad.length){
     html+=`<div class="detail-section"><h3>⚠ Stock Reconciliation</h3>`;
-    bad.forEach(x=>{const u=materialUnit(x.material,getMaterial(x.material)?.unit||"MT");html+=`<div class="transaction" onclick="closeModal();openMaterialDetails('${jsq(x.material)}')"><div class="transaction-title"><strong>${esc(x.material)}</strong><span>${esc(x.r.date||"--")}</span></div>${detail("Calculated consumption",fmt(x.r.calculated)+" "+u)}${detail("Recorded consumption",fmt(x.r.recorded)+" "+u)}${detail("Difference",fmt(x.r.diff)+" "+u)}</div>`});
+    bad.forEach(x=>{
+      const u=materialUnit(x.material,getMaterial(x.material)?.unit||"MT");
+      html+=`<div class="transaction" onclick="closeModal();openMaterialDetails('${jsq(x.material)}')"><div class="transaction-title"><strong>${esc(x.material)}</strong><span>${esc(x.r.date||"--")}</span></div>${detail("Calculated consumption",fmt(x.r.calculated)+" "+u)}${detail("Recorded consumption",fmt(x.r.recorded)+" "+u)}${detail("Difference",fmt(x.r.diff)+" "+u)}</div>`;
+    });
     html+="</div>";
   }
-  if(prodRec.length){
-    html+=`<div class="detail-section"><h3>🌾 Feed Unit • Production Reconciliation • ${esc(selectedDateForIntelligence()||"Latest")}</h3>`;
-    prodRec.forEach(x=>{html+=`<div class="transaction"><div class="transaction-title"><strong>${esc(x.product)}</strong><span class="${x.status==="MATCH"?"status-good":"status-bad"}">${x.status}</span></div>${detail("Standard Output",fmtBags(x.standard))}${detail("Actual Output",fmtBags(x.actual))}${detail("Recorded Output %",x.recordedPct===null?"--":fmt(x.recordedPct)+" %")}${detail("Expected Output %",x.expectedPct===null?"--":fmt(x.expectedPct)+" %")}${detail("Recorded Process Loss",x.recordedLoss===null?"--":fmt(x.recordedLoss)+" %")}${detail("Expected Process Loss",x.expectedLoss===null?"--":fmt(x.expectedLoss)+" %")}</div>`});
+
+  if(prodBad.length){
+    html+=`<div class="detail-section"><h3>🌾 Feed Unit • Production Issues</h3>`;
+    prodBad.forEach(x=>{
+      html+=`<div class="transaction" onclick="closeModal();openProductDetails('${jsq(x.product)}')"><div class="transaction-title"><strong>${esc(x.product)}</strong><span>${esc(x.date||"--")}</span></div>${detail("Standard Output",fmtBags(x.standard))}${detail("Actual Output",fmtBags(x.actual))}${detail("Recorded Output %",x.recordedPct===null?"--":fmt(x.recordedPct)+" %")}${detail("Expected Output %",x.expectedPct===null?"--":fmt(x.expectedPct)+" %")}${detail("Recorded Process Loss",x.recordedLoss===null?"--":fmt(x.recordedLoss)+" %")}${detail("Expected Process Loss",x.expectedLoss===null?"--":fmt(x.expectedLoss)+" %")}${detail("Result","⚠ MISMATCH")}</div>`;
+    });
     html+="</div>";
   }
-  if(ppRec.length){
-    html+=`<div class="detail-section"><h3>🛍 PP Bags • Stock Reconciliation • ${esc(selectedDateForIntelligence()||"Latest")}</h3>`;
-    ppRec.forEach(x=>{html+=`<div class="transaction"><div class="transaction-title"><strong>${esc(x.product)}</strong><span class="${x.status==="MATCH"?"status-good":"status-bad"}">${x.status}</span></div>${detail("Opening",fmt(x.opening))}${detail("Received",fmt(x.received))}${detail("Issue",fmt(x.issue))}${detail("Damage",fmt(x.damage))}${detail("Actual Closing",fmt(x.closing))}${detail("Calculated Closing",fmt(x.calculated))}${detail("Difference",fmt(x.diff))}</div>`});
+
+  if(ppBad.length){
+    html+=`<div class="detail-section"><h3>🛍 PP Bags • Stock Issues</h3>`;
+    ppBad.forEach(x=>{
+      html+=`<div class="transaction" onclick="closeModal();openBagProduct('${jsq(x.product)}')"><div class="transaction-title"><strong>${esc(x.product)}</strong><span>${esc(x.date||"--")}</span></div>${detail("Opening",fmt(x.opening))}${detail("Received",fmt(x.received))}${detail("Issue",fmt(x.issue))}${detail("Damage",fmt(x.damage))}${detail("Actual Closing",fmt(x.closing))}${detail("Calculated Closing",fmt(x.calculated))}${detail("Difference",fmt(x.diff))}${detail("Result","⚠ MISMATCH")}</div>`;
+    });
     html+="</div>";
   }
+
+  if(dupCount){
+    html+=`<div class="detail-section"><h3>⚠ Duplicate Transactions</h3><div class="transaction"><div class="transaction-title"><strong>Duplicate transactions</strong><span>${dupCount}</span></div><div class="empty">Duplicate transaction records need checking.</div></div></div>`;
+  }
+
   if(abnormal.length){
     html+=`<div class="detail-section"><h3>📈 Abnormal Consumption</h3>`;
-    abnormal.slice(0,10).forEach(a=>{html+=`<div class="transaction" onclick="closeModal();openMaterialDetails('${jsq(a.material)}')">${detail("Material",a.material)}${detail("Latest consumption",fmt(a.current)+" "+materialUnit(a.material,getMaterial(a.material)?.unit||"MT"))}${detail("Average",fmt(a.avg)+" "+materialUnit(a.material,getMaterial(a.material)?.unit||"MT")+"/day")}${detail("Above average",fmt(a.ratio*100-100)+" %")}</div>`});
+    abnormal.slice(0,10).forEach(a=>{
+      html+=`<div class="transaction" onclick="closeModal();openMaterialDetails('${jsq(a.material)}')"><div class="transaction-title"><strong>${esc(a.material)}</strong><span>${esc(a.date||"--")}</span></div>${detail("Latest consumption",fmt(a.current)+" "+materialUnit(a.material,getMaterial(a.material)?.unit||"MT"))}${detail("Average",fmt(a.avg)+" "+materialUnit(a.material,getMaterial(a.material)?.unit||"MT")+"/day")}${detail("Above average",fmt(a.ratio*100-100)+" %")}</div>`;
+    });
     html+="</div>";
   }
-  if(!bad.length&&!prodBad.length&&!ppBad.length&&!abnormal.length)html+=`<div class="detail-section reconcile-ok"><h3>✓ Data Issues</h3><div class="empty">No reconciliation or abnormal-consumption issues detected in the available data.</div></div>`;
+
+  if(!bad.length&&!prodBad.length&&!ppBad.length&&!dupCount&&!abnormal.length){
+    html=`<div class="detail-section reconcile-ok"><h3>✓ Data Issues</h3><div class="empty">No issues detected for ${esc(selectedDateForIntelligence()||"the selected day")}.</div></div>`;
+  }
+
   showModal("Data Issues",html);
 }
 function openDailySummary(){
