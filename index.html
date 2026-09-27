@@ -715,11 +715,15 @@ function materialReconciliation(material){
   let opening=null,closing=null,add=0,otherOut=0,recorded=0;
   dayRows.forEach(t=>{
     const ty=tType(t),v=tVal(t);
-    if(ty==="OPENING STOCK") opening=(opening===null?0:opening)+v;
+    // One opening/closing balance represents the stock balance for the day.
+    // If the source contains a duplicate balance row, use the latest value instead of double-counting it.
+    if(ty==="OPENING STOCK") opening=v;
     else if(ty==="CL. STOCK") closing=v;
-    else if(ty.includes("CONSUMPTION")) recorded+=v;
+    // Preserve source transaction names; recognize the known MIS spelling variant as consumption.
+    else if(ty.includes("CONSUMPTION")||ty.includes("CONSUMPION")) recorded+=v;
+    // Keep existing transaction names and classify only clear inbound/outbound movements.
     else if(ty==="PURCHASE"||ty==="RECEIVED"||ty==="GAIN"||ty.includes("TRANSFER FROM")) add+=v;
-    else if(ty.includes("TRANSFER TO")||ty==="SALE"||ty==="SHORTAGE"||ty==="DAMAGE"||ty==="ISSUE") otherOut+=v;
+    else if(ty.includes("TRANSFER TO")||ty.includes("SALE")||ty.includes("SHORTAGE")||ty==="DAMAGE"||ty==="ISSUE"||ty.includes("RETURN TO")) otherOut+=v;
   });
   if(opening===null||closing===null)return {status:"NO DATA",message:"Opening/closing pair is not available for the latest transaction date.",date:latest};
   const calculated=Math.max(0,opening+add-otherOut-closing);
