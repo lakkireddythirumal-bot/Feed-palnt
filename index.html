@@ -1767,19 +1767,22 @@ function dqContinuityIssues(){
   return out.filter(x=>!VIEW_DATE||x.currentDate===dateOnly(VIEW_DATE));
 }
 function dqAbnormalItems(){
-  const out=abnormalConsumptionItems().map(x=>({...x,type:"High consumption"}));
-  const seen=new Set(out.map(x=>x.material+"|"+x.date));
-  getMaterials().forEach(material=>{
-    const {date,rows}=dqLatestDateRows(material);
-    rows.forEach(t=>{
-      const v=tVal(t); if(v===null)return;
-      const ty=tType(t);
-      if(v<0)out.push({material,date,current:v,avg:0,ratio:0,type:"Negative quantity",transaction:t.transaction||ty});
-      // Zero quantity is normal in MIS (holiday / no production / no movement).
-      // Do not classify zero-value rows as abnormal activity.
-    });
+  // Exact abnormal-consumption rule:
+  // Current > Average × 1.5  → High consumption
+  // Current < Average × 0.5  → Low consumption
+  // Current = 0              → Not abnormal
+  // Otherwise                → Normal (not listed)
+  const out=abnormalConsumptionItems().map(x=>({
+    ...x,
+    type:x.direction==="LOW"?"Low consumption":"High consumption"
+  }));
+  const seen=new Set();
+  return out.filter(x=>{
+    const k=(x.material||"")+"|"+(x.date||"")+"|"+(x.type||"");
+    if(seen.has(k))return false;
+    seen.add(k);
+    return true;
   });
-  return out.filter((x,i,a)=>{const k=(x.material||"")+"|"+(x.date||"")+"|"+(x.type||"")+"|"+(x.transaction||"");if(seen.has(k))return false;seen.add(k);return true});
 }
 function dqUniqueProducts(rows){return [...new Set((rows||[]).map(r=>clean(r.product||r.Product||"" )).filter(Boolean).map(normalize))].length}
 function dqCoverage(){
