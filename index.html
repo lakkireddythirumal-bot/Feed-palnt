@@ -270,6 +270,63 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 <style id="v25-manager-cleanup">
 .management-status-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:9px}.status-tile{border:1px solid #e9edf4;background:#fbfcfe;border-radius:12px;padding:9px 10px;text-align:left;cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}.status-tile:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(28,38,58,.07);border-color:#dbe3f7}.status-tile small{display:block;font-size:8px;color:#777d89;font-weight:700}.status-tile strong{display:block;font-size:15px;margin:3px 0;font-variant-numeric:tabular-nums}.status-tile span{font-size:8px;color:#315efb;font-weight:700}.avg-under-material{display:block;margin-top:3px;color:#7b818c;font-size:8.5px;font-weight:600}.stock-head,.stock-row{grid-template-columns:minmax(0,1.72fr) .92fr .78fr .62fr !important}.stock-head{font-size:9px!important}.stock-row{min-height:49px!important}.stock-row>span{font-size:11.5px!important}.stock-row>span:last-child{font-size:8px!important}.more-toggle{width:100%;margin-top:8px;border:1px solid #e3e7ef;background:#fff;border-radius:11px;padding:9px;font-size:10px;font-weight:800;color:#315efb;cursor:pointer}.more-toggle:hover{background:#f7f9ff}@media(max-width:700px){.management-status-row{grid-template-columns:repeat(2,minmax(0,1fr))}.stock-head,.stock-row{grid-template-columns:minmax(0,1.65fr) .90fr .78fr .58fr !important;column-gap:5px!important}.stock-row>span{font-size:10.5px!important}.stock-row>span:last-child{font-size:7.3px!important}}
 </style>
+
+<style id="final-reorder-visibility-v27">
+/* Final Raw Material Reorder visibility: readable names, strong numbers, balanced columns. */
+.stock-head,.stock-row{
+  grid-template-columns:minmax(0,1.78fr) 1.02fr .82fr .76fr !important;
+  column-gap:8px !important;
+}
+.stock-head{
+  font-size:10px !important;
+  font-weight:700 !important;
+  color:#707783 !important;
+}
+.stock-row{
+  min-height:56px !important;
+  padding:8px 0 !important;
+}
+.stock-row .reorder-material,.stock-row strong.reorder-material{
+  font-size:14px !important;
+  font-weight:600 !important;
+  line-height:1.18 !important;
+  color:#202938 !important;
+}
+.stock-row .avg-under-material{
+  font-size:9.5px !important;
+  line-height:1.15 !important;
+  margin-top:4px !important;
+  color:#737985 !important;
+}
+.stock-row>span{
+  font-size:13px !important;
+  font-weight:750 !important;
+  line-height:1.15 !important;
+  white-space:nowrap !important;
+  text-align:right !important;
+  font-variant-numeric:tabular-nums !important;
+}
+.stock-row .cover-cell{font-size:12.5px !important}
+.stock-row>span:last-child{
+  font-size:9px !important;
+  font-weight:800 !important;
+  letter-spacing:.15px !important;
+  text-align:center !important;
+}
+@media(max-width:520px){
+  .stock-head,.stock-row{
+    grid-template-columns:minmax(0,1.72fr) .98fr .78fr .70fr !important;
+    column-gap:6px !important;
+  }
+  .stock-head{font-size:9px !important}
+  .stock-row{min-height:55px !important;padding:8px 0 !important}
+  .stock-row .reorder-material,.stock-row strong.reorder-material{font-size:13px !important}
+  .stock-row .avg-under-material{font-size:9px !important}
+  .stock-row>span{font-size:12px !important}
+  .stock-row .cover-cell{font-size:11.5px !important}
+  .stock-row>span:last-child{font-size:8.3px !important}
+}
+</style>
 </head>
 <body>
 <div class="container">
@@ -743,7 +800,7 @@ function abnormalConsumptionItems(){
     if(!rows.length)return;
     const latestDate=rows.map(t=>dateOnly(rowDate(t))).filter(Boolean).sort().pop()||"";
     const today=rows.filter(t=>!latestDate||dateOnly(rowDate(t))===latestDate).reduce((a,t)=>a+tVal(t),0);
-    if(today>avg*1.5)out.push({material:m,current:today,avg,ratio:today/avg,date:latestDate});
+    if(today>0 && (today>avg*1.5 || today<avg*0.5))out.push({material:m,current:today,avg,ratio:today/avg,date:latestDate, direction:today>avg?"HIGH":"LOW"});
   });
   return out.sort((a,b)=>b.ratio-a.ratio);
 }
@@ -1057,7 +1114,7 @@ function renderAlerts(){
     if(op!==null&&op<95)items.push({title:r.product,msg:"Output below 95%",type:"warning",icon:"🟠"});
   });
   abnormalConsumptionItems().forEach(a=>{
-    items.push({title:a.material,msg:`Consumption ${fmt(a.current)} is ${fmt(a.ratio*100-100)}% above average`,type:"warning",icon:"📈"});
+    items.push({title:a.material,msg:`Consumption ${fmt(a.current)} is ${fmt(Math.abs(a.ratio*100-100))}% ${a.direction==="LOW"?"below":"above"} average`,type:"warning",icon:a.direction==="LOW"?"📉":"📈"});
   });
   reconciliationItems().filter(x=>x.r.status==="MISMATCH").forEach(x=>{
     items.push({title:x.material,msg:`Stock reconciliation difference ${fmt(x.r.diff)} ${materialUnit(x.material,getMaterial(x.material)?.unit||"MT")}`,type:"critical",icon:"⚠️"});
@@ -1531,7 +1588,7 @@ function managerAttentionItems(){
   const reorder=getMaterials().filter(m=>stockStatus(num(getMaterial(m)?.closing)||0,avgConsumption(m)).status==="REORDER");
   reorder.slice(0,8).forEach(m=>items.push({level:"critical",title:m,msg:`Stock ${fmtMaterial(num(getMaterial(m)?.closing)||0,m,getMaterial(m)?.unit||"MT")} • coverage ${(()=>{const s=stockStatus(num(getMaterial(m)?.closing)||0,avgConsumption(m));return s.cover===null?"--":fmt(s.cover)+" days"})()}`,action:`openMaterialDetails('${jsq(m)}')`}));
   reconciliationItems().filter(x=>x.r.status==="MISMATCH").slice(0,8).forEach(x=>items.push({level:"warning",title:x.m,msg:"Stock reconciliation mismatch — check transactions",action:`openMaterialDetails('${jsq(x.m)}')`}));
-  abnormalConsumptionItems().slice(0,8).forEach(x=>items.push({level:"warning",title:x.material,msg:`Consumption ${fmt(x.current)} vs avg ${fmt(x.avg)} • ${fmt(x.pct)}% higher`,action:`openMaterialDetails('${jsq(x.material)}')`}));
+  abnormalConsumptionItems().slice(0,8).forEach(x=>items.push({level:"warning",title:x.material,msg:`Consumption ${fmt(x.current)} vs avg ${fmt(x.avg)} • ${fmt(Math.abs(x.ratio*100-100))}% ${x.direction==="LOW"?"below":"above"} average`,action:`openMaterialDetails('${jsq(x.material)}')`}));
   const damage=selectedBags().reduce((a,r)=>a+(num(r.damage)||0),0);
   if(damage>0)items.push({level:"warning",title:"PP Bag Damage",msg:`${fmt(damage)} bags damaged on ${selectedDateForIntelligence()}`,action:"openPPBagDetails()"});
   return items;
@@ -1694,6 +1751,12 @@ function dqContinuityIssues(){
     const dates=Object.keys(byDate).sort();
     for(let i=1;i<dates.length;i++){
       const prev=dates[i-1],cur=dates[i];
+      // Only compare an actual calendar next-day pair.
+      // Missing dates (for example holidays) are not treated as continuity failures.
+      const nextDay=new Date(prev+"T00:00:00");
+      nextDay.setDate(nextDay.getDate()+1);
+      const expected=nextDay.toISOString().slice(0,10);
+      if(cur!==expected) continue;
       const prevClosing=byDate[prev].filter(t=>tType(t).includes("CL. STOCK")||tType(t).includes("CLOSING STOCK")).map(t=>tVal(t)).filter(v=>v!==null).pop();
       const curOpening=byDate[cur].filter(t=>tType(t).includes("OPENING STOCK")).map(t=>tVal(t)).filter(v=>v!==null).pop();
       if(prevClosing!==null && prevClosing!==undefined && curOpening!==null && curOpening!==undefined && Math.abs(prevClosing-curOpening)>0.01){
@@ -1712,7 +1775,8 @@ function dqAbnormalItems(){
       const v=tVal(t); if(v===null)return;
       const ty=tType(t);
       if(v<0)out.push({material,date,current:v,avg:0,ratio:0,type:"Negative quantity",transaction:t.transaction||ty});
-      if(v===0 && (dqIsConsumption(ty)||ty.includes("SHORTAGE")||ty.includes("TRANSFER")))out.push({material,date,current:0,avg:0,ratio:0,type:"Zero quantity activity",transaction:t.transaction||ty});
+      // Zero quantity is normal in MIS (holiday / no production / no movement).
+      // Do not classify zero-value rows as abnormal activity.
     });
   });
   return out.filter((x,i,a)=>{const k=(x.material||"")+"|"+(x.date||"")+"|"+(x.type||"")+"|"+(x.transaction||"");if(seen.has(k))return false;seen.add(k);return true});
