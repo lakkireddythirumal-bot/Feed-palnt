@@ -853,7 +853,7 @@ function openDataHealth(){
   }
   if(abnormal.length){
     html+=`<div class="detail-section"><h3>📈 Abnormal Consumption</h3>`;
-    abnormal.slice(0,10).forEach(a=>{html+=`<div class="transaction" onclick="closeModal();openMaterialDetails('${jsq(a.material)}')">${detail("Material",a.material)}${detail("Latest consumption",fmt(a.current)+" "+materialUnit(a.material,getMaterial(a.material)?.unit||"MT"))}${detail("Average",fmt(a.avg)+" "+materialUnit(a.material,getMaterial(a.material)?.unit||"MT")+"/day")}${detail("Above average",fmt(a.ratio*100-100)+" %")}</div>`});
+    abnormal.slice(0,10).forEach(a=>{html+=`<div class="transaction" onclick="closeModal();openMaterialDetails('${jsq(a.material)}')">${detail("Material",a.material)}${detail("Latest consumption",fmt(a.current)+" "+materialUnit(a.material,getMaterial(a.material)?.unit||"MT"))}${detail("Average",fmt(a.avg)+" "+materialUnit(a.material,getMaterial(a.material)?.unit||"MT")+"/day")}${detail(a.direction==="LOW"?"Below average":"Above average",fmt(Math.abs(a.ratio*100-100))+" %")}</div>`});
     html+="</div>";
   }
   if(!bad.length&&!feedBad.length&&!bagBad.length&&!abnormal.length)html+=`<div class="detail-section reconcile-ok"><h3>✓ Data Issues</h3><div class="empty">No reconciliation or abnormal-consumption issues detected in the available data.</div></div>`;
@@ -1835,7 +1835,7 @@ function openDQAbnormal(){
   const rows=dqAbnormalItems();
   let html=`<div class="detail-section"><h3>⚠ Abnormal Activity • ${rows.length}</h3>`;
   if(!rows.length)html+=`<div class="empty">No abnormal activity detected.</div>`;
-  rows.slice(0,100).forEach(x=>html+=`<div class="transaction" onclick="closeModal();openMaterialDetails('${jsq(x.material)}')">${detail("Material",x.material)}${detail("Date",x.date||"--")}${detail("Type",x.type||"Activity")}${detail("Transaction",x.transaction||"--")}${detail("Current",fmt(x.current))}${x.avg?detail("Average",fmt(x.avg)):""}${x.ratio>1?detail("Above average",fmt(x.ratio*100-100)+" %"):""}</div>`);
+  rows.slice(0,100).forEach(x=>html+=`<div class="transaction" onclick="closeModal();openMaterialDetails('${jsq(x.material)}')">${detail("Material",x.material)}${detail("Date",x.date||"--")}${detail("Type",x.type||"Activity")}${detail("Transaction",x.transaction||"--")}${detail("Current",fmt(x.current))}${x.avg?detail("Average",fmt(x.avg)):""}${x.ratio>1?detail("Above average",fmt(Math.abs(x.ratio*100-100))+" %"):detail("Below average",fmt(Math.abs(x.ratio*100-100))+" %")}</div>`);
   html+=`</div>`;showModal("Abnormal Activity",html);
 }
 function openDQHistory(){
