@@ -1639,6 +1639,183 @@ function bagTrend(){
   return {labels,values}
 }
 
+
+/* =====================================================
+   DATA QUALITY / ACCURACY LAYER
+   Additive only: keeps existing dashboard/API/N8N logic intact.
+===================================================== */
+function dqIsConsumption(t){
+  const s=normalize(t);
+  if(!s)return false;
+  return s.includes("CONSUMPTION") || s.includes("CONSUMPION") || s.includes("CONSUMPTON") || s.includes("CONSUMPTI");
+}
+function dqIsKnownTransaction(t){
+  const s=normalize(t);
+  if(!s)return false;
+  if(dqIsConsumption(s))return true;
+  if(s.includes("OPENING STOCK")||s.includes("CL. STOCK")||s.includes("CLOSING STOCK"))return true;
+  const known=["PURCHASE","RECEIVED","RECEV","GAIN","SALE","SHORTAGE","DAMAGE","ISSUE","TRANSFER","RETURN","PRODUCTION","DESPATCH","DISPATCH","DILUTED","REPROCESS","BOMMAKAL","BMKL"];
+  return known.some(k=>s.includes(k));
+}
+function dqLatestDateRows(material){
+  const rows=transactions(material),dates=rows.map(t=>dateOnly(rowDate(t))).filter(Boolean).sort();
+  const d=VIEW_DATE?dateOnly(VIEW_DATE):(dates.length?dates[dates.length-1]:"");
+  return {date:d,rows:d?rows.filter(t=>dateOnly(rowDate(t))===d):rows};
+}
+function dqDuplicateGroups(){
+  const out=[];
+  getMaterials().forEach(material=>{
+    const {date,rows}=dqLatestDateRows(material),map=new Map();
+    rows.forEach((t,i)=>{
+      const key=[date,tType(t),tVal(t),clean(t.for_day),clean(t.for_month),clean(t.for_year)].join("|");
+      if(!map.has(key))map.set(key,[]);
+      map.get(key).push({t,index:i+1});
+    });
+    map.forEach((items,key)=>{if(items.length>1){out.push({material,date,transaction:items[0].t.transaction||tType(items[0].t),quantity:tVal(items[0].t),items});}});
+  });
+  return out;
+}
+function dqUnknownGroups(){
+  const out=[];
+  getMaterials().forEach(material=>{
+    const {date,rows}=dqLatestDateRows(material);
+    rows.forEach((t,index)=>{
+      const name=clean(t.transaction||t.type||t.movement||"");
+      if(name && !dqIsKnownTransaction(name)) out.push({material,date,transaction:name,quantity:tVal(t),index:index+1,row:t});
+    });
+  });
+  return out;
+}
+function dqContinuityIssues(){
+  const out=[];
+  getMaterials().forEach(material=>{
+    const rows=transactions(material),byDate={};
+    rows.forEach(t=>{const d=dateOnly(rowDate(t));if(!d)return;(byDate[d]??=[]).push(t)});
+    const dates=Object.keys(byDate).sort();
+    for(let i=1;i<dates.length;i++){
+      const prev=dates[i-1],cur=dates[i];
+      const prevClosing=byDate[prev].filter(t=>tType(t).includes("CL. STOCK")||tType(t).includes("CLOSING STOCK")).map(t=>tVal(t)).filter(v=>v!==null).pop();
+      const curOpening=byDate[cur].filter(t=>tType(t).includes("OPENING STOCK")).map(t=>tVal(t)).filter(v=>v!==null).pop();
+      if(prevClosing!==null && prevClosing!==undefined && curOpening!==null && curOpening!==undefined && Math.abs(prevClosing-curOpening)>0.01){
+        out.push({material,previousDate:prev,currentDate:cur,previousClosing:prevClosing,currentOpening:curOpening,diff:curOpening-prevClosing});
+      }
+    }
+  });
+  return out.filter(x=>!VIEW_DATE||x.currentDate===dateOnly(VIEW_DATE));
+}
+function dqAbnormalItems(){
+  const out=abnormalConsumptionItems().map(x=>({...x,type:"High consumption"}));
+  const seen=new Set(out.map(x=>x.material+"|"+x.date));
+  getMaterials().forEach(material=>{
+    const {date,rows}=dqLatestDateRows(material);
+    rows.forEach(t=>{
+      const v=tVal(t); if(v===null)return;
+      const ty=tType(t);
+      if(v<0)out.push({material,date,current:v,avg:0,ratio:0,type:"Negative quantity",transaction:t.transaction||ty});
+      if(v===0 && (dqIsConsumption(ty)||ty.includes("SHORTAGE")||ty.includes("TRANSFER")))out.push({material,date,current:0,avg:0,ratio:0,type:"Zero quantity activity",transaction:t.transaction||ty});
+    });
+  });
+  return out.filter((x,i,a)=>{const k=(x.material||"")+"|"+(x.date||"")+"|"+(x.type||"")+"|"+(x.transaction||"");if(seen.has(k))return false;seen.add(k);return true});
+}
+function dqUniqueProducts(rows){return [...new Set((rows||[]).map(r=>clean(r.product||r.Product||"" )).filter(Boolean).map(normalize))].length}
+function dqCoverage(){
+  const feed=Array.isArray(DATA.feedUnitData)?DATA.feedUnitData:[];
+  const prod=Array.isArray(DATA.production)?DATA.production:[];
+  const bags=Array.isArray(DATA.bags)?DATA.bags:[];
+  const materials=getMaterials();
+  const validFeed=feed.filter(r=>clean(r.Product||r.product)&&dateOnly(r.Report_Date||r.report_date));
+  const validProd=prod.filter(r=>clean(r.product)&&dateOnly(r.report_date||r.Report_Date||DATA.report_date));
+  const validBags=bags.filter(r=>clean(r.product)&&dateOnly(r.report_date||r.Report_Date||DATA.report_date));
+  const dispatchRows=feed.filter(r=>clean(r.Product||r.product)&&dateOnly(r.Report_Date||r.report_date)&&(num(r.Dispatch_Day_MT??r.dispatch_day_mt??r.Dispatch??r.dispatch)!==null));
+  const materialRows=materials.reduce((n,m)=>n+transactions(m).length,0);
+  const materialValid=materials.reduce((n,m)=>n+transactions(m).filter(t=>dateOnly(rowDate(t))&&clean(t.transaction||t.type||t.movement)).length,0);
+  const item=(name,total,valid,products)=>({name,total,valid,products,percent:total?Math.round(valid/total*100):0});
+  return [
+    item("Materials",materialRows,materialValid,materials.length),
+    item("Feed Unit Data",feed.length,validFeed.length,dqUniqueProducts(feed)),
+    item("Production",prod.length,validProd.length,dqUniqueProducts(prod)),
+    item("PP Bags",bags.length,validBags.length,dqUniqueProducts(bags)),
+    item("Dispatch",dispatchRows.length,dispatchRows.length,dqUniqueProducts(dispatchRows))
+  ];
+}
+function dqHistoricalRows(material){
+  const map={};
+  transactions(material).forEach(t=>{const d=dateOnly(rowDate(t));if(!d)return;if(!map[d])map[d]={date:d,opening:null,closing:null,consumption:0,additions:0,deductions:0};const x=map[d],ty=tType(t),v=tVal(t)||0;if(ty.includes("OPENING STOCK"))x.opening=v;else if(ty.includes("CL. STOCK")||ty.includes("CLOSING STOCK"))x.closing=v;else if(dqIsConsumption(ty))x.consumption+=v;else if(ty==="PURCHASE"||ty==="RECEIVED"||ty==="GAIN"||ty.includes("TRANSFER FROM"))x.additions+=v;else if(ty.includes("TRANSFER TO")||ty.includes("SALE")||ty.includes("SHORTAGE")||ty.includes("DAMAGE")||ty.includes("ISSUE")||ty.includes("RETURN TO"))x.deductions+=v;});
+  return Object.values(map).sort((a,b)=>a.date.localeCompare(b.date));
+}
+function openDQDuplicates(){
+  const groups=dqDuplicateGroups();
+  let html=`<div class="detail-section"><h3>🔁 Duplicate Transactions • ${groups.length}</h3>`;
+  if(!groups.length)html+=`<div class="empty">No exact duplicate transaction groups detected.</div>`;
+  groups.forEach(g=>{html+=`<div class="transaction"><div class="transaction-title"><strong>${esc(g.material)}</strong><span>${esc(g.date||"--")}</span></div>${detail("Transaction",g.transaction)}${detail("Quantity",fmt(g.quantity))}${detail("Duplicate rows",g.items.length)}${g.items.map((x,i)=>`<div class="small-note">Row ${i+1}: ${esc(x.t.transaction||tType(x.t))} • Day ${esc(x.t.for_day??"--")} • Month ${esc(x.t.for_month??"--")} • Year ${esc(x.t.for_year??"--")}</div>`).join("")}</div>`});
+  html+=`</div>`;showModal("Duplicate Transactions",html);
+}
+function openDQUnknown(){
+  const rows=dqUnknownGroups();
+  let html=`<div class="detail-section"><h3>❓ Unknown Transactions • ${rows.length}</h3><div class="small-note">Consumption spelling variations are classified as Consumption and are not listed here.</div>`;
+  if(!rows.length)html+=`<div class="empty">No genuinely unknown transaction names detected.</div>`;
+  rows.forEach(x=>html+=`<div class="transaction" onclick="closeModal();openMaterialDetails('${jsq(x.material)}')">${detail("Material",x.material)}${detail("Date",x.date)}${detail("Transaction",x.transaction)}${detail("Quantity",fmt(x.quantity))}${detail("Source row",x.index)}</div>`);
+  html+=`</div>`;showModal("Unknown Transactions",html);
+}
+function openDQContinuity(){
+  const rows=dqContinuityIssues();
+  let html=`<div class="detail-section"><h3>🔗 Opening → Closing Continuity • ${rows.length}</h3>`;
+  if(!rows.length)html+=`<div class="empty">No opening/closing continuity issues detected.</div>`;
+  rows.forEach(x=>html+=`<div class="transaction" onclick="closeModal();openMaterialDetails('${jsq(x.material)}')">${detail("Material",x.material)}${detail("Previous date",x.previousDate)}${detail("Previous closing",fmt(x.previousClosing))}${detail("Current date",x.currentDate)}${detail("Current opening",fmt(x.currentOpening))}${detail("Difference",fmt(x.diff))}</div>`);
+  html+=`</div>`;showModal("Opening → Closing Continuity",html);
+}
+function openDQAbnormal(){
+  const rows=dqAbnormalItems();
+  let html=`<div class="detail-section"><h3>⚠ Abnormal Activity • ${rows.length}</h3>`;
+  if(!rows.length)html+=`<div class="empty">No abnormal activity detected.</div>`;
+  rows.slice(0,100).forEach(x=>html+=`<div class="transaction" onclick="closeModal();openMaterialDetails('${jsq(x.material)}')">${detail("Material",x.material)}${detail("Date",x.date||"--")}${detail("Type",x.type||"Activity")}${detail("Transaction",x.transaction||"--")}${detail("Current",fmt(x.current))}${x.avg?detail("Average",fmt(x.avg)):""}${x.ratio>1?detail("Above average",fmt(x.ratio*100-100)+" %"):""}</div>`);
+  html+=`</div>`;showModal("Abnormal Activity",html);
+}
+function openDQHistory(){
+  const mats=getMaterials();
+  const options=mats.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join("");
+  const m=mats[0]||"";
+  showModal("Materials Historical Trend",`<div class="detail-section"><h3>📈 Material History</h3><select id="dqHistoryMaterial" onchange="renderDQHistory(this.value)" style="width:100%;margin-bottom:8px">${options}</select><div id="dqHistoryBody"></div></div>`);
+  renderDQHistory(m);
+}
+function renderDQHistory(material){
+  const el=document.getElementById("dqHistoryBody");if(!el)return;
+  const rows=dqHistoricalRows(material);
+  if(!rows.length){el.innerHTML="<div class='empty'>No historical transaction data.</div>";return}
+  el.innerHTML=`<div class="stock-table"><div class="stock-head" style="grid-template-columns:1.1fr .8fr .8fr .9fr .8fr"><span>Date</span><span>Opening</span><span>Movement</span><span>Consumption</span><span>Closing</span></div>${rows.slice(-30).reverse().map(r=>`<div class="stock-row" style="grid-template-columns:1.1fr .8fr .8fr .9fr .8fr"><strong>${esc(r.date)}</strong><span>${fmt(r.opening??0)}</span><span>${fmt(r.additions-r.deductions)}</span><span>${fmt(r.consumption)}</span><span>${fmt(r.closing??0)}</span></div>`).join("")}</div>`;
+}
+function openDQCoverage(){
+  const rows=dqCoverage();
+  let html=`<div class="detail-section"><h3>🎯 Data Coverage</h3><div class="small-note">Coverage checks whether source rows/products are present and structurally processable. It does not alter source data.</div>`;
+  rows.forEach(x=>{html+=`<div class="transaction"><div class="transaction-title"><strong>${esc(x.name)}</strong><span>${x.percent}%</span></div>${detail("Source rows",x.total)}${detail("Valid / processed rows",x.valid)}${detail("Products / materials",x.products)}${detail("Rows needing review",Math.max(0,x.total-x.valid))}</div>`});
+  html+=`</div>`;showModal("Data Coverage",html);
+}
+function dqBuildSummary(){
+  const dup=dqDuplicateGroups(),unk=dqUnknownGroups(),cont=dqContinuityIssues(),ab=dqAbnormalItems(),cov=dqCoverage();
+  return `FEED PLANT DATA QUALITY SUMMARY\nDate: ${selectedDateForIntelligence()||DATA.report_date||"Latest"}\n\nDuplicate transaction groups: ${dup.length}\nUnknown transactions: ${unk.length}\nOpening → Closing continuity issues: ${cont.length}\nAbnormal activity: ${ab.length}\n\nCoverage:\n${cov.map(x=>`- ${x.name}: ${x.valid}/${x.total} rows (${x.percent}%)`).join("\n")}`;
+}
+function downloadDQSummary(){
+  const blob=new Blob([dqBuildSummary()],{type:"text/plain;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`Feed_Plant_Data_Quality_${dateOnly(DATA.report_date)||"latest"}.txt`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500);showToast("Data Quality summary downloaded");
+}
+async function shareDQSummary(){
+  const text=dqBuildSummary();
+  if(navigator.share){try{await navigator.share({title:"Feed Plant Data Quality Summary",text});return}catch(e){}}
+  try{await navigator.clipboard.writeText(text);showToast("Data Quality summary copied")}catch(e){showModal("Data Quality Summary",`<div class="report-box">${esc(text)}</div>`)}
+}
+function renderDataQualityPanel(){
+  const host=document.getElementById("dataQualityPanelHost");if(!host)return;
+  const dup=dqDuplicateGroups(),unk=dqUnknownGroups(),cont=dqContinuityIssues(),ab=dqAbnormalItems(),cov=dqCoverage();
+  host.innerHTML=`<div class="card control-card" id="dataQualityPanel"><div class="card-title"><h2>🛡 Data Quality / Accuracy</h2><span>Tap any issue</span></div><div class="control-grid"><button class="control-item" onclick="openDQDuplicates()"><small>🔁 Duplicate Transactions</small><strong>${dup.length}</strong></button><button class="control-item" onclick="openDQUnknown()"><small>❓ Unknown Transactions</small><strong>${unk.length}</strong></button><button class="control-item" onclick="openDQContinuity()"><small>🔗 Opening → Closing</small><strong>${cont.length}</strong></button><button class="control-item" onclick="openDQAbnormal()"><small>⚠ Abnormal Activity</small><strong>${ab.length}</strong></button><button class="control-item" onclick="openDQHistory()"><small>📈 Historical Trend</small><strong>${getMaterials().length}</strong></button><button class="control-item" onclick="openDQCoverage()"><small>🎯 Coverage</small><strong>${cov.filter(x=>x.percent===100).length}/${cov.length}</strong></button></div><div class="control-actions"><button onclick="downloadDQSummary()">⬇ Export Summary</button><button onclick="shareDQSummary()">📤 Share Summary</button></div><div class="small-note">Consumption spelling variations are automatically treated as Consumption; only genuinely unrecognized transaction names are shown as Unknown.</div></div>`;
+}
+function ensureDataQualityHost(){
+  const status=document.querySelector(".management-status-row");if(!status)return;
+  let host=document.getElementById("dataQualityPanelHost");
+  if(!host){host=document.createElement("div");host.id="dataQualityPanelHost";status.parentNode.insertBefore(host,status.nextSibling)}
+  renderDataQualityPanel();
+}
+const __dqBaseRenderControlCenter=renderControlCenter;
+renderControlCenter=function(){__dqBaseRenderControlCenter();ensureDataQualityHost()};
+
 /* =====================================================
    START
 ===================================================== */
