@@ -69,6 +69,22 @@ canvas{width:100%;height:150px;display:block}
 @media (min-width:520px){.quick-grid,.mini-grid{grid-template-columns:repeat(4,1fr)}}
 
 
+/* ===== Monthly Mix & Contribution ===== */
+.monthly-mix-card{overflow:hidden}
+.monthly-mix-card .card-title>div{min-width:0}.monthly-mix-card .card-title h2{font-size:16px}.monthly-mix-card .card-title span{display:block;margin-top:2px}
+.mix-month-select{max-width:145px;min-width:112px;font-weight:700;color:#202938;border-color:#e4e8ef}
+.monthly-mix-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mix-panel{border:1px solid #edf0f4;border-radius:14px;padding:9px;background:#fbfcfe;min-width:0}
+.mix-panel.rm{background:linear-gradient(180deg,#f4fbf6 0%,#fbfcfe 45%)}
+.mix-panel.prod{background:linear-gradient(180deg,#f5f7ff 0%,#fbfcfe 45%)}
+.mix-panel.disp{background:linear-gradient(180deg,#fff9ee 0%,#fbfcfe 45%)}
+.mix-panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:6px}
+.mix-panel-head strong{display:block;font-size:11px;line-height:1.2}.mix-panel-head small{display:block;color:#7b818c;font-size:8.5px;margin-top:3px}
+.mix-panel-head button{border:0;background:transparent;color:#315efb;font-size:8.5px;font-weight:800;padding:2px 0;white-space:nowrap;cursor:pointer}
+.mix-row{padding:5px 0;border-bottom:1px solid #edf0f3}.mix-row:last-child{border-bottom:0}.mix-row-top{display:flex;justify-content:space-between;gap:6px;align-items:center}.mix-name{font-size:9.5px;font-weight:650;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mix-value{font-size:8.5px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}.mix-bar{height:5px;background:#e9edf2;border-radius:5px;overflow:hidden;margin-top:4px}.mix-fill{height:100%;border-radius:5px}.mix-panel.rm .mix-fill{background:#55b978}.mix-panel.prod .mix-fill{background:#7657d9}.mix-panel.disp .mix-fill{background:#e9a43a}.mix-pct{font-size:8px;color:#66707d;font-weight:800;margin-left:4px}.mix-others .mix-name{color:#69717d}.monthly-mix-note{font-size:8.5px;color:#7b818c;margin-top:7px;line-height:1.35}
+.mix-detail-list .mix-detail-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #e9edf2}.mix-detail-row:last-child{border-bottom:0}.mix-detail-main{min-width:0;flex:1}.mix-detail-name{font-size:12px;font-weight:600}.mix-detail-bar{height:6px;background:#e9edf2;border-radius:6px;overflow:hidden;margin-top:5px}.mix-detail-fill{height:100%;border-radius:6px}.mix-detail-right{text-align:right;white-space:nowrap}.mix-detail-right strong{display:block;font-size:12px}.mix-detail-right small{font-size:9px;color:#777}
+@media(max-width:700px){.monthly-mix-grid{grid-template-columns:1fr}.mix-panel{padding:10px}.mix-panel-head strong{font-size:12px}.mix-row{padding:6px 0}.mix-name{font-size:10.5px}.mix-value{font-size:9px}.mix-bar{height:6px}.mix-pct{font-size:8.5px}}
+
 /* ===== Manager Intelligence layer ===== */
 .intel-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .intel-item{background:#f7f8fa;border-radius:13px;padding:9px;cursor:pointer;border:1px solid rgba(32,41,56,.035);transition:transform .15s ease,box-shadow .15s ease}
@@ -327,6 +343,115 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
   .stock-row>span:last-child{font-size:8.3px !important}
 }
 </style>
+
+<style id="manager-layout-v28">
+.manager-quick-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important}
+.manager-quick-grid .quick{min-height:60px}
+.manager-quick-grid .quick strong{font-size:15px}
+.manager-quick-grid .quick p{font-size:9.5px}
+#dataQualityPanelHost{margin-bottom:10px}
+#dataQualityPanel .health-strip{display:grid;grid-template-columns:1fr auto auto;gap:7px;align-items:center}
+#dataQualityPanel .health-strip span:last-child{color:#315efb;font-weight:700}
+@media(max-width:360px){.manager-quick-grid{gap:5px!important}.manager-quick-grid .quick{padding:7px 6px}.manager-quick-grid .quick strong{font-size:13px}.manager-quick-grid .quick p{font-size:8.5px}}
+</style>
+
+<style id="requested-ui-v29">
+/* Requested: Premix above Monthly Mix; compact reorder + production hierarchy */
+/* Raw Material Reorder: Material | Stock | Cover | status symbol */
+.stock-head,.stock-row{
+  grid-template-columns:minmax(0,1.85fr) 1.05fr .90fr .48fr !important;
+  column-gap:8px !important;
+}
+.stock-head{font-size:9.5px !important;font-weight:700 !important;}
+.stock-head span:last-child{font-size:0 !important;}
+.stock-row{min-height:56px !important;padding:8px 0 !important;}
+.stock-row .reorder-material,.stock-row strong.reorder-material{
+  font-size:13.5px !important;font-weight:600 !important;line-height:1.15 !important;
+}
+.stock-row .avg-under-material{
+  display:block !important;font-size:9px !important;line-height:1.1 !important;
+  margin-top:3px !important;color:#737985 !important;font-weight:600 !important;
+}
+.stock-row>span{
+  font-size:13.5px !important;font-weight:750 !important;line-height:1.1 !important;
+  white-space:nowrap !important;text-align:right !important;font-variant-numeric:tabular-nums !important;
+}
+.stock-row .cover-cell{font-size:13px !important;}
+.stock-row .status-symbol{
+  font-size:17px !important;width:24px !important;height:24px !important;
+  line-height:24px !important;border-radius:50% !important;background:transparent !important;
+  padding:0 !important;justify-self:center;
+}
+/* Production: keep Bags visible but compact/medium */
+.production-total{font-size:24px !important;line-height:1.1 !important;font-weight:700 !important;margin-top:1px !important;}
+.production-label{font-size:10px !important;margin-bottom:5px !important;}
+.production-row{min-height:42px !important;padding:5px 1px !important;}
+.production-row .row-name{font-size:12.5px !important;font-weight:600 !important;}
+.production-row .prod-meta{font-size:9px !important;line-height:1.2 !important;}
+.production-row .row-right strong{font-size:14px !important;line-height:1.1 !important;}
+.production-row .row-right small{font-size:8.5px !important;}
+@media(max-width:520px){
+  .stock-head,.stock-row{grid-template-columns:minmax(0,1.72fr) 1fr .88fr .46fr !important;column-gap:5px !important;}
+  .stock-head{font-size:9px !important;}
+  .stock-row{min-height:55px !important;padding:8px 0 !important;}
+  .stock-row .reorder-material,.stock-row strong.reorder-material{font-size:13px !important;}
+  .stock-row .avg-under-material{font-size:8.7px !important;}
+  .stock-row>span{font-size:12.5px !important;}
+  .stock-row .cover-cell{font-size:12px !important;}
+  .stock-row .status-symbol{font-size:16px !important;width:22px !important;height:22px !important;line-height:22px !important;}
+  .production-total{font-size:22px !important;}
+  .production-row .row-right strong{font-size:13.5px !important;}
+}
+</style>
+
+
+<style id="pp-bags-2x5-compact">
+/* PP Bags only: 2-column compact card layout. No other dashboard logic changed. */
+.pp-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:7px;
+}
+.pp-item{
+  min-width:0;
+  padding:7px 8px;
+  border-radius:10px;
+  min-height:78px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.pp-item p:first-child{
+  font-size:10px;
+  line-height:1.1;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.pp-closing-label{
+  font-size:8px!important;
+  margin-top:3px!important;
+}
+.pp-closing-number{
+  font-size:16px!important;
+  line-height:1.05;
+  margin-top:1px!important;
+}
+.pp-item p:last-child{
+  font-size:8px!important;
+  line-height:1.1;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  margin-top:3px!important;
+}
+@media(max-width:360px){
+  .pp-grid{gap:5px}
+  .pp-item{padding:6px 7px;min-height:72px}
+  .pp-closing-number{font-size:15px!important}
+}
+</style>
+
 </head>
 <body>
 <div class="container">
@@ -357,22 +482,16 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
   <!-- MANAGEMENT QUICK VIEW -->
   <div class="card">
     <div class="card-title"><h2>⚡ Management Quick View</h2><span>Tap for details</span></div>
-    <div class="quick-grid">
+    <div class="quick-grid manager-quick-grid">
       <div class="quick quick-kpi" onclick="openFeedTotals('production_day')"><p>Day Production</p><strong id="qProdDay">-- MT</strong><div class="spark" id="sparkProd"></div></div>
       <div class="quick" onclick="openFeedTotals('production_month')"><p>Month Production</p><strong id="qProdMonth">-- MT</strong></div>
       <div class="quick quick-kpi" onclick="openFeedTotals('dispatch_day')"><p>Day Dispatch</p><strong id="qDispDay">-- MT</strong><div class="spark" id="sparkDisp"></div></div>
       <div class="quick" onclick="openFeedTotals('dispatch_month')"><p>Month Dispatch</p><strong id="qDispMonth">-- MT</strong></div>
-    </div>
-    <div style="height:8px"></div>
-    <div class="mini-grid">
-      <div class="mini" onclick="openRawCategory('PURCHASE')"><p>RM Received</p><strong id="qReceived">--</strong></div>
-      <div class="mini" onclick="openRawCategory('CONSUMPTION')"><p>RM Consumption</p><strong id="qConsumption">--</strong></div>
-      <div class="mini" onclick="openStockDetails()"><p>RM Closing</p><strong id="qClosing">--</strong></div>
-      <div class="mini" onclick="openFeedClosingDetails()"><p>Feed Closing Stock</p><strong id="qFeedClosing">-- MT</strong><small id="qFeedClosingBagsMini" style="display:block;margin-top:4px;color:#64748b;font-weight:600">-- Bags</small></div>
-    </div>
-    <div class="management-status-row">
-      <button class="status-tile" onclick="openStockForecast()"><small>📦 Reorder / Cover</small><strong id="mergedReorder">--</strong><span>View stock cover →</span></button>
-      <button class="status-tile" onclick="openDataHealth()"><small>⚠ Data Issues</small><strong id="mergedIssues">--</strong><span>Check issues →</span></button>
+      <div class="quick" onclick="openRawCategory('PURCHASE')"><p>RM Received</p><strong id="qReceived">--</strong></div>
+      <div class="quick" onclick="openRawCategory('CONSUMPTION')"><p>RM Consumption</p><strong id="qConsumption">--</strong></div>
+      <div class="quick" onclick="openStockDetails()"><p>RM Closing</p><strong id="qClosing">--</strong></div>
+      <div class="quick" onclick="openFeedClosingDetails()"><p>Feed Closing</p><strong id="qFeedClosing">-- MT</strong><small id="qFeedClosingBagsMini" style="display:block;margin-top:3px;color:#64748b;font-weight:600">-- Bags</small></div>
+      <div class="quick" onclick="openStockForecast()"><p>RM Reorder</p><strong id="mergedReorder">--</strong></div>
     </div>
   </div>
 
@@ -380,6 +499,29 @@ body{overflow-x:hidden;-webkit-tap-highlight-color:transparent}
   <div class="card premix-card" id="premixTransferCard">
     <div class="card-title"><h2>🧪 Premixes</h2><span>Transferred from Bommakal • KG</span></div>
     <div id="premixTransferList"><div class="empty">Loading...</div></div>
+  </div>
+
+  <!-- MONTHLY MIX & CONTRIBUTION -->
+  <div class="card monthly-mix-card" id="monthlyMixSection">
+    <div class="card-title">
+      <div><h2>📊 Monthly Mix &amp; Contribution</h2><span>Top 5 • Monthly % share</span></div>
+      <select id="mixMonthSelect" class="mix-month-select" onchange="setMixMonth(this.value)"></select>
+    </div>
+    <div class="monthly-mix-grid">
+      <div class="mix-panel rm">
+        <div class="mix-panel-head"><div><strong>🧪 RM Consumption Mix</strong><small id="mixRmTotal">Total -- MT</small></div><button onclick="openMonthlyMixDetails('rm')">View All →</button></div>
+        <div id="mixRmList"><div class="empty">Loading...</div></div>
+      </div>
+      <div class="mix-panel prod">
+        <div class="mix-panel-head"><div><strong>🏭 Production Mix</strong><small id="mixProdTotal">Total -- MT</small></div><button onclick="openMonthlyMixDetails('production')">View All →</button></div>
+        <div id="mixProdList"><div class="empty">Loading...</div></div>
+      </div>
+      <div class="mix-panel disp">
+        <div class="mix-panel-head"><div><strong>🚚 Dispatch Mix</strong><small id="mixDispTotal">Total -- MT</small></div><button onclick="openMonthlyMixDetails('dispatch')">View All →</button></div>
+        <div id="mixDispList"><div class="empty">Loading...</div></div>
+      </div>
+    </div>
+    <div class="monthly-mix-note">Percentages are calculated against the selected month total. “Others” combines items outside Top 5.</div>
   </div>
 
   <div class="desktop-grid">
@@ -541,6 +683,19 @@ function rawTotalMT(material,tab){
   if(tab==="STOCK")return materialValueInMT(getMaterial(material)?.closing,material);
   return transactions(material).filter(t=>tType(t)===tab).reduce((a,t)=>a+materialValueInMT(tVal(t),material),0);
 }
+function rawTotal(material,tab){
+  if(tab==="STOCK")return num(getMaterial(material)?.closing)||0;
+  return transactions(material).filter(t=>{
+    const ty=tType(t);
+    if(tab==="CONSUMPTION")return ty.includes("CONSUMPTION") || ty.includes("CONSUMPION");
+    if(tab==="PURCHASE")return ty==="PURCHASE" || ty==="RECEIVED";
+    if(tab==="TRANSFER")return ty==="TRANSFER" || ty.includes("TRANSFER FROM") || ty.includes("TRANSFER TO");
+    if(tab==="GAIN")return ty==="GAIN";
+    if(tab==="SHORTAGE")return ty.includes("SHORTAGE");
+    if(tab==="SALE")return ty.includes("SALE");
+    return ty===tab;
+  }).reduce((a,t)=>a+tVal(t),0);
+}
 function fmtBags(v){return v===null||v===undefined||v===""?"--":fmt(v)+" Bags"}
 function esc(v){return clean(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
 function jsq(v){return clean(v).replace(/\\/g,"\\\\").replace(/'/g,"\\'")}
@@ -674,55 +829,72 @@ function setConnection(ok,text){
 /* =====================================================
    JSONP LOAD — SAME WORKING MECHANISM
 ===================================================== */
-function loadDashboard(){
+function loadDashboard(attempt=0){
   return new Promise(function(resolve,reject){
-    const callbackName="managerDashboardCallback";
+    const callbackName="managerDashboardCallback_"+Date.now()+"_"+Math.random().toString(36).slice(2);
     const script=document.createElement("script");
     let finished=false;
-    const timeout=setTimeout(function(){
+    let timeout;
+
+    function cleanup(){
+      if(timeout)clearTimeout(timeout);
+      if(script.parentNode)script.parentNode.removeChild(script);
+      try{delete window[callbackName]}catch(e){window[callbackName]=undefined}
+    }
+    function fail(message,code){
       if(finished)return;
       finished=true;
       cleanup();
-      reject(new Error("API timeout"));
-    },15000);
-
-    function cleanup(){
-      clearTimeout(timeout);
-      if(script.parentNode)script.parentNode.removeChild(script);
+      const e=new Error(message);e.code=code;reject(e);
     }
 
     window[callbackName]=function(apiData){
       if(finished)return;
-      finished=true;
       try{
         if(!apiData || apiData.status!=="success"){
-          throw new Error("Invalid API response");
+          fail("Invalid API response","API_RESPONSE");
+          return;
         }
-        applyData(apiData,false);
+        finished=true;
         cleanup();
-        resolve(apiData);
+        try{
+          applyData(apiData,false);
+          resolve(apiData);
+        }catch(error){
+          const e=new Error(error&&error.message?error.message:"Dashboard processing failed");
+          e.code="DASHBOARD_PROCESSING";
+          reject(e);
+        }
       }catch(error){
-        cleanup();
-        reject(error);
+        fail(error&&error.message?error.message:"API response handling failed","API_RESPONSE");
       }
-    };
-
-    script.onload=function(){
-      /* JSONP callback normally completes the request.
-         Keep the callback installed until response arrives. */
-    };
-
-    script.onerror=function(){
-      if(finished)return;
-      finished=true;
-      cleanup();
-      reject(new Error("Google Apps Script connection failed"));
     };
 
     script.async=true;
     script.referrerPolicy="no-referrer";
-    script.src=API_URL+"?callback="+callbackName+"&t="+Date.now();
+    script.onerror=function(){
+      if(finished)return;
+      if(attempt<1){
+        cleanup();
+        setTimeout(function(){loadDashboard(attempt+1).then(resolve).catch(reject)},800);
+      }else{
+        fail("Google Apps Script connection failed","API_NETWORK");
+      }
+    };
+
+    script.src=API_URL+"?callback="+encodeURIComponent(callbackName)+"&t="+Date.now();
     document.head.appendChild(script);
+
+    timeout=setTimeout(function(){
+      if(finished)return;
+      if(attempt<1){
+        finished=true;
+        cleanup();
+        setTimeout(function(){loadDashboard(attempt+1).then(resolve).catch(reject)},800);
+      }else{
+        fail("API timeout","API_TIMEOUT");
+      }
+    },20000);
   });
 }
 
@@ -730,7 +902,7 @@ let refreshing=false;
 async function refreshData(){
   if(refreshing)return;
   refreshing=true;
-  setConnection(true,"Refreshing...");
+  setConnection(true,"Connecting...");
   try{
     await loadDashboard();
     setConnection(true,"Live");
@@ -738,12 +910,16 @@ async function refreshData(){
   }catch(e){
     console.error(e);
     const has=!!cachedData();
-    setConnection(false,has?"Connection unavailable • saved data":"Connection failed: "+(e&&e.message?e.message:"Unknown error"));
-    if(!has){
-      document.getElementById("stockList").innerHTML="<div class='error-box'>❌ Unable to load dashboard data.</div>";
-    }
+    let msg="Unable to refresh";
+    if(e&&e.code==="DASHBOARD_PROCESSING")msg="Data received • dashboard processing error";
+    else if(e&&e.code==="API_TIMEOUT")msg="API timeout • showing saved data";
+    else if(e&&e.code==="API_NETWORK")msg="API connection issue • showing saved data";
+    else if(e&&e.code==="API_RESPONSE")msg="API response error • showing saved data";
+    setConnection(false,has?msg:"Unable to load dashboard");
+    if(!has)document.getElementById("stockList").innerHTML="<div class='error-box'>❌ Unable to load dashboard data.</div>";
   }finally{refreshing=false}
 }
+
 function manualRefresh(){refreshData()}
 
 /* =====================================================
@@ -972,9 +1148,123 @@ function renderGlobalSearch(q){
   el.innerHTML=items.join("")||"<div class='empty'>No matching material or product.</div>";
 }
 
+let MIX_MONTH=null;
+function monthKey(v){const d=dateOnly(v);return d?d.slice(0,7):""}
+function monthLabel(m){
+  if(!m)return "Latest";
+  const p=m.split("-");
+  const d=new Date(Number(p[0]),Number(p[1])-1,1);
+  return d.toLocaleDateString("en-IN",{month:"long",year:"numeric"});
+}
+function mixAvailableMonths(){
+  const s=new Set();
+  (DATA.stock||[]).forEach(x=>(x.transactions||[]).forEach(t=>{const m=monthKey(rowDate(t));if(m)s.add(m)}));
+  (DATA.stockHistory||[]).forEach(t=>{const m=monthKey(rowDate(t));if(m)s.add(m)});
+  (DATA.feedUnitData||[]).forEach(r=>{const m=monthKey(r.report_date||r.Report_Date);if(m)s.add(m)});
+  if(DATA.report_date){const m=monthKey(DATA.report_date);if(m)s.add(m)}
+  return [...s].filter(Boolean).sort().reverse();
+}
+function mixDefaultMonth(){return monthKey(VIEW_DATE||DATA.report_date)||mixAvailableMonths()[0]||""}
+function isConsumptionMovement(ty){return ty.includes("CONSUMPTION")||ty.includes("CONSUMPION")||ty.includes("CONSUMPTON")||ty.includes("CONSUMPTI")}
+function allMixMaterialTransactions(){
+  const out=[];
+  (DATA.stock||[]).forEach(x=>{
+    const material=clean(x.material); if(!material)return;
+    (Array.isArray(x.transactions)?x.transactions:[]).forEach(t=>out.push({material,t}));
+  });
+  // Use history only when the current stock objects do not contain transaction history.
+  // Do not deduplicate rows: genuine duplicate transactions must remain countable.
+  if(!out.length){
+    (DATA.stockHistory||[]).forEach(t=>{const material=clean(t.material);if(material)out.push({material,t})});
+  }
+  return out;
+}
+function monthlyRMConsumption(m){
+  // RM transaction rows contain cumulative MTD values in for_month.
+  // For a month, use the latest dated Consumption record for each material
+  // instead of summing daily/MTD snapshots (which would double-count).
+  const latest={};
+  allMixMaterialTransactions().forEach(({material,t})=>{
+    const d=rowDate(t);
+    if(monthKey(d)!==m || !isConsumptionMovement(tType(t)))return;
+    const day=dateOnly(d)||"";
+    const key=normalize(material);
+    if(!latest[key] || day>=latest[key].day){
+      latest[key]={material,t,day};
+    }
+  });
+
+  return Object.values(latest).map(({material,t})=>{
+    const monthly=num(t.for_month??t.For_Month??t.monthly_consumption??t.Monthly_Consumption);
+    const value=monthly!==null
+      ? materialValueInMT(Math.abs(monthly),material)
+      : materialValueInMT(tVal(t),material);
+    return {name:material,value};
+  }).filter(x=>x.value>0).sort((a,b)=>b.value-a.value);
+}
+function monthlyFeedMix(m,key){
+  const rows=(DATA.feedUnitData||[]).filter(r=>monthKey(r.report_date||r.Report_Date)===m);
+  const latest={};
+  rows.forEach((r,i)=>{
+    const p=clean(r.Product||r.product); if(!p)return;
+    const d=dateOnly(r.report_date||r.Report_Date)||"";
+    const k=normalize(p);
+    if(!latest[k] || d>=latest[k].__mixDate)latest[k]={...r,__mixDate:d,__mixIndex:i};
+    else if(d===latest[k].__mixDate)latest[k].__mixIndex=i;
+  });
+  const result=[];
+  Object.values(latest).forEach(r=>{
+    const p=r.Product||r.product||"";
+    let value=feedField(r,key);
+    if(value===null){
+      value=rows.filter(x=>normalize(x.Product||x.product)===normalize(p)).reduce((a,x)=>a+(key.includes("Production")?(num(x.Production_Day_MT??x.production_day_mt??x.Production??x.production)||0):(num(x.Dispatch_Day_MT??x.dispatch_day_mt??x.Dispatch??x.dispatch)||0)),0);
+    }
+    value=feedValueInMT(value,p);
+    if(value>0)result.push({name:p,value});
+  });
+  return result.sort((a,b)=>b.value-a.value);
+}
+function mixTop5(rows){
+  const top=rows.slice(0,5),others=rows.slice(5).reduce((a,r)=>a+r.value,0);
+  if(others>0)top.push({name:"Others",value:others,others:true});
+  return top;
+}
+function renderMixList(id,rows,total){
+  const el=document.getElementById(id); if(!el)return;
+  if(!rows.length){el.innerHTML="<div class='empty'>No monthly data available.</div>";return}
+  el.innerHTML=mixTop5(rows).map(r=>{
+    const pct=total>0?(r.value/total*100):0;
+    return `<div class="mix-row ${r.others?"mix-others":""}"><div class="mix-row-top"><span class="mix-name" title="${esc(r.name)}">${esc(r.name)}</span><span class="mix-value">${fmt(r.value)} MT <span class="mix-pct">${fmt(pct)}%</span></span></div><div class="mix-bar"><div class="mix-fill" style="width:${Math.min(100,pct)}%"></div></div></div>`;
+  }).join("");
+}
+function renderMonthlyMix(){
+  const sel=document.getElementById("mixMonthSelect"); if(!sel)return;
+  const months=mixAvailableMonths();
+  const wanted=MIX_MONTH&&months.includes(MIX_MONTH)?MIX_MONTH:mixDefaultMonth();
+  MIX_MONTH=wanted;
+  sel.innerHTML=months.map(m=>`<option value="${m}">${esc(monthLabel(m))}</option>`).join("");
+  if(wanted)sel.value=wanted;
+  const rm=monthlyRMConsumption(wanted),prod=monthlyFeedMix(wanted,"Production_Month_MT"),disp=monthlyFeedMix(wanted,"Dispatch_Month_MT");
+  const rt=rm.reduce((a,r)=>a+r.value,0),pt=prod.reduce((a,r)=>a+r.value,0),dt=disp.reduce((a,r)=>a+r.value,0);
+  setText("mixRmTotal",`Total ${fmt(rt)} MT`);setText("mixProdTotal",`Total ${fmt(pt)} MT`);setText("mixDispTotal",`Total ${fmt(dt)} MT`);
+  renderMixList("mixRmList",rm,rt);renderMixList("mixProdList",prod,pt);renderMixList("mixDispList",disp,dt);
+}
+function setMixMonth(m){MIX_MONTH=m||null;renderMonthlyMix()}
+function openMonthlyMixDetails(type){
+  const m=MIX_MONTH||mixDefaultMonth(), label=monthLabel(m);
+  let title="",rows=[];
+  if(type==="rm"){title="🧪 RM Consumption Mix";rows=monthlyRMConsumption(m)}
+  else if(type==="production"){title="🏭 Production Mix";rows=monthlyFeedMix(m,"Production_Month_MT")}
+  else {title="🚚 Dispatch Mix";rows=monthlyFeedMix(m,"Dispatch_Month_MT")}
+  const total=rows.reduce((a,r)=>a+r.value,0);
+  const html=`<div class="detail-section"><h3>${title} • ${esc(label)}</h3>${detail("Monthly Total",fmtMT(total))}</div><div class="detail-section mix-detail-list">${rows.map(r=>{const pct=total?(r.value/total*100):0;return `<div class="mix-detail-row"><div class="mix-detail-main"><div class="mix-detail-name">${esc(r.name)}</div><div class="mix-detail-bar"><div class="mix-detail-fill" style="width:${Math.min(100,pct)}%;background:${type==="rm"?"#55b978":type==="production"?"#7657d9":"#e9a43a"}"></div></div></div><div class="mix-detail-right"><strong>${fmt(r.value)} MT</strong><small>${fmt(pct)}%</small></div></div>`}).join("")||"<div class='empty'>No monthly data available.</div>"}</div><div class="small-note">Percentage = item monthly value ÷ monthly total × 100.</div>`;
+  showModal(title+" • "+label,html);
+}
+
 function renderDashboard(){
   renderSmartHeader();
   renderQuick();
+  renderMonthlyMix();
   renderControlCenter();
   renderPremixTransfers();
   renderFeedUnit();
@@ -1050,8 +1340,9 @@ function renderStock(){
   const mats=getMaterials();
   list.innerHTML=mats.slice().sort((a,b)=>{const av=num(getMaterial(a)?.closing)||0,bv=num(getMaterial(b)?.closing)||0;return (bv>0)-(av>0)||bv-av}).map(m=>{
     const x=getMaterial(m),closing=num(x?.closing)||0,avg=avgConsumption(m),s=stockStatus(closing,avg);
+    const symbol=s.status==="REORDER"?"🔴":s.status==="WATCH"?"🟡":"🟢";
     return `<div class="stock-row" onclick="openMaterialDetails('${jsq(m)}')">
-      <strong class="reorder-material">${esc(m)}</strong><span>${fmt(closing)} ${esc(x?.unit||"MT")}</span><span>${avg?fmt(avg):"--"}</span><span>${s.cover!==null?fmt(s.cover)+" d":"--"}</span><span class="${s.cls} status-text">${esc(s.status)}</span>
+      <div class="reorder-material-wrap"><strong class="reorder-material">${esc(m)}</strong><small class="avg-under-material">Avg/day ${avg?fmt(avg):"--"}</small></div><span>${fmt(closing)} ${esc(x?.unit||"MT")}</span><span class="cover-cell">${s.cover!==null?fmt(s.cover)+" d":"--"}</span><span class="status-symbol ${s.cls}" title="${esc(s.status)}">${symbol}</span>
     </div>`;
   }).join("")||"<div class='empty'>No stock data</div>";
 }
@@ -1150,25 +1441,25 @@ function openNotifications(){
    RAW MATERIAL CATEGORY
 ===================================================== */
 let currentRawTab="STOCK";
-function setRawTab(btn,tab){document.querySelectorAll(".section-tabs button").forEach(x=>x.classList.remove("active"));btn.classList.add("active");currentRawTab=tab;renderRawCategory(tab)}
-function rawTotal(material,tab){
-  if(tab==="STOCK")return num(getMaterial(material)?.closing)||0;
-  return transactions(material).filter(t=>{
-    const ty=tType(t);
-    if(tab==="TRANSFER")return ty==="TRANSFER" || ty.includes("TRANSFER FROM") || ty.includes("TRANSFER TO");
-    return ty===tab;
-  }).reduce((a,t)=>a+tVal(t),0);
-}
+let rawMovementExpanded=false;
+function setRawTab(btn,tab){document.querySelectorAll(".section-tabs button").forEach(x=>x.classList.remove("active"));btn.classList.add("active");currentRawTab=tab;rawMovementExpanded=false;renderRawCategory(tab)}
+function toggleRawMovementMore(){rawMovementExpanded=!rawMovementExpanded;renderRawCategory(currentRawTab)}
 function renderRawCategory(tab){
   const el=document.getElementById("rawCategoryList");
   const mats=getMaterials();
+  let rows;
   if(tab==="STOCK"){
-    const rows=mats.map(m=>({m,v:num(getMaterial(m)?.closing)||0})).sort((a,b)=>(b.v>0)-(a.v>0)||b.v-a.v);
-    el.innerHTML=rows.map(({m})=>{const x=getMaterial(m);return `<div class="feed-row raw-movement-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(num(x?.closing)||0,m,x?.unit||"MT")}</strong><small>Tap for complete details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
+    rows=mats.map(m=>({m,v:num(getMaterial(m)?.closing)||0})).sort((a,b)=>(b.v>0)-(a.v>0)||b.v-a.v);
   }else{
-    const rows=mats.map(m=>({m,v:rawTotal(m,tab)})).sort((a,b)=>(b.v>0?1:0)-(a.v>0?1:0)||b.v-a.v);
-    el.innerHTML=rows.map(({m,v})=>{const label=tab==="TRANSFER"?"Transfer / Bommakal":tab;return `<div class="feed-row raw-movement-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(v,m,"MT")}</strong><small>${esc(label)} • tap for details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
+    rows=mats.map(m=>({m,v:rawTotal(m,tab)})).sort((a,b)=>(b.v>0?1:0)-(a.v>0?1:0)||b.v-a.v);
   }
+  const visible=rawMovementExpanded?rows:rows.slice(0,25);
+  if(tab==="STOCK"){
+    el.innerHTML=visible.map(({m})=>{const x=getMaterial(m);return `<div class="feed-row raw-movement-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(num(x?.closing)||0,m,x?.unit||"MT")}</strong><small>Tap for complete details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
+  }else{
+    el.innerHTML=visible.map(({m,v})=>{const label=tab==="TRANSFER"?"Transfer / Bommakal":tab;return `<div class="feed-row raw-movement-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(v,m,"MT")}</strong><small>${esc(label)} • tap for details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
+  }
+  if(rows.length>25)el.innerHTML+=`<button class="more-toggle" onclick="toggleRawMovementMore()">${rawMovementExpanded?"Show less ↑":"More • "+(rows.length-25)+" more ↓"}</button>`;
 }
 
 /* =====================================================
@@ -1513,9 +1804,16 @@ function renderProduction(){
 }
 function renderPPBags(){
   const rows=selectedBags(),el=document.getElementById("bagGrid");
-  el.innerHTML=rows.slice().sort((a,b)=>(num(b.closing)||0)-(num(a.closing)||0)).map(r=>{
+  const seen=new Set();
+  const uniqueRows=rows.filter(r=>{
+    const key=normalize(r.product||"PP Bags");
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  el.innerHTML=uniqueRows.slice().sort((a,b)=>(num(b.closing)||0)-(num(a.closing)||0)).map(r=>{
     const p=r.product||"PP Bags";
-    return `<div class="pp-item" onclick="openBagProduct('${jsq(p)}')"><p>${esc(p)}</p><small class="pp-closing-label">Closing</small><strong class="pp-closing-number">${fmt(r.closing)}</strong><p style="margin-top:4px">Issue ${fmt(r.issue)} • Damage ${fmt(r.damage)}</p></div>`;
+    return `<div class="pp-item" onclick="openBagProduct('${jsq(p)}')"><p>${esc(p)}</p><small class="pp-closing-label">Closing</small><strong class="pp-closing-number">${fmt(r.closing)}</strong><p style="margin-top:3px">Issue ${fmt(r.issue)} • Damage ${fmt(r.damage)}</p></div>`;
   }).join("")||"<div class='empty'>No PP Bag data for this date</div>";
 }
 function renderStock(){
@@ -1525,16 +1823,7 @@ function renderStock(){
     return `<div class="stock-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="reorder-material-wrap"><strong class="reorder-material">${esc(m)}</strong><small class="avg-under-material">Avg/day ${avg?fmt(avg):"--"} ${esc(unit)}</small></div><span>${fmt(closing)} ${esc(unit)}</span><span class="cover-cell">${st.cover!==null?fmt(st.cover)+" d":"--"}</span><span class="${st.cls} status-text">${esc(st.status)}</span></div>`;
   }).join("")||"<div class='empty'>No stock data for this date</div>";
 }
-function renderRawCategory(tab){
-  const el=document.getElementById("rawCategoryList"),mats=getMaterials();
-  if(tab==="STOCK"){
-    const rows=mats.map(m=>({m,v:num(getMaterial(m)?.closing)||0})).sort((a,b)=>(b.v>0)-(a.v>0)||b.v-a.v);
-    el.innerHTML=rows.map(({m})=>{const x=getMaterial(m);return `<div class="feed-row raw-movement-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(num(x?.closing)||0,m,x?.unit||"MT")}</strong><small>Tap for complete details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
-  }else{
-    const rows=mats.map(m=>({m,v:rawTotal(m,tab)})).sort((a,b)=>(b.v>0?1:0)-(a.v>0?1:0)||b.v-a.v);
-    el.innerHTML=rows.map(({m,v})=>{const label=tab==="TRANSFER"?"Transfer / Bommakal":tab;return `<div class="feed-row raw-movement-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(v,m,"MT")}</strong><small>${esc(label)} • tap for details</small></div></div>`}).join("")||"<div class='empty'>No data</div>";
-  }
-}
+
 function renderControlCenter(){
   const m=dailyControlMetrics();
   setText("controlDate",VIEW_DATE||DATA.report_date||"Latest data");
@@ -1869,15 +2158,20 @@ async function shareDQSummary(){
   if(navigator.share){try{await navigator.share({title:"Feed Plant Data Quality Summary",text});return}catch(e){}}
   try{await navigator.clipboard.writeText(text);showToast("Data Quality summary copied")}catch(e){showModal("Data Quality Summary",`<div class="report-box">${esc(text)}</div>`)}
 }
+function badDataIssueCount(){
+  const rec=reconciliationItems(),bad=rec.filter(x=>x.r.status==="MISMATCH"),no=rec.filter(x=>x.r.status==="NO DATA");
+  return bad.length+no.length+abnormalConsumptionItems().length+duplicateTransactionCount();
+}
 function renderDataQualityPanel(){
   const host=document.getElementById("dataQualityPanelHost");if(!host)return;
   const dup=dqDuplicateGroups(),unk=dqUnknownGroups(),cont=dqContinuityIssues(),ab=dqAbnormalItems(),cov=dqCoverage();
-  host.innerHTML=`<div class="card control-card" id="dataQualityPanel"><div class="card-title"><h2>🛡 Data Quality / Accuracy</h2><span>Tap any issue</span></div><div class="control-grid"><button class="control-item" onclick="openDQDuplicates()"><small>🔁 Duplicate Transactions</small><strong>${dup.length}</strong></button><button class="control-item" onclick="openDQUnknown()"><small>❓ Unknown Transactions</small><strong>${unk.length}</strong></button><button class="control-item" onclick="openDQContinuity()"><small>🔗 Opening → Closing</small><strong>${cont.length}</strong></button><button class="control-item" onclick="openDQAbnormal()"><small>⚠ Abnormal Activity</small><strong>${ab.length}</strong></button><button class="control-item" onclick="openDQHistory()"><small>📈 Historical Trend</small><strong>${getMaterials().length}</strong></button><button class="control-item" onclick="openDQCoverage()"><small>🎯 Coverage</small><strong>${cov.filter(x=>x.percent===100).length}/${cov.length}</strong></button></div><div class="control-actions"><button onclick="downloadDQSummary()">⬇ Export Summary</button><button onclick="shareDQSummary()">📤 Share Summary</button></div><div class="small-note">Consumption spelling variations are automatically treated as Consumption; only genuinely unrecognized transaction names are shown as Unknown.</div></div>`;
+  host.innerHTML=`<div class="card control-card" id="dataQualityPanel"><div class="card-title"><h2>🛡 Data Health &amp; Issues</h2><span>Quality • Accuracy • Issues</span></div><div class="control-grid"><button class="control-item" onclick="openDQDuplicates()"><small>🔁 Duplicate Transactions</small><strong>${dup.length}</strong></button><button class="control-item" onclick="openDQUnknown()"><small>❓ Unknown Transactions</small><strong>${unk.length}</strong></button><button class="control-item" onclick="openDQContinuity()"><small>🔗 Opening → Closing</small><strong>${cont.length}</strong></button><button class="control-item" onclick="openDQAbnormal()"><small>⚠ Abnormal Activity</small><strong>${ab.length}</strong></button><button class="control-item" onclick="openDQHistory()"><small>📈 Historical Trend</small><strong>${getMaterials().length}</strong></button><button class="control-item" onclick="openDQCoverage()"><small>🎯 Coverage</small><strong>${cov.filter(x=>x.percent===100).length}/${cov.length}</strong></button></div><div class="health-strip" onclick="openDataHealth()"><span>⚠ Data Issues</span><b>${badDataIssueCount()}</b> <span>View details →</span></div><div class="small-note">Consumption spelling variations are automatically treated as Consumption; only genuinely unrecognized transaction names are shown as Unknown.</div></div>`;
 }
 function ensureDataQualityHost(){
-  const status=document.querySelector(".management-status-row");if(!status)return;
+  const bagGrid=document.getElementById("bagGrid");if(!bagGrid)return;
+  const bagCard=bagGrid.closest(".card");if(!bagCard)return;
   let host=document.getElementById("dataQualityPanelHost");
-  if(!host){host=document.createElement("div");host.id="dataQualityPanelHost";status.parentNode.insertBefore(host,status.nextSibling)}
+  if(!host){host=document.createElement("div");host.id="dataQualityPanelHost";bagCard.parentNode.insertBefore(host,bagCard.nextSibling)}
   renderDataQualityPanel();
 }
 const __dqBaseRenderControlCenter=renderControlCenter;
