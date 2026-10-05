@@ -8,14 +8,17 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="./manifest.json">
 <title>Manager Dashboard</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
   <div class="header">
-    <div><div class="smart-greeting" id="smartGreeting">GOOD MORNING, SIR</div><div class="smart-title"><h1>Feed Plant Control Center</h1></div><p>Manager Dashboard • <span id="reportDate">Latest</span></p><span class="selected-date-chip" id="selectedDateChip">Latest</span></div>
+    <div><div class="smart-greeting" id="smartGreeting">GOOD MORNING, SIR</div><div class="smart-title"><h1>Feed Plant Control Center</h1></div><p><span id="reportDate">Latest</span></p><span class="selected-date-chip" id="selectedDateChip">Latest</span></div>
     <div class="header-actions">
       <button class="header-tool" onclick="openGlobalSearch()" aria-label="Search">🔎</button>
+      <button class="header-tool" onclick="openDataControlPage()" aria-label="Data settings">⚙️</button>
+      <button class="header-tool plant-ai-btn" onclick="openPlantAI()" aria-label="Plant AI">🤖</button>
       <button class="header-tool" onclick="openDateSelector()" aria-label="Date selector">📅</button>
       <button class="notify-btn" onclick="openNotifications()" aria-label="Notifications">🔔<span id="notifyBadge" class="notify-badge hidden">0</span></button>
       <div class="plant">🏭</div>
@@ -36,9 +39,26 @@
     <button onclick="shiftViewDate(1)" aria-label="Next date">›</button>
   </div>
 
+  <!-- ATTENTION REQUIRED -->
+  <section class="attention-card" id="attentionRequiredCard" aria-live="polite">
+    <div class="attention-head">
+      <div>
+        <div class="attention-kicker">MANAGER FOCUS</div>
+        <h2>⚠️ Attention Required</h2>
+      </div>
+      <div class="attention-head-actions">
+        <span id="attentionStatus" class="attention-status clear">ALL CLEAR</span>
+        <span id="attentionCount" class="attention-count">0</span>
+        <button type="button" class="attention-view-all" onclick="openAttentionOverview()">View all</button>
+      </div>
+    </div>
+    <div id="attentionMeta" class="attention-meta">Checking current plant status...</div>
+    <div id="attentionList" class="attention-summary-list"></div>
+  </section>
+
   <!-- MANAGEMENT QUICK VIEW -->
   <div class="card">
-    <div class="card-title"><h2>⚡ Management Quick View</h2><span>Tap for details</span></div>
+    <div class="card-title"><h2>⚡ Management Quick View</h2><span id="dateQuickView">Data: --</span></div>
     <div class="quick-grid manager-quick-grid">
       <div class="quick quick-kpi" onclick="openFeedTotals('production_day')"><p>Day Production</p><strong id="qProdDay">-- MT</strong><div class="spark" id="sparkProd"></div></div>
       <div class="quick" onclick="openFeedTotals('production_month')"><p>Month Production</p><strong id="qProdMonth">-- MT</strong></div>
@@ -54,46 +74,21 @@
 
   <!-- BOMMAKAL PREMIX TRANSFERS -->
   <div class="card premix-card" id="premixTransferCard">
-    <div class="card-title"><h2>🧪 Premixes</h2><span>Transferred from Bommakal • KG</span></div>
+    <div class="card-title"><h2>🧪 Premixes</h2><span id="datePremix">Data: --</span></div>
     <div id="premixTransferList"><div class="empty">Loading...</div></div>
-  </div>
-
-  <!-- MONTHLY MIX & CONTRIBUTION -->
-  <div class="card monthly-mix-card" id="monthlyMixSection">
-    <div class="card-title">
-      <div><h2>📊 Monthly Mix &amp; Contribution</h2><span>Top 5 • Monthly % share</span></div>
-      <select id="mixMonthSelect" class="mix-month-select" onchange="setMixMonth(this.value)"></select>
-    </div>
-    <div class="monthly-mix-grid">
-      <div class="mix-panel rm">
-        <div class="mix-panel-head"><div><strong>🧪 RM Consumption Mix</strong><small id="mixRmTotal">Total -- MT</small></div><button onclick="openMonthlyMixDetails('rm')">View All →</button></div>
-        <div id="mixRmList"><div class="empty">Loading...</div></div>
-      </div>
-      <div class="mix-panel prod">
-        <div class="mix-panel-head"><div><strong>🏭 Production Mix</strong><small id="mixProdTotal">Total -- MT</small></div><button onclick="openMonthlyMixDetails('production')">View All →</button></div>
-        <div id="mixProdList"><div class="empty">Loading...</div></div>
-      </div>
-      <div class="mix-panel disp">
-        <div class="mix-panel-head"><div><strong>🚚 Dispatch Mix</strong><small id="mixDispTotal">Total -- MT</small></div><button onclick="openMonthlyMixDetails('dispatch')">View All →</button></div>
-        <div id="mixDispList"><div class="empty">Loading...</div></div>
-      </div>
-    </div>
-    <div class="monthly-mix-note">Percentages are calculated against the selected month total. “Others” combines items outside Top 5.</div>
   </div>
 
   <div class="desktop-grid">
     <!-- RAW MATERIAL REORDER -->
     <div class="card">
-      <div class="card-title"><h2>📦 Raw Material Reorder</h2><span>Tap material</span></div>
+      <div class="card-title"><h2>📦 Raw Material Reorder</h2><span id="dateRawReorder">Data: --</span></div>
       <div class="reorder-single-wrap">
         <div class="reorder-section-title">🌾 Raw Materials</div>
-        <div class="stock-table">
-          <div class="stock-head"><span>Material / Avg Day</span><span>Stock</span><span>Cover</span><span>Status</span></div>
+        <div class="stock-table reorder-card-list">
           <div id="stockList"><div class="empty">Loading...</div></div>
         </div>
         <div class="reorder-section-title premix-section-title">🧪 Premixes</div>
-        <div class="stock-table premix-reorder-table">
-          <div class="stock-head"><span>Material / Avg Day</span><span>Stock</span><span>Cover</span><span>Status</span></div>
+        <div class="stock-table premix-reorder-table reorder-card-list">
           <div id="premixStockList"><div class="empty">Loading...</div></div>
         </div>
       </div>
@@ -102,7 +97,7 @@
 
     <!-- PRODUCTION -->
     <div class="card">
-      <div class="card-title"><h2>🏭 Production</h2><span>Actual output in Bags</span></div>
+      <div class="card-title"><h2>🏭 Production</h2><span id="dateProduction">Data: --</span></div>
       <div class="production-total" id="productionTotalMain">-- Bags</div>
       <div class="production-label">Actual Production</div>
       <div id="productionList"><div class="empty">Loading...</div></div>
@@ -112,13 +107,13 @@
 
   <!-- FEED UNIT -->
   <div class="card">
-    <div class="card-title"><h2>🌾 Feed Unit</h2><span>Product-wise details</span></div>
+    <div class="card-title"><h2>🌾 Feed Unit</h2><span id="dateFeedUnit">Data: --</span></div>
     <div id="feedUnitList"><div class="empty">Loading...</div></div>
   </div>
 
   <!-- RAW MATERIAL MOVEMENTS -->
   <div class="card">
-    <div class="card-title"><h2>📋 Raw Material Movements</h2><span>Material-wise</span></div>
+    <div class="card-title"><h2>📋 Raw Material Movements</h2><span id="dateRawMovements">Data: --</span></div>
     <div class="section-tabs">
       <button class="active" onclick="setRawTab(this,'STOCK')">Stock</button>
       <button onclick="setRawTab(this,'CONSUMPTION')">Consumption</button>
@@ -133,22 +128,190 @@
 
     <!-- PP BAGS -->
     <div class="card">
-      <div class="card-title"><h2>🛍 PP Bags</h2><span>Tap product</span></div>
+      <div class="card-title"><h2>🛍 PP Bags</h2><span id="datePPBags">Data: --</span></div>
       <div class="pp-grid" id="bagGrid"><div class="empty">Loading...</div></div>
     </div>
 
+
+  <!-- MONTHLY MIX & CONTRIBUTION -->
+  <div class="card monthly-mix-card" id="monthlyMixSection">
+    <div class="card-title">
+      <div><h2>📊 Monthly Mix &amp; Contribution</h2><span id="dateMonthlyMix">Month: --</span></div>
+      <select id="mixMonthSelect" class="mix-month-select" onchange="setMixMonth(this.value)"></select>
+    </div>
+    <div class="monthly-mix-tabs" role="tablist" aria-label="Monthly Mix">
+      <button type="button" class="monthly-mix-tab active" data-mix-tab="rm" onclick="setMonthlyMixTab('rm',this)">🧪 RM</button>
+      <button type="button" class="monthly-mix-tab" data-mix-tab="production" onclick="setMonthlyMixTab('production',this)">🏭 Production</button>
+      <button type="button" class="monthly-mix-tab" data-mix-tab="dispatch" onclick="setMonthlyMixTab('dispatch',this)">🚚 Dispatch</button>
+    </div>
+    <div class="monthly-mix-tab-panels">
+      <div class="mix-panel rm monthly-mix-tab-panel active" data-mix-panel="rm">
+        <div class="mix-panel-head"><div><strong>🧪 RM Consumption Mix</strong><small id="mixRmTotal">Total -- MT</small></div><button onclick="openMonthlyMixDetails('rm')">View All →</button></div>
+        <div id="mixRmList"><div class="empty">Loading...</div></div>
+      </div>
+      <div class="mix-panel prod monthly-mix-tab-panel" data-mix-panel="production" hidden>
+        <div class="mix-panel-head"><div><strong>🏭 Production Mix</strong><small id="mixProdTotal">Total -- MT</small></div><button onclick="openMonthlyMixDetails('production')">View All →</button></div>
+        <div id="mixProdList"><div class="empty">Loading...</div></div>
+      </div>
+      <div class="mix-panel disp monthly-mix-tab-panel" data-mix-panel="dispatch" hidden>
+        <div class="mix-panel-head"><div><strong>🚚 Dispatch Mix</strong><small id="mixDispTotal">Total -- MT</small></div><button onclick="openMonthlyMixDetails('dispatch')">View All →</button></div>
+        <div id="mixDispList"><div class="empty">Loading...</div></div>
+      </div>
+    </div>
+    <div class="monthly-mix-note">Percentages are calculated against the selected month total. “Others” combines items outside Top 5.</div>
+  </div>
+
+  <!-- SPARE PARTS -->
+  <div class="card spare-parts-card" id="sparePartsSection">
+    <div class="card-title"><div><h2>🔧 Spare Parts</h2><span id="dateSpareParts">Data: --</span></div><button class="spare-refresh-btn" onclick="loadSpareParts(true)">↻ Refresh</button></div>
+    <div class="section-tabs spare-tabs">
+      <button class="active" onclick="setSpareTab(this,'SPARE_STOCK')">Stock</button>
+      <button onclick="setSpareTab(this,'SPARE_ORDERS')">Orders</button>
+      <button onclick="setSpareTab(this,'EMPLOYEE_MESSAGES')">Employee Messages</button>
+    </div>
+    <div class="spare-search-wrap"><input id="spareSearch" class="search-input" placeholder="Search spare parts..." oninput="renderSpareParts(this.value)"></div>
+    <div id="sparePartsList"><div class="empty">Loading spare parts...</div></div>
+  </div>
+
+
+  <!-- REPORT CENTER -->
+  <div class="card report-center-card" id="reportCenterSection">
+    <div class="card-title">
+      <div><h2>📊 Report Center</h2><span>Complete plant reports • PDF • Excel • WhatsApp Copy</span></div>
+    </div>
+    <div class="report-range-bar">
+      <label>From Date<input type="date" id="reportFromDate"></label>
+      <label>To Date<input type="date" id="reportToDate"></label>
+      <button class="report-reset-btn" onclick="resetReportDates()">↺ Reset</button>
+    </div>
+    <div class="report-note">Select any date range. Reports use the actual data already loaded in the dashboard; no new values are calculated into the source data.</div>
+
+    <div class="report-main-card report-complete-card">
+      <div class="report-card-head">
+        <div><strong>📕 Complete Dashboard Report</strong><small>All available plant data for the selected date range</small></div>
+        <button class="report-view-btn" onclick="openReportView('complete')">👁 View</button>
+      </div>
+      <div class="report-actions">
+        <button onclick="generateReportPDF('complete')">📄 PDF</button>
+        <button onclick="exportReportExcel('complete')">📊 Excel</button>
+        <button onclick="copyReportWhatsApp('complete')">📱 WhatsApp Copy</button>
+      </div>
+    </div>
+
+    <div class="report-main-card">
+      <div class="report-card-head">
+        <div><strong>📦 Raw Material — Material-wise</strong><small>Material • Date • Received • Consumption • Transfer • Closing</small></div>
+        <button class="report-view-btn" onclick="openReportView('material')">👁 View</button>
+      </div>
+      <div class="report-actions">
+        <button onclick="generateHistoryReportPDF('material')">📄 PDF</button><button onclick="exportHistoryReportExcel('material')">📊 Excel</button><button onclick="copyHistoryWhatsApp('material')">📱 WhatsApp</button>
+      </div>
+    </div>
+
+    <div class="report-main-card">
+      <div class="report-card-head">
+        <div><strong>🌾 Feed Unit — Product-wise</strong><small>Product • Date • Production • Dispatch • Closing</small></div>
+        <button class="report-view-btn" onclick="openReportView('feed')">👁 View</button>
+      </div>
+      <div class="report-actions">
+        <button onclick="generateReportPDF('feed')">📄 PDF</button><button onclick="exportReportExcel('feed')">📊 Excel</button><button onclick="copyReportWhatsApp('feed')">📱 WhatsApp</button>
+      </div>
+    </div>
+
+    <div class="report-main-card">
+      <div class="report-card-head">
+        <div><strong>🛍 PP Bags — Product-wise</strong><small>Product • Date • Received • Issue • Damage • Closing</small></div>
+        <button class="report-view-btn" onclick="openReportView('bags')">👁 View</button>
+      </div>
+      <div class="report-actions">
+        <button onclick="generateReportPDF('bags')">📄 PDF</button><button onclick="exportReportExcel('bags')">📊 Excel</button><button onclick="copyReportWhatsApp('bags')">📱 WhatsApp</button>
+      </div>
+    </div>
+
+    <div class="report-main-card">
+      <div class="report-card-head">
+        <div><strong>🏭 Production — Product-wise</strong><small>Product-wise production records and performance</small></div>
+        <button class="report-view-btn" onclick="openReportView('production')">👁 View</button>
+      </div>
+      <div class="report-actions">
+        <button onclick="generateReportPDF('production')">📄 PDF</button><button onclick="exportReportExcel('production')">📊 Excel</button><button onclick="copyReportWhatsApp('production')">📱 WhatsApp</button>
+      </div>
+    </div>
+
+    <div class="report-main-card">
+      <div class="report-card-head">
+        <div><strong>🧪 Premix</strong><small>Premix transfer and monthly mix data</small></div>
+        <button class="report-view-btn" onclick="openReportView('premix')">👁 View</button>
+      </div>
+      <div class="report-actions">
+        <button onclick="generateReportPDF('premix')">📄 PDF</button><button onclick="exportReportExcel('premix')">📊 Excel</button><button onclick="copyReportWhatsApp('premix')">📱 WhatsApp</button>
+      </div>
+    </div>
+
+    <div class="report-main-card">
+      <div class="report-card-head">
+        <div><strong>📊 Monthly Mix & Contribution</strong><small>RM consumption • Production • Dispatch by selected month</small></div>
+        <button class="report-view-btn" onclick="openReportView('mix')">👁 View</button>
+      </div>
+      <div class="report-actions">
+        <button onclick="generateReportPDF('mix')">📄 PDF</button><button onclick="exportReportExcel('mix')">📊 Excel</button><button onclick="copyReportWhatsApp('mix')">📱 WhatsApp</button>
+      </div>
+    </div>
+
+    <div class="report-main-card">
+      <div class="report-card-head">
+        <div><strong>📋 RM Movements</strong><small>Stock • Consumption • Received • Transfer • Gain • Shortage • Sale</small></div>
+        <button class="report-view-btn" onclick="openReportView('movements')">👁 View</button>
+      </div>
+      <div class="report-actions">
+        <button onclick="generateReportPDF('movements')">📄 PDF</button><button onclick="exportReportExcel('movements')">📊 Excel</button><button onclick="copyReportWhatsApp('movements')">📱 WhatsApp</button>
+      </div>
+    </div>
+
+    <div class="report-main-card">
+      <div class="report-card-head">
+        <div><strong>🔧 Spare Parts</strong><small>Stock • Reorder • Orders • Employee messages</small></div>
+        <button class="report-view-btn" onclick="openReportView('spares')">👁 View</button>
+      </div>
+      <div class="report-actions">
+        <button onclick="generateReportPDF('spares')">📄 PDF</button><button onclick="exportReportExcel('spares')">📊 Excel</button><button onclick="copyReportWhatsApp('spares')">📱 WhatsApp</button>
+      </div>
+    </div>
+
+    <div class="report-main-card">
+      <div class="report-card-head">
+        <div><strong>⚠️ Data Health</strong><small>Reorder, reconciliation and available-data checks</small></div>
+        <button class="report-view-btn" onclick="openReportView('health')">👁 View</button>
+      </div>
+      <div class="report-actions">
+        <button onclick="generateReportPDF('health')">📄 PDF</button><button onclick="exportReportExcel('health')">📊 Excel</button><button onclick="copyReportWhatsApp('health')">📱 WhatsApp</button>
+      </div>
+    </div>
+
+    <div class="report-view-panel" id="reportViewPanel" hidden>
+      <div class="report-view-panel-head">
+        <div><strong id="reportViewTitle">Selected Dates Data</strong><small id="reportViewSubtitle">Click View on any report to see the data here.</small></div>
+        <button class="report-close-btn" onclick="closeReportView()">✕ Close</button>
+      </div>
+      <div class="report-view-controls" id="reportViewControls"></div>
+      <div class="report-preview-meta" id="reportPreviewMeta"></div>
+      <div class="report-preview-table-wrap" id="reportPreviewTable"><div class="empty">Select a report and tap View.</div></div>
+    </div>
+
+  </div>
+
   <!-- TRENDS -->
   <div class="card" id="trendsSection">
-    <div class="card-title"><h2>📊 Trends</h2><span>Swipe →</span></div>
+    <div class="card-title"><h2>📊 Trends</h2><span id="dateTrends">Data through: --</span></div>
     <div class="trend-wrapper" id="trendWrapper">
-      <div class="trend-card"><div class="trend-header"><div><h3>📦 Raw Material Consumption</h3><small>Daily movement</small></div><select id="materialSelect" onchange="drawMaterialChart(this.value)"></select></div><canvas id="materialChart"></canvas></div>
-      <div class="trend-card"><div class="trend-header"><div><h3>📥 Purchase / Received Trend</h3><small>Daily movement</small></div></div><canvas id="purchaseChart"></canvas></div>
-      <div class="trend-card"><div class="trend-header"><div><h3>📦 Closing Stock Trend</h3><small>Daily movement</small></div></div><canvas id="closingChart"></canvas></div>
-      <div class="trend-card"><div class="trend-header"><div><h3>🏭 Production Trend</h3><small>Bags • available days</small></div></div><canvas id="productionChart"></canvas></div>
-      <div class="trend-card"><div class="trend-header"><div><h3>📈 Output % Trend</h3><small>Production records</small></div></div><canvas id="outputChart"></canvas></div>
-      <div class="trend-card"><div class="trend-header"><div><h3>⚙ Process Loss Trend</h3><small>Production records</small></div></div><canvas id="lossChart"></canvas></div>
-      <div class="trend-card"><div class="trend-header"><div><h3>🌾 Feed Unit Production / Dispatch</h3><small>MT • available days</small></div></div><canvas id="feedChart"></canvas></div>
-      <div class="trend-card"><div class="trend-header"><div><h3>🛍 PP Bags Issue / Damage</h3><small>Available records</small></div></div><canvas id="bagChart"></canvas></div>
+      <div class="trend-card"><div class="trend-header"><div><h3>📦 Raw Material Consumption</h3><small id="trendDateMaterial">Data: --</small></div><select id="materialSelect" onchange="drawMaterialChart(this.value)"></select></div><canvas id="materialChart"></canvas></div>
+      <div class="trend-card"><div class="trend-header"><div><h3>📥 Purchase / Received Trend</h3><small id="trendDatePurchase">Data: --</small></div></div><canvas id="purchaseChart"></canvas></div>
+      <div class="trend-card"><div class="trend-header"><div><h3>📦 Closing Stock Trend</h3><small id="trendDateClosing">Data: --</small></div></div><canvas id="closingChart"></canvas></div>
+      <div class="trend-card"><div class="trend-header"><div><h3>🏭 Production Trend</h3><small id="trendDateProduction">Data through: --</small></div></div><canvas id="productionChart"></canvas></div>
+      <div class="trend-card"><div class="trend-header"><div><h3>📈 Output % Trend</h3><small id="trendDateOutput">Data through: --</small></div></div><canvas id="outputChart"></canvas></div>
+      <div class="trend-card"><div class="trend-header"><div><h3>⚙ Process Loss Trend</h3><small id="trendDateLoss">Data through: --</small></div></div><canvas id="lossChart"></canvas></div>
+      <div class="trend-card"><div class="trend-header"><div><h3>🌾 Feed Unit Production / Dispatch</h3><small id="trendDateFeed">Data through: --</small></div></div><canvas id="feedChart"></canvas></div>
+      <div class="trend-card"><div class="trend-header"><div><h3>🛍 PP Bags Issue / Damage</h3><small id="trendDateBags">Data through: --</small></div></div><canvas id="bagChart"></canvas></div>
     </div>
     <div class="dots" id="trendDots"></div>
   </div>
@@ -158,7 +321,34 @@
     <div class="nav-item" onclick="openStockDetails()"><div>📦</div>Stock</div>
     <div class="nav-item" onclick="openProductionDetails()"><div>🏭</div>Production</div>
     <div class="nav-item" onclick="openPPBagDetails()"><div>🛍</div>PP Bags</div>
+    <div class="nav-item" onclick="goSpareParts()"><div>🔧</div>Spares</div>
     <div class="nav-item" onclick="goTrend()"><div>📊</div>Reports</div>
+  </div>
+</div>
+
+
+<!-- DATA CONTROL / SETTINGS PAGE -->
+<div class="dc-page" id="dataControlPage" aria-hidden="true">
+  <div class="dc-page-head">
+    <div>
+      <div class="dc-page-kicker">SITE SETTINGS</div>
+      <h2>🛡 Data Control Center</h2>
+      <p>Hide • Review • Exclude • Reconcile • Restore</p>
+    </div>
+    <div class="dc-page-actions">
+      <button class="report-view-btn" onclick="dcReviewModal()">🔔 Review</button>
+      <button class="report-close-btn" onclick="closeDataControlPage()">✕ Close</button>
+    </div>
+  </div>
+  <div id="dataControlContent"><div class="empty">Loading data controls...</div></div>
+  <div class="dc-review-overlay" id="dcReviewOverlay" aria-hidden="true" onclick="dcReviewOverlayOutside(event)">
+    <div class="dc-review-dialog" role="dialog" aria-modal="true" aria-labelledby="dcReviewTitle">
+      <div class="dc-review-dialog-head">
+        <div><div class="dc-page-kicker">MANAGER ACTION</div><h3 id="dcReviewTitle">🔔 Review Required</h3><p id="dcReviewSubtitle">Review only the items that need a decision.</p></div>
+        <button type="button" class="dc-dialog-close" onclick="closeDcReview()" aria-label="Close review">×</button>
+      </div>
+      <div id="dcReviewContent"></div>
+    </div>
   </div>
 </div>
 
@@ -169,6 +359,30 @@
   </div>
 </div>
 
-  <script src="app.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script id="uiLoadingObserver" defer>
+  (function(){
+    function markLoading(root){
+      (root||document).querySelectorAll('.empty').forEach(function(el){
+        var t=(el.textContent||'').trim().toLowerCase();
+        if(t === 'loading...' || t === 'loading spare parts...') el.classList.add('loading-state');
+        else el.classList.remove('loading-state');
+      });
+    }
+    document.addEventListener('DOMContentLoaded',function(){
+      markLoading(document);
+      new MutationObserver(function(m){
+        m.forEach(function(x){
+          x.addedNodes && x.addedNodes.forEach(function(n){
+            if(n.nodeType===1) markLoading(n.parentNode||n);
+          });
+        });
+      }).observe(document.body,{subtree:true,childList:true});
+    });
+  })();
+  </script>
+  <script defer src="app.js"></script>
 </body>
 </html>

@@ -2,7 +2,9 @@
 /* =====================================================
    WORKING GOOGLE APPS SCRIPT URL — KEEP UNCHANGED • UI REFINEMENT
 ===================================================== */
-const API_URL="https://script.google.com/macros/s/AKfycbxhiO5LAGwqkvDHW9DjH8jynYzYlyjAvNxgYlV9J3Y1GGZJxGb_3oXCvk-Bzefp74oa/exec";
+const SUPABASE_URL="https://iqxprkmainafqjodpfdk.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_54VfHOULYN31VknExbmdVA_mYxhtU-7";
+const SPARE_PARTS_API="https://script.google.com/macros/s/AKfycbweDXm7if7XuHwAUju9WkIkNXkg0CakJJ9mmEBkQBwuQVuyYC9YkxjClVvovSSjv320/exec";
 
 /* =====================================================
    SETTINGS
@@ -26,6 +28,284 @@ function alertKey(a){return normalize((a.title||"")+"|"+(a.msg||""))}
 function saveDismissedAlerts(){try{localStorage.setItem("manager_dashboard_dismissed_alerts_v1",JSON.stringify([...DISMISSED_ALERTS]))}catch(e){}}
 function dismissAlert(key){DISMISSED_ALERTS.add(key);saveDismissedAlerts();renderAlerts();if(document.getElementById("modal").classList.contains("show"))openNotifications()}
 function clearDismissedAlerts(){DISMISSED_ALERTS.clear();saveDismissedAlerts();renderAlerts();openNotifications()}
+
+/* =====================================================
+   DATA CONTROL / REVIEW LAYER
+   Raw source is never deleted. Decisions are stored locally and applied
+   consistently to calculations and dashboard views.
+===================================================== */
+const DATA_CONTROL_KEY="plant_data_control_v1";
+let DATA_CONTROL={materials:{},products:{},records:{}};
+function loadDataControl(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(DATA_CONTROL_KEY)||"{}");
+    DATA_CONTROL={materials:raw.materials||{},products:raw.products||{},records:raw.records||{}};
+  }catch(e){DATA_CONTROL={materials:{},products:{},records:{}}}
+}
+function saveDataControl(){try{localStorage.setItem(DATA_CONTROL_KEY,JSON.stringify(DATA_CONTROL))}catch(e){}}
+loadDataControl();
+function dcKey(v){return normalize(v).replace(/[^A-Z0-9._-]+/g,"_")}
+function dcMaterialState(name){return DATA_CONTROL.materials[dcKey(name)]||{status:"ACTIVE",reason:"",updatedAt:""}}
+function dcProductState(name){return DATA_CONTROL.products[dcKey(name)]||{status:"ACTIVE",reason:"",updatedAt:""}}
+function dcRecordKey(material,t){
+  return dcKey([material,dateOnly(rowDate(t)),tType(t),tVal(t),clean(t.for_day),clean(t.for_month),clean(t.for_year)].join("|"));
+}
+function dcRecordState(material,t){return DATA_CONTROL.records[dcRecordKey(material,t)]||null}
+function dcRefreshUI(){
+  try{renderDataControl();}catch(e){console.warn("Data control refresh failed",e)}
+  try{renderDashboard();}catch(e){console.warn("Dashboard refresh failed",e)}
+  const overlay=document.getElementById("dcReviewOverlay");
+  if(overlay && overlay.classList.contains("show")) setTimeout(()=>renderDcReviewOverlay(),0);
+}
+function closeDcReview(){
+  const overlay=document.getElementById("dcReviewOverlay");
+  if(!overlay)return;
+  overlay.classList.remove("show"); overlay.setAttribute("aria-hidden","true");
+}
+function dcReviewOverlayOutside(e){if(e.target&&e.target.id==="dcReviewOverlay")closeDcReview()}
+
+function dcSetMaterial(name,status,reason){
+  const k=dcKey(name), now=new Date().toISOString(), base={status,reason:clean(reason),updatedAt:now};
+  if(status==="HIDDEN"){const rows=dcMaterialActivity(name);base.activityAck=rows.map(t=>dateOnly(rowDate(t))).filter(Boolean).sort().pop()||"";}
+  DATA_CONTROL.materials[k]=base; saveDataControl(); invalidatePerfCache(); dcRefreshUI();
+}
+function dcSetProduct(name,status,reason){
+  const k=dcKey(name), now=new Date().toISOString(), base={status,reason:clean(reason),updatedAt:now};
+  if(status==="HIDDEN"){const rows=[...(DATA.production||[]),...(DATA.productionHistory||[]),...(DATA.feedUnitData||[]),...(DATA.bags||[]),...(DATA.bagsHistory||[])].filter(r=>normalize(r.product||r.Product)===normalize(name));base.activityAck=rows.map(r=>dateOnly(r.Report_Date||r.report_date||r.date)).filter(Boolean).sort().pop()||"";}
+  DATA_CONTROL.products[k]=base; saveDataControl(); invalidatePerfCache(); dcRefreshUI();
+}
+function dcSetRecord(material,t,status,reason){
+  const k=dcRecordKey(material,t); DATA_CONTROL.records[k]={status,reason:clean(reason),updatedAt:new Date().toISOString()}; saveDataControl(); invalidatePerfCache(); dcRefreshUI();
+}
+function dcReviewExcludedRecord(material,t,keep){
+  const k=dcRecordKey(material,t), old=DATA_CONTROL.records[k]||{};
+  DATA_CONTROL.records[k]={...old,status:keep?"EXCLUDED":"KEPT",reason:keep?"Reviewed — keep excluded":"Reconciliation changed — restored",updatedAt:new Date().toISOString(),reviewAck:keep?dcLatestRawReconciliation(material).status+"|"+dcLatestRawReconciliation(material).date:""};
+  saveDataControl(); invalidatePerfCache(); dcRefreshUI();
+}
+function dcReviewHiddenMaterial(material,keep){
+  const rows=dcMaterialActivity(material), latest=rows.map(t=>dateOnly(rowDate(t))).filter(Boolean).sort().pop()||"";
+  if(keep){const k=dcKey(material),st=dcMaterialState(material); DATA_CONTROL.materials[k]={...st,status:"HIDDEN",reason:"Activity reviewed — keep hidden",updatedAt:new Date().toISOString(),activityAck:latest}; saveDataControl(); invalidatePerfCache(); dcRefreshUI();}
+  else dcSetMaterial(material,"ACTIVE","Activity detected — reviewed");
+}
+function dcReviewHiddenProduct(product,keep){
+  const rows=[...(DATA.production||[]),...(DATA.productionHistory||[]),...(DATA.feedUnitData||[]),...(DATA.bags||[]),...(DATA.bagsHistory||[])].filter(r=>normalize(r.product||r.Product)===normalize(product));
+  const latest=rows.map(r=>dateOnly(r.Report_Date||r.report_date||r.date)).filter(Boolean).sort().pop()||"";
+  if(keep){const k=dcKey(product),st=dcProductState(product); DATA_CONTROL.products[k]={...st,status:"HIDDEN",reason:"Activity reviewed — keep hidden",updatedAt:new Date().toISOString(),activityAck:latest}; saveDataControl(); invalidatePerfCache(); dcRefreshUI();}
+  else dcSetProduct(product,"ACTIVE","Activity detected — reviewed");
+}
+function dcIsExcluded(material,t){const s=dcRecordState(material,t);return s&&s.status==="EXCLUDED"}
+function dcIsHiddenMaterial(name){return dcMaterialState(name).status==="HIDDEN"}
+function dcIsHiddenProduct(name){return dcProductState(name).status==="HIDDEN"}
+function dcRawTransactions(material){
+  const x=(()=>{const key=normalize(material); if(PERF_CACHE.rawTransactions&&PERF_CACHE.rawTransactions.has(key))return PERF_CACHE.rawTransactions.get(key); const r=(()=>{const item=(()=>{if(!PERF_CACHE.materialMap){PERF_CACHE.materialMap=new Map(viewStockRows().map(x=>[normalize(x.material),x]));} return PERF_CACHE.materialMap.get(key)||null})(); return item&&Array.isArray(item.transactions)?item.transactions:[]})(); PERF_CACHE.rawTransactions=PERF_CACHE.rawTransactions||new Map(); PERF_CACHE.rawTransactions.set(key,r); return r;})();
+  return x;
+}
+function dcApprovedTransactions(material){return dcRawTransactions(material).filter(t=>!dcIsExcluded(material,t))}
+function dcAllMaterialNames(){return [...new Set((DATA.stock||[]).map(x=>clean(x.material)).filter(Boolean))]}
+function dcAllProductNames(){
+  const rows=[...(DATA.production||[]),...(DATA.productionHistory||[]),...(DATA.feedUnitData||[]),...(DATA.bags||[]),...(DATA.bagsHistory||[])];
+  return [...new Set(rows.map(r=>clean(r.product||r.Product)).filter(Boolean))];
+}
+function dcMaterialActivity(material){
+  const rows=dcRawTransactions(material);
+  return rows.filter(t=>{
+    const ty=tType(t),v=tVal(t);
+    return v>0 && !["OPENING STOCK","CL. STOCK"].includes(ty);
+  });
+}
+function dcLatestRawReconciliation(material){
+  const rows=dcRawTransactions(material); if(!rows.length)return {status:"NO DATA",message:"No transaction history available."};
+  const dates=rows.map(t=>dateOnly(rowDate(t))).filter(Boolean).sort(); const latest=dates[dates.length-1]||"";
+  const dayRows=latest?rows.filter(t=>dateOnly(rowDate(t))===latest):rows;
+  let opening=null,closing=null,add=0,out=0,cons=0,otherActivity=0;
+  dayRows.forEach(t=>{
+    const ty=tType(t),v=tVal(t); if(ty==="OPENING STOCK")opening=v; else if(ty==="CL. STOCK")closing=v;
+    else if(ty.includes("CONSUMPTION")||ty.includes("CONSUMPION")){cons+=v;otherActivity+=v}
+    else if(ty==="PURCHASE"||ty==="RECEIVED"||ty==="GAIN"||ty.includes("TRANSFER FROM")){add+=v;otherActivity+=v}
+    else if(ty.includes("TRANSFER TO")||ty.includes("SALE")||ty.includes("SHORTAGE")||ty==="DAMAGE"||ty==="ISSUE"||ty.includes("RETURN TO")){out+=v;otherActivity+=v}
+  });
+  if(opening===null&&closing===null)return {status:"NO DATA",date:latest};
+  const unexplained=cons>0 && opening<=0 && add<=0;
+  const calculated=(opening||0)+add-out-(closing===null?0:closing);
+  const diff=calculated-cons;
+  const match=closing!==null && Math.abs(diff)<=0.01;
+  return {status:match?"MATCH":"MISMATCH",date:latest,opening:opening||0,closing,add,out,cons,otherActivity,calculated,diff,unexplained};
+}
+function dcReviewItems(){
+  const items=[];
+  dcAllMaterialNames().forEach(m=>{
+    const st=dcMaterialState(m), rec=dcLatestRawReconciliation(m), activity=dcMaterialActivity(m);
+    if(st.status==="HIDDEN" && activity.length){
+      const hiddenDate=dateOnly(st.updatedAt);
+      const fresh=activity.filter(t=>{const d=dateOnly(rowDate(t));return (!hiddenDate||!d||d>=hiddenDate) && (!st.activityAck || !d || d>st.activityAck);});
+      if(fresh.length){const latest=fresh.map(t=>dateOnly(rowDate(t))).filter(Boolean).sort().pop()||""; items.push({id:"hidden|"+dcKey(m)+"|"+latest,type:"HIDDEN_ACTIVITY",level:"warning",item:m,reason:"Hidden material has new recorded activity",detail:`Latest activity: ${latest||"--"}`});}
+    }
+    if(rec.unexplained){
+      const sig=dcKey([m,rec.date,rec.cons,rec.opening,rec.add,rec.closing].join("|"));
+      const prior=DATA_CONTROL.materials[dcKey(m)];
+      if(!(prior&&prior.unexplainedSignature===sig&&prior.unexplainedDecision==="EXCLUDED")) items.push({id:"unexplained|"+sig,type:"UNEXPLAINED_CONSUMPTION",level:"critical",item:m,reason:"Consumption exists without opening/receipt/transfer support",detail:`Consumption ${fmt(rec.cons)} • Opening ${fmt(rec.opening)} • Additions ${fmt(rec.add)}`});
+    }
+    dcRawTransactions(m).forEach(t=>{
+      const rs=dcRecordState(m,t); if(rs&&rs.status==="EXCLUDED"){
+        const rec2=dcLatestRawReconciliation(m);
+        const ack=rs.reviewAck||""; const sig=rec2.status+"|"+rec2.date; if(rec2.status==="MATCH" && ack!==sig) items.push({id:"excluded-pass|"+dcRecordKey(m,t)+"|"+sig,type:"EXCLUDED_RECONCILIATION",level:"warning",item:m,record:t,reason:"Previously excluded record is now in a reconciled/matching activity state",detail:`Reconciliation ${rec2.date||"latest"} = MATCH`});
+      }
+    });
+  });
+  dcAllMaterialNames().forEach(m=>{
+    const rows=dcRawTransactions(m), dates=rows.map(t=>dateOnly(rowDate(t))).filter(Boolean).sort(), latest=dates[dates.length-1]||"";
+    const seen=new Map();
+    rows.forEach((t,idx)=>{
+      if(latest && dateOnly(rowDate(t))!==latest)return;
+      const key=[dateOnly(rowDate(t)),tType(t),tVal(t),clean(t.for_day),clean(t.for_month),clean(t.for_year)].join("|");
+      if(!key||key.replace(/\|/g,"")==="")return;
+      const prior=seen.get(key);
+      if(prior!==undefined){
+        const a=dcRecordState(m,t), b=dcRecordState(m,rows[prior]);
+        if(!(a&&a.status==="EXCLUDED") && !(b&&b.status==="EXCLUDED")) items.push({id:"duplicate|"+dcKey(m)+"|"+dcKey(key),type:"DUPLICATE_RECORD",level:"warning",item:m,record:t,index:idx,reason:"Identical transaction signature appears more than once",detail:`${tType(t)||"Movement"} • ${dateOnly(rowDate(t))||"--"} • Qty ${fmt(tVal(t))}`});
+      }else seen.set(key,idx);
+    });
+  });
+  dcAllProductNames().forEach(product=>{
+    if(!dcIsHiddenProduct(product))return;
+    const rows=[...(DATA.production||[]),...(DATA.productionHistory||[]),...(DATA.feedUnitData||[]),...(DATA.bags||[]),...(DATA.bagsHistory||[])].filter(r=>normalize(r.product||r.Product)===normalize(product));
+    const hiddenDate=dateOnly(dcProductState(product).updatedAt);
+    const stp=dcProductState(product); const fresh=rows.filter(r=>{const d=dateOnly(r.Report_Date||r.report_date||r.date);return (!hiddenDate||!d||d>=hiddenDate) && (!stp.activityAck || !d || d>stp.activityAck);});
+    const active=fresh.some(r=>Object.entries(r).some(([k,v])=>!/(product|report_date|date)/i.test(k)&&num(v)!==null&&num(v)!==0));
+    if(active)items.push({id:"hidden-product|"+dcKey(product)+"|"+hiddenDate,type:"HIDDEN_PRODUCT_ACTIVITY",level:"warning",item:product,reason:"Hidden product has new recorded activity",detail:`${fresh.length} new source record(s) detected`});
+  });
+  return items.filter((x,i,a)=>a.findIndex(y=>y.id===x.id)===i);
+}
+function dcApplyUnexplainedDecisionByMaterial(material,action){
+  const item={item:material};
+  dcApplyUnexplainedDecision(item,action);
+}
+function dcApplyUnexplainedDecision(item,action){
+  const m=item.item, rec=dcLatestRawReconciliation(m), sig=dcKey([m,rec.date,rec.cons,rec.opening,rec.add,rec.closing].join("|"));
+  const rows=dcRawTransactions(m);
+  if(rec.date){
+    rows.forEach(t=>{
+      if(dateOnly(rowDate(t))!==rec.date)return;
+      const ty=tType(t);
+      if(!(ty.includes("CONSUMPTION")||ty.includes("CONSUMPION")||ty.includes("CONSUMPTON")||ty.includes("CONSUMPTI")))return;
+      const k=dcRecordKey(m,t);
+      DATA_CONTROL.records[k]={status:action==="EXCLUDED"?"EXCLUDED":"KEPT",reason:action==="EXCLUDED"?"Unexplained consumption — excluded by manager":"Unexplained consumption — reviewed and kept",updatedAt:new Date().toISOString(),reviewAck:action==="EXCLUDED"?"":""};
+    });
+  }
+  const st=dcMaterialState(m); st.unexplainedSignature=sig; st.unexplainedDecision=action; DATA_CONTROL.materials[dcKey(m)]=st; saveDataControl(); invalidatePerfCache(); dcRefreshUI();
+}
+function dcSetRecordByIndex(material,index,status,reason){const rows=dcRawTransactions(material);const t=rows[index];if(t)dcSetRecord(material,t,status,reason);}
+function openDataControlPage(){
+  const page=document.getElementById("dataControlPage");
+  if(!page)return;
+  page.classList.add("show");
+  page.setAttribute("aria-hidden","false");
+  document.body.classList.add("dc-page-open");
+  try{renderDataControl();}catch(e){console.warn("Data control page render failed",e)}
+}
+function closeDataControlPage(){
+  const page=document.getElementById("dataControlPage");
+  if(!page)return;
+  page.classList.remove("show");
+  page.setAttribute("aria-hidden","true");
+  closeDcReview();
+  document.body.classList.remove("dc-page-open");
+}
+
+function renderDcReviewOverlay(){
+  const overlay=document.getElementById("dcReviewOverlay"), content=document.getElementById("dcReviewContent"), subtitle=document.getElementById("dcReviewSubtitle");
+  if(!overlay||!content)return;
+  const items=dcReviewItems();
+  if(subtitle) subtitle.textContent=items.length?`${items.length} item${items.length===1?"":"s"} need manager review`:"No new review items detected";
+  if(!items.length){
+    content.innerHTML=`<div class="dc-review-empty"><div class="dc-review-empty-icon">✓</div><h4>Everything is reviewed</h4><p>No new hidden-item activity, unexplained consumption, duplicate or changed reconciliation decision needs attention.</p><button type="button" class="dc-primary-action" onclick="closeDcReview()">Done</button></div>`;
+    return;
+  }
+  content.innerHTML=`<div class="dc-review-list">${items.map((x,i)=>`<article class="dc-review-item ${x.level}">
+    <div class="dc-review-top"><span class="dc-badge">${esc(x.type.replace(/_/g," "))}</span><strong>${esc(x.item)}</strong></div>
+    <div class="dc-review-reason">${esc(x.reason)}</div>
+    <div class="dc-review-detail">${esc(x.detail||"")}</div>
+    <div class="dc-actions">${x.type==="HIDDEN_ACTIVITY"?`<button type="button" onclick="dcReviewHiddenMaterial('${jsq(x.item)}',false)">Unhide</button><button type="button" onclick="dcReviewHiddenMaterial('${jsq(x.item)}',true)">Keep Hidden</button>`:x.type==="HIDDEN_PRODUCT_ACTIVITY"?`<button type="button" onclick="dcReviewHiddenProduct('${jsq(x.item)}',false)">Unhide</button><button type="button" onclick="dcReviewHiddenProduct('${jsq(x.item)}',true)">Keep Hidden</button>`:x.type==="UNEXPLAINED_CONSUMPTION"?`<button type="button" onclick="dcApplyUnexplainedDecisionByMaterial('${jsq(x.item)}','EXCLUDED')">Exclude</button><button type="button" onclick="dcApplyUnexplainedDecisionByMaterial('${jsq(x.item)}','KEPT')">Keep</button>`:x.type==="DUPLICATE_RECORD"?`<button type="button" onclick="dcSetRecordByIndex('${jsq(x.item)}',${Number(x.index)||0},'EXCLUDED','Duplicate — excluded by manager')">Exclude Duplicate</button><button type="button" onclick="dcSetRecordByIndex('${jsq(x.item)}',${Number(x.index)||0},'KEPT','Duplicate reviewed — keep')">Keep</button>`:`<button type="button" onclick="dcReviewExcludedRecord('${jsq(x.item)}',${JSON.stringify(x.record||{}).replace(/</g,"\u003c")},false)">Restore</button><button type="button" onclick="dcReviewExcludedRecord('${jsq(x.item)}',${JSON.stringify(x.record||{}).replace(/</g,"\u003c")},true)">Keep Excluded</button>`}</div>
+  </article>`).join("")}</div>`;
+}
+function dcReviewModal(){
+  const overlay=document.getElementById("dcReviewOverlay");
+  if(!overlay)return;
+  overlay.classList.add("show"); overlay.setAttribute("aria-hidden","false");
+  renderDcReviewOverlay();
+}
+
+function dcItemReport(kind,name){
+  const isMat=kind==="material", st=isMat?dcMaterialState(name):dcProductState(name);
+  let html=`<div class="detail-section"><h3>${esc(name)}</h3>${detail("Control Status",st.status||"ACTIVE")}${st.reason?detail("Reason",st.reason):""}${st.updatedAt?detail("Last Decision",new Date(st.updatedAt).toLocaleString("en-IN")):""}</div>`;
+  if(isMat){
+    const raw=dcRawTransactions(name), approved=dcApprovedTransactions(name), rec=dcLatestRawReconciliation(name);
+    html+=`<div class="detail-section"><h3>🔎 Reconciliation</h3>${detail("Result",rec.status)}${detail("Date",rec.date||"--")}${detail("Opening",fmt(rec.opening))}${detail("Additions",fmt(rec.add))}${detail("Other Out",fmt(rec.out))}${detail("Consumption",fmt(rec.cons))}${detail("Closing",fmt(rec.closing))}${detail("Difference",fmt(rec.diff))}${detail("Unexplained",rec.unexplained?"YES":"NO")}</div>`;
+    html+=`<div class="detail-section"><h3>📋 Records • Raw ${raw.length} / Approved ${approved.length}</h3>${raw.map(t=>{const ex=dcIsExcluded(name,t);return `<div class="dc-record ${ex?"excluded":""}"><div><strong>${esc(tType(t)||"Movement")}</strong><small>${esc(rowDate(t))}</small></div><div><strong>${fmt(tVal(t))}</strong><small>${ex?"EXCLUDED":"APPROVED"}</small><button onclick="dcSetRecordByIndex('${jsq(name)}',${raw.indexOf(t)},'${ex?'KEPT':'EXCLUDED'}','Manager review')">${ex?'Restore':'Exclude'}</button></div></div>`}).join("")||"<div class='empty'>No records</div>"}</div>`;
+  }else{
+    const rows=[...(DATA.production||[]),...(DATA.productionHistory||[]),...(DATA.feedUnitData||[]),...(DATA.bags||[]),...(DATA.bagsHistory||[])].filter(r=>normalize(r.product||r.Product)===normalize(name));
+    html+=`<div class="detail-section"><h3>📋 Product Records • ${rows.length}</h3>${rows.map(r=>`<div class="dc-record"><div><strong>${esc(r.Product||r.product||name)}</strong><small>${esc(dateOnly(r.Report_Date||r.report_date)||"--")}</small></div><div><strong>${fmt(r.Production_Day_MT??r.production_day_mt??r.actual_output)}</strong><small>Production</small></div></div>`).join("")||"<div class='empty'>No records</div>"}</div>`;
+  }
+  showModal(name,html);
+}
+function dcAction(kind,name){
+  const hidden=(kind==="material"?dcMaterialState(name):dcProductState(name)).status==="HIDDEN";
+  const action=hidden?"ACTIVE":"HIDDEN";
+  if(kind==="material")dcSetMaterial(name,action,hidden?"Restored to active":"Manually hidden by manager"); else dcSetProduct(name,action,hidden?"Restored to active":"Manually hidden by manager");
+}
+let DC_LIST_FILTER="ALL";
+function dcSetListFilter(filter){
+  DC_LIST_FILTER=filter||"ALL";
+  renderDataControl();
+}
+function renderDataControl(){
+  const el=document.getElementById("dataControlContent"); if(!el)return;
+  const ms=dcAllMaterialNames(), ps=dcAllProductNames(), review=dcReviewItems();
+  const hiddenM=ms.filter(m=>dcIsHiddenMaterial(m)).length, hiddenP=ps.filter(p=>dcIsHiddenProduct(p)).length;
+  const activeM=ms.length-hiddenM, activeP=ps.length-hiddenP;
+  const filter=DC_LIST_FILTER;
+  el.innerHTML=`
+    <div class="dc-overview-head">
+      <div><h3>Control overview</h3><p>Manage what appears in the dashboard without deleting source data.</p></div>
+      <button class="dc-refresh-btn" onclick="renderDataControl()">↻ Refresh</button>
+    </div>
+    <div class="dc-stats dc-stats-v2">
+      <button class="dc-stat-card ${filter==='REVIEW'?'selected':''}" onclick="dcReviewModal()"><span class="dc-stat-icon review">🔔</span><b>${review.length}</b><span>Review Required</span></button>
+      <button class="dc-stat-card ${filter==='ACTIVE_MATERIALS'?'selected':''}" onclick="dcSetListFilter('ACTIVE_MATERIALS')"><span class="dc-stat-icon active">●</span><b>${activeM}</b><span>Active Materials</span></button>
+      <button class="dc-stat-card ${filter==='HIDDEN_MATERIALS'?'selected':''}" onclick="dcSetListFilter('HIDDEN_MATERIALS')"><span class="dc-stat-icon hidden">◉</span><b>${hiddenM}</b><span>Hidden Materials</span></button>
+      <button class="dc-stat-card ${filter==='ACTIVE_PRODUCTS'?'selected':''}" onclick="dcSetListFilter('ACTIVE_PRODUCTS')"><span class="dc-stat-icon active">●</span><b>${activeP}</b><span>Active Products</span></button>
+      <button class="dc-stat-card ${filter==='HIDDEN_PRODUCTS'?'selected':''}" onclick="dcSetListFilter('HIDDEN_PRODUCTS')"><span class="dc-stat-icon hidden">◉</span><b>${hiddenP}</b><span>Hidden Products</span></button>
+    </div>
+    <div class="dc-toolbar dc-toolbar-v2">
+      <div class="dc-search-wrap"><span>⌕</span><input id="dcSearch" placeholder="Search material or product" oninput="renderDataControlLists()"></div>
+      <button class="dc-review-btn" onclick="dcReviewModal()">🔔 Review <span>${review.length}</span></button>
+      <button class="dc-clear-btn" onclick="dcSetListFilter('ALL')">Show All</button>
+    </div>
+    <div class="dc-filter-line"><span>Showing:</span><strong id="dcFilterLabel">All materials & products</strong><span class="dc-filter-count" id="dcFilterCount"></span></div>
+    <div id="dcLists"></div>`;
+  renderDataControlLists();
+}
+function renderDataControlLists(){
+  const el=document.getElementById("dcLists"); if(!el)return;
+  const q=normalize(document.getElementById("dcSearch")?.value||"");
+  let ms=dcAllMaterialNames().filter(m=>!q||normalize(m).includes(q));
+  let ps=dcAllProductNames().filter(p=>!q||normalize(p).includes(q));
+  const filter=DC_LIST_FILTER;
+  if(filter==='ACTIVE_MATERIALS') ms=ms.filter(m=>!dcIsHiddenMaterial(m)), ps=[];
+  else if(filter==='HIDDEN_MATERIALS') ms=ms.filter(m=>dcIsHiddenMaterial(m)), ps=[];
+  else if(filter==='ACTIVE_PRODUCTS') ms=[], ps=ps.filter(p=>!dcIsHiddenProduct(p));
+  else if(filter==='HIDDEN_PRODUCTS') ms=[], ps=ps.filter(p=>dcIsHiddenProduct(p));
+  const materialHtml=ms.slice(0,120).map(m=>{const s=dcMaterialState(m),hidden=s.status==='HIDDEN';return `<div class="dc-item dc-item-v2"><div class="dc-item-main"><span class="dc-status-dot ${hidden?'hidden':'active'}"></span><div><strong title="${esc(m)}">${esc(m)}</strong><small>${hidden?'HIDDEN':'ACTIVE'}${s.reason?' • '+esc(s.reason):''}</small></div></div><div class="dc-item-actions"><button class="dc-report-btn" onclick="dcItemReport('material','${jsq(m)}')">Report</button><button class="dc-toggle-btn ${hidden?'unhide':''}" onclick="dcAction('material','${jsq(m)}')">${hidden?'Unhide':'Hide'}</button></div></div>`}).join("");
+  const productHtml=ps.slice(0,120).map(p=>{const s=dcProductState(p),hidden=s.status==='HIDDEN';return `<div class="dc-item dc-item-v2"><div class="dc-item-main"><span class="dc-status-dot ${hidden?'hidden':'active'}"></span><div><strong title="${esc(p)}">${esc(p)}</strong><small>${hidden?'HIDDEN':'ACTIVE'}${s.reason?' • '+esc(s.reason):''}</small></div></div><div class="dc-item-actions"><button class="dc-report-btn" onclick="dcItemReport('product','${jsq(p)}')">Report</button><button class="dc-toggle-btn ${hidden?'unhide':''}" onclick="dcAction('product','${jsq(p)}')">${hidden?'Unhide':'Hide'}</button></div></div>`}).join("");
+  const total=ms.length+ps.length;
+  const labels={ALL:'All materials & products',ACTIVE_MATERIALS:'Active materials',HIDDEN_MATERIALS:'Hidden materials',ACTIVE_PRODUCTS:'Active products',HIDDEN_PRODUCTS:'Hidden products'};
+  const label=document.getElementById('dcFilterLabel'), count=document.getElementById('dcFilterCount');
+  if(label)label.textContent=labels[filter]||labels.ALL;
+  if(count)count.textContent=`${total} item${total===1?'':'s'}`;
+  const materialSection=ms.length?`<section class="dc-list-section"><div class="dc-section-head"><div><span class="dc-section-icon">📦</span><div><h3>Materials</h3><small>${ms.length} shown</small></div></div></div>${materialHtml}</section>`:(filter.includes('MATERIALS')?`<section class="dc-list-section"><div class="dc-empty-list">No materials match this filter.</div></section>`:'');
+  const productSection=ps.length?`<section class="dc-list-section"><div class="dc-section-head"><div><span class="dc-section-icon">🌾</span><div><h3>Products</h3><small>${ps.length} shown</small></div></div></div>${productHtml}</section>`:(filter.includes('PRODUCTS')?`<section class="dc-list-section"><div class="dc-empty-list">No products match this filter.</div></section>`:'');
+  el.innerHTML=`<div class="dc-list-grid">${materialSection}${productSection}</div>`;
+}
 
 function clean(v){return String(v??"").trim()}
 function normalize(v){return clean(v).replace(/\s+/g," ").toUpperCase()}
@@ -176,8 +456,10 @@ function applyData(apiData,fromCache=false){
     processLoss:apiData.processLoss??null,
     report_date:apiData.report_date??null
   };
+  invalidatePerfCache();
   if(DATA.report_date)setText("reportDate",VIEW_DATE||DATA.report_date);
   renderDashboard();
+  try{renderDataControl();}catch(e){console.warn("Data control render skipped",e)}
   if(!fromCache)saveCache(apiData);
 }
 function restoreCache(){
@@ -196,75 +478,104 @@ function setConnection(ok,text){
 }
 
 /* =====================================================
-   JSONP LOAD — SAME WORKING MECHANISM
+   SUPABASE LOAD — CURRENT 33-MATERIAL DATA
+   Production / Feed Unit / Spare Parts remain separate for now.
+   History is read from the daily feed_inventory records.
 ===================================================== */
-function loadDashboard(attempt=0){
-  return new Promise(function(resolve,reject){
-    const callbackName="managerDashboardCallback_"+Date.now()+"_"+Math.random().toString(36).slice(2);
-    const script=document.createElement("script");
-    let finished=false;
-    let timeout;
+function supabaseHeaders(extra={}){
+  return Object.assign({
+    "apikey":SUPABASE_PUBLISHABLE_KEY,
+    "Authorization":"Bearer "+SUPABASE_PUBLISHABLE_KEY,
+    "Accept":"application/json"
+  },extra);
+}
 
-    function cleanup(){
-      if(timeout)clearTimeout(timeout);
-      if(script.parentNode)script.parentNode.removeChild(script);
-      try{delete window[callbackName]}catch(e){window[callbackName]=undefined}
-    }
-    function fail(message,code){
-      if(finished)return;
-      finished=true;
-      cleanup();
-      const e=new Error(message);e.code=code;reject(e);
-    }
-
-    window[callbackName]=function(apiData){
-      if(finished)return;
-      try{
-        if(!apiData || apiData.status!=="success"){
-          fail("Invalid API response","API_RESPONSE");
-          return;
-        }
-        finished=true;
-        cleanup();
-        try{
-          applyData(apiData,false);
-          resolve(apiData);
-        }catch(error){
-          const e=new Error(error&&error.message?error.message:"Dashboard processing failed");
-          e.code="DASHBOARD_PROCESSING";
-          reject(e);
-        }
-      }catch(error){
-        fail(error&&error.message?error.message:"API response handling failed","API_RESPONSE");
-      }
-    };
-
-    script.async=true;
-    script.referrerPolicy="no-referrer";
-    script.onerror=function(){
-      if(finished)return;
-      if(attempt<1){
-        cleanup();
-        setTimeout(function(){loadDashboard(attempt+1).then(resolve).catch(reject)},800);
-      }else{
-        fail("Google Apps Script connection failed","API_NETWORK");
-      }
-    };
-
-    script.src=API_URL+"?callback="+encodeURIComponent(callbackName)+"&t="+Date.now();
-    document.head.appendChild(script);
-
-    timeout=setTimeout(function(){
-      if(finished)return;
-      if(attempt<1){
-        finished=true;
-        cleanup();
-        setTimeout(function(){loadDashboard(attempt+1).then(resolve).catch(reject)},800);
-      }else{
-        fail("API timeout","API_TIMEOUT");
-      }
-    },20000);
+function supabaseActivityToTransactions(activity,date){
+  if(!activity || typeof activity!=="object")return [];
+  const out=[];
+  Object.entries(activity).forEach(([rawKey,rawValue])=>{
+    const key=clean(rawKey);
+    if(!key || /^(DATE|DATES?)$/i.test(key))return;
+    let transaction=key;
+    const nk=normalize(key).replace(/[^A-Z0-9]+/g," ").trim();
+    if(nk.includes("OPENING")) transaction="OPENING STOCK";
+    else if(nk.includes("CL") && nk.includes("STOCK")) transaction="CL. STOCK";
+    else if(nk==="CLOSING" || nk.includes("CLOSING STOCK")) transaction="CL. STOCK";
+    else if(nk==="OPENING") transaction="OPENING STOCK";
+    const n=num(rawValue);
+    if(n===null && clean(rawValue)==="")return;
+    out.push({report_date:date,transaction,for_day:n===null?rawValue:n});
   });
+  return out;
+}
+
+function normalizeSupabaseInventory(rows){
+  const grouped=new Map();
+  const history=[];
+  (Array.isArray(rows)?rows:[]).forEach(r=>{
+    const material=clean(r.sheet_name);
+    const date=dateOnly(r.activity_date);
+    if(!material || !date)return;
+    const tx=supabaseActivityToTransactions(r.latest_activity,date);
+    tx.forEach(t=>history.push({material,...t,category:r.category||""}));
+    const key=normalize(material);
+    let g=grouped.get(key);
+    if(!g){g={material,category:r.category||"",transactions:[]};grouped.set(key,g);}
+    g.transactions.push(...tx);
+  });
+  const stock=[...grouped.values()].map(g=>{
+    const tx=g.transactions.slice().sort((a,b)=>dateOnly(rowDate(a)).localeCompare(dateOnly(rowDate(b))));
+    const closing=tx.filter(t=>tType(t)==="CL. STOCK").slice(-1)[0];
+    return {material:g.material,category:g.category,transactions:tx,closing:closing?tVal(closing):null};
+  });
+  return {stock,stockHistory:history};
+}
+
+async function fetchAllSupabaseInventory(){
+  const rows=[];
+  const pageSize=1000;
+  let from=0;
+  while(true){
+    const url=SUPABASE_URL+"/rest/v1/feed_inventory?select=sheet_name,category,activity_date,latest_activity,for_the_month,for_the_year,imported_at&order=activity_date.asc,sheet_name.asc&limit="+pageSize+"&offset="+from;
+    const response=await fetch(url,{headers:supabaseHeaders(),cache:"no-store"});
+    if(!response.ok){
+      const body=await response.text().catch(()=>"");
+      throw new Error("Supabase HTTP "+response.status+(body?" • "+body.slice(0,180):""));
+    }
+    const batch=await response.json();
+    if(!Array.isArray(batch)||!batch.length)break;
+    rows.push(...batch);
+    if(batch.length<pageSize)break;
+    from+=pageSize;
+  }
+  return rows;
+}
+
+async function loadDashboard(){
+  const rows=await fetchAllSupabaseInventory();
+  const mapped=normalizeSupabaseInventory(rows);
+  const dates=rows.map(r=>dateOnly(r.activity_date)).filter(Boolean).sort();
+  const latestDate=dates.length?dates[dates.length-1]:null;
+  const payload={
+    status:"success",
+    stock:mapped.stock,
+    stock_history:mapped.stockHistory,
+    production:[],
+    production_history:[],
+    pp_bags:[],
+    pp_bags_history:[],
+    feedUnitData:[],
+    feedUnitTotals:[],
+    productionTrend:[],
+    usage:{},
+    reorder_items:[],
+    consumption:null,
+    efficiency:null,
+    processLoss:null,
+    report_date:latestDate
+  };
+  applyData(payload,false);
+  return payload;
 }
 
 let refreshing=false;
@@ -481,11 +792,13 @@ function allMixMaterialTransactions(){
   return out;
 }
 function monthlyRMConsumption(m){
-  // RM transaction rows contain cumulative MTD values in for_month.
-  // For a month, use the latest dated Consumption record for each material
-  // instead of summing daily/MTD snapshots (which would double-count).
+  // Use the same approved/active dataset as the main RM calculations.
+  // Hidden materials and explicitly excluded records must never appear in
+  // Monthly Mix & Contribution.  Keep the latest dated MTD consumption row
+  // for each visible material so cumulative monthly values are not doubled.
   const latest={};
   allMixMaterialTransactions().forEach(({material,t})=>{
+    if(dcIsHiddenMaterial(material) || dcIsExcluded(material,t))return;
     const d=rowDate(t);
     if(monthKey(d)!==m || !isConsumptionMovement(tType(t)))return;
     const day=dateOnly(d)||"";
@@ -551,6 +864,16 @@ function renderMonthlyMix(){
   renderMixList("mixRmList",rm,rt);renderMixList("mixProdList",prod,pt);renderMixList("mixDispList",disp,dt);
 }
 function setMixMonth(m){MIX_MONTH=m||null;renderMonthlyMix()}
+function setMonthlyMixTab(type,btn){
+  const allowed=['rm','production','dispatch'];
+  const active=allowed.includes(type)?type:'rm';
+  document.querySelectorAll('.monthly-mix-tab').forEach(b=>b.classList.toggle('active',b.dataset.mixTab===active));
+  document.querySelectorAll('.monthly-mix-tab-panel').forEach(panel=>{
+    const show=panel.dataset.mixPanel===active;
+    panel.classList.toggle('active',show);
+    panel.hidden=!show;
+  });
+}
 function openMonthlyMixDetails(type){
   const m=MIX_MONTH||mixDefaultMonth(), label=monthLabel(m);
   let title="",rows=[];
@@ -562,8 +885,264 @@ function openMonthlyMixDetails(type){
   showModal(title+" • "+label,html);
 }
 
+function formatSectionDate(v){
+  const d=dateOnly(v);
+  if(!d)return "Data: --";
+  const m=d.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m)return "Data: "+d;
+  const names=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return `Data: ${m[3]}-${names[Number(m[2])-1]||m[2]}-${m[1]}`;
+}
+function latestDateFromRows(rows, keys=[]){
+  const dates=[];
+  (Array.isArray(rows)?rows:[]).forEach(r=>{
+    if(!r)return;
+    keys.forEach(k=>{if(r[k]){const d=dateOnly(r[k]);if(d)dates.push(d)}});
+  });
+  return dates.sort().pop()||"";
+}
+function latestStockDataDate(){
+  const dates=[];
+  (DATA.stock||[]).forEach(r=>{
+    [r.report_date,r.Report_Date,r.date,r.DATE].forEach(v=>{const d=dateOnly(v);if(d)dates.push(d)});
+    (r.transactions||[]).forEach(t=>{const d=dateOnly(rowDate(t));if(d)dates.push(d)});
+  });
+  (DATA.stockHistory||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date||r.date);if(d)dates.push(d)});
+  return dates.sort().pop()||"";
+}
+function latestProductionDataDate(){
+  const dates=[];
+  (DATA.production||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date||r.date);if(d)dates.push(d)});
+  (DATA.productionHistory||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date||r.date);if(d)dates.push(d)});
+  (DATA.productionTrend||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date||r.date);if(d)dates.push(d)});
+  return dates.sort().pop()||"";
+}
+function latestFeedUnitDataDate(){
+  return latestDateFromRows(DATA.feedUnitData,["report_date","Report_Date","date","DATE"])||latestDateFromRows(DATA.feedUnitTotals,["report_date","Report_Date","date","DATE"]);
+}
+function latestPPBagDataDate(){
+  const a=latestDateFromRows(DATA.bags,["report_date","Report_Date","date","DATE"]);
+  const b=latestDateFromRows(DATA.bagsHistory,["report_date","Report_Date","date","DATE"]);
+  return [a,b].filter(Boolean).sort().pop()||"";
+}
+function latestTrendDataDate(){
+  return [latestStockDataDate(),latestProductionDataDate(),latestFeedUnitDataDate(),latestPPBagDataDate(),dateOnly(DATA.report_date)].filter(Boolean).sort().pop()||"";
+}
+function latestSpareDataDate(tab=spareTab){
+  const rows=Array.isArray(SPARE_DATA[tab])?SPARE_DATA[tab]:[];
+  const dates=[];
+  rows.forEach(r=>{
+    Object.keys(r||{}).forEach(k=>{
+      const nk=normalize(k);
+      if(nk.includes("DATE")||nk.includes("UPDATED")){
+        const d=dateOnly(r[k]);if(d)dates.push(d);
+      }
+    });
+  });
+  return dates.sort().pop()||"";
+}
+function updateSectionDates(){
+  const selected=VIEW_DATE?dateOnly(VIEW_DATE):"";
+  const stockDate=selected||latestStockDataDate()||dateOnly(DATA.report_date);
+  const prodDate=selected||latestProductionDataDate()||dateOnly(DATA.report_date);
+  const feedDate=selected||latestFeedUnitDataDate()||dateOnly(DATA.report_date);
+  const bagDate=selected||latestPPBagDataDate()||dateOnly(DATA.report_date);
+  const trendDate=selected||latestTrendDataDate()||dateOnly(DATA.report_date);
+  setText("dateQuickView",formatSectionDate(selected||dateOnly(DATA.report_date)||trendDate));
+  setText("datePremix",formatSectionDate(selected||latestBommakalDate()||dateOnly(DATA.report_date)));
+  setText("dateMonthlyMix",MIX_MONTH?`Month: ${monthLabel(MIX_MONTH)}`:"Month: --");
+  setText("dateRawReorder",formatSectionDate(stockDate));
+  setText("dateProduction",formatSectionDate(prodDate));
+  setText("dateFeedUnit",formatSectionDate(feedDate));
+  setText("dateRawMovements",formatSectionDate(stockDate));
+  setText("datePPBags",formatSectionDate(bagDate));
+  setText("dateTrends",trendDate?`Data through: ${formatSectionDate(trendDate).replace(/^Data: /,"")}`:"Data through: --");
+  const spareDate=latestSpareDataDate(spareTab);
+  setText("dateSpareParts",spareDate?formatSectionDate(spareDate):"Data: --");
+  setText("trendDateMaterial",formatSectionDate(stockDate));
+  setText("trendDatePurchase",formatSectionDate(stockDate));
+  setText("trendDateClosing",formatSectionDate(stockDate));
+  setText("trendDateProduction",trendDate?`Data through: ${formatSectionDate(trendDate).replace(/^Data: /,"")}`:"Data through: --");
+  setText("trendDateOutput",formatSectionDate(prodDate));
+  setText("trendDateLoss",formatSectionDate(prodDate));
+  setText("trendDateFeed",formatSectionDate(feedDate));
+  setText("trendDateBags",formatSectionDate(bagDate));
+}
+
+
+/* =====================================================
+   COLLAPSED HISTORY CARDS — MATERIAL / PRODUCT / DATE
+===================================================== */
+function toggleHistoryCard(cardId,bodyId){
+  const card=document.getElementById(cardId), body=document.getElementById(bodyId);
+  if(!card||!body)return;
+  const opening=!card.classList.contains("open");
+  card.classList.toggle("open",opening);
+  const key=cardId.replace("HistoryCard","");
+  const chev=document.getElementById(key+"HistoryChevron");
+  if(chev)chev.textContent=opening?"−":"＋";
+  if(opening){
+    if(key==="rm")renderRMHistoryCard();
+    else if(key==="feed")renderFeedHistoryCard();
+    else if(key==="bags")renderBagsHistoryCard();
+  }
+}
+function historyDateOptions(dates,selected){
+  return dates.slice().sort().reverse().map(d=>`<option value="${esc(d)}" ${d===selected?"selected":""}>${esc(d)}</option>`).join("");
+}
+function historySelectOptions(items,selected){
+  return items.map(x=>`<option value="${esc(x)}" ${normalize(x)===normalize(selected)?"selected":""}>${esc(x)}</option>`).join("");
+}
+function rmHistoryTransactions(material){
+  const target=normalize(material),map=new Map();
+  /* Prefer the dedicated stock_history because it contains the full dated
+     movement history. Current STOCK transaction arrays can be only a latest
+     snapshot on some API responses. */
+  (DATA.stockHistory||[]).forEach(t=>{
+    if(normalize(t.material)!==target)return;
+    const d=dateOnly(rowDate(t));
+    const key=[d,tType(t),String(tVal(t)),String(t.for_day??""),String(t.for_month??""),String(t.for_year??"")].join("|");
+    map.set(key,t);
+  });
+  /* If stock_history is unavailable for this material, fall back to the
+     transactions embedded in the current stock object. */
+  if(!map.size){
+    (DATA.stock||[]).forEach(x=>{
+      if(normalize(x.material)!==target)return;
+      (Array.isArray(x.transactions)?x.transactions:[]).forEach(t=>{
+        const d=dateOnly(rowDate(t));
+        const key=[d,tType(t),String(tVal(t)),String(t.for_day??""),String(t.for_month??""),String(t.for_year??"")].join("|");
+        map.set(key,t);
+      });
+    });
+  }
+  return [...map.values()].sort((a,b)=>dateOnly(rowDate(a)).localeCompare(dateOnly(rowDate(b))));
+}
+function rmHistoryMaterials(){
+  const set=new Map();
+  (DATA.stock||[]).forEach(x=>{const m=clean(x.material);if(m)set.set(normalize(m),m)});
+  (DATA.stockHistory||[]).forEach(x=>{const m=clean(x.material);if(m)set.set(normalize(m),m)});
+  return [...set.values()].sort((a,b)=>a.localeCompare(b));
+}
+function rmHistoryDates(material){
+  return [...new Set(rmHistoryTransactions(material).map(t=>dateOnly(rowDate(t))).filter(Boolean))].sort().reverse();
+}
+function rmHistoryValue(rows,kind){
+  return rows.filter(t=>{
+    const type=tType(t);
+    if(kind==="received")return type==="PURCHASE";
+    if(kind==="consumption")return type.includes("CONSUMPTION");
+    if(kind==="transfer")return type.includes("TRANSFER");
+    return type==="CL. STOCK";
+  }).reduce((sum,t)=>sum+tVal(t),0);
+}
+function rmHistoryClosing(rows){
+  const r=rows.filter(t=>tType(t)==="CL. STOCK").slice(-1)[0];
+  return r? tVal(r):null;
+}
+function historyRangeDefaults(dates){
+  const ds=[...new Set(dates.filter(Boolean))].sort();
+  if(!ds.length)return {all:[],from:"",to:""};
+  const last=ds[ds.length-1];
+  const from=ds[Math.max(0,ds.length-7)];
+  return {all:ds,from,to:last};
+}
+function historyRangeOptions(dates,selected){
+  return dates.slice().sort().reverse().map(d=>`<option value="${esc(d)}" ${d===selected?"selected":""}>${esc(d)}</option>`).join("");
+}
+function inHistoryRange(d,from,to){return !!d && (!from||d>=from) && (!to||d<=to)}
+function rmHistoryRowsForRange(material,from,to){
+  return rmHistoryTransactions(material).filter(t=>inHistoryRange(dateOnly(rowDate(t)),from,to));
+}
+function renderRMHistoryCard(){
+  const body=document.getElementById("rmHistoryBody");if(!body)return;
+  const mats=rmHistoryMaterials(),material=mats[0]||"",defaults=historyRangeDefaults(rmHistoryDates(material));
+  body.innerHTML=`<div class="history-filter history-filter-3">
+    <label>Material<select id="rmHistoryMaterial" onchange="refreshRMHistoryCard()">${historySelectOptions(mats,material)}</select></label>
+    <label>From Date<select id="rmHistoryFrom">${historyRangeOptions(defaults.all,defaults.from)}</select></label>
+    <label>To Date<select id="rmHistoryTo">${historyRangeOptions(defaults.all,defaults.to)}</select></label>
+  </div><div id="rmHistoryTable"></div>`;
+  document.getElementById("rmHistoryFrom")?.addEventListener("change",refreshRMHistoryTable);
+  document.getElementById("rmHistoryTo")?.addEventListener("change",refreshRMHistoryTable);
+  refreshRMHistoryTable();
+}
+function refreshRMHistoryCard(){
+  const m=document.getElementById("rmHistoryMaterial")?.value||"";
+  const dates=rmHistoryDates(m),defaults=historyRangeDefaults(dates);
+  const fs=document.getElementById("rmHistoryFrom"),ts=document.getElementById("rmHistoryTo");
+  if(fs)fs.innerHTML=historyRangeOptions(defaults.all,defaults.from);
+  if(ts)ts.innerHTML=historyRangeOptions(defaults.all,defaults.to);
+  fs?.addEventListener("change",refreshRMHistoryTable);ts?.addEventListener("change",refreshRMHistoryTable);
+  refreshRMHistoryTable();
+}
+function refreshRMHistoryTable(){
+  const m=document.getElementById("rmHistoryMaterial")?.value||"",from=document.getElementById("rmHistoryFrom")?.value||"",to=document.getElementById("rmHistoryTo")?.value||"",el=document.getElementById("rmHistoryTable");
+  if(!el)return;
+  if(from&&to&&from>to){el.innerHTML='<div class="history-empty">From Date must be before To Date.</div>';return}
+  const unit=materialUnit(m,getMaterial(m)?.unit||"MT");
+  const rows=rmHistoryTransactions(m).filter(t=>inHistoryRange(dateOnly(rowDate(t)),from,to));
+  const dates=[...new Set(rows.map(t=>dateOnly(rowDate(t))).filter(Boolean))].sort();
+  if(!dates.length){el.innerHTML='<div class="history-empty">No history available for selected date range.</div>';return}
+  el.innerHTML=`<div class="history-range-note">${esc(from)} → ${esc(to)} • ${dates.length} days</div><div class="history-table"><table><thead><tr><th>Date</th><th>Received</th><th>Consumption</th><th>Transfer</th><th>Closing</th></tr></thead><tbody>${dates.map(d=>{const day=rows.filter(t=>dateOnly(rowDate(t))===d);const received=rmHistoryValue(day,"received"),consumption=rmHistoryValue(day,"consumption"),transfer=rmHistoryValue(day,"transfer"),closing=rmHistoryClosing(day);return `<tr><td>${esc(d)}</td><td>${fmt(received)} ${esc(unit)}</td><td>${fmt(consumption)} ${esc(unit)}</td><td>${fmt(transfer)} ${esc(unit)}</td><td>${closing===null?"--":fmt(closing)+" "+esc(unit)}</td></tr>`}).join("")}</tbody></table></div>`;
+}
+function feedHistoryProducts(){
+  const set=new Map();
+  (DATA.feedUnitData||[]).forEach(r=>{const p=clean(r.Product||r.product);if(p)set.set(normalize(p),p)});
+  return [...set.values()].sort((a,b)=>a.localeCompare(b));
+}
+function feedHistoryRows(product){return (DATA.feedUnitData||[]).filter(r=>normalize(r.Product||r.product)===normalize(product));}
+function feedHistoryDates(product){return [...new Set(feedHistoryRows(product).map(r=>dateOnly(r.Report_Date||r.report_date||r.date)).filter(Boolean))].sort();}
+function feedHistoryValue(r,names){for(const n of names){const v=num(r[n]);if(v!==null)return v}return null;}
+function renderFeedHistoryCard(){
+  const body=document.getElementById("feedHistoryBody");if(!body)return;
+  const products=feedHistoryProducts(),product=products[0]||"",defaults=historyRangeDefaults(feedHistoryDates(product));
+  body.innerHTML=`<div class="history-filter history-filter-3"><label>Product<select id="feedHistoryProduct" onchange="refreshFeedHistoryCard()">${historySelectOptions(products,product)}</select></label><label>From Date<select id="feedHistoryFrom">${historyRangeOptions(defaults.all,defaults.from)}</select></label><label>To Date<select id="feedHistoryTo">${historyRangeOptions(defaults.all,defaults.to)}</select></label></div><div id="feedHistoryTable"></div>`;
+  document.getElementById("feedHistoryFrom")?.addEventListener("change",refreshFeedHistoryTable);document.getElementById("feedHistoryTo")?.addEventListener("change",refreshFeedHistoryTable);refreshFeedHistoryTable();
+}
+function refreshFeedHistoryCard(){
+  const p=document.getElementById("feedHistoryProduct")?.value||"",dates=feedHistoryDates(p),defaults=historyRangeDefaults(dates),fs=document.getElementById("feedHistoryFrom"),ts=document.getElementById("feedHistoryTo");
+  if(fs)fs.innerHTML=historyRangeOptions(defaults.all,defaults.from);if(ts)ts.innerHTML=historyRangeOptions(defaults.all,defaults.to);
+  fs?.addEventListener("change",refreshFeedHistoryTable);ts?.addEventListener("change",refreshFeedHistoryTable);refreshFeedHistoryTable();
+}
+function refreshFeedHistoryTable(){
+  const p=document.getElementById("feedHistoryProduct")?.value||"",from=document.getElementById("feedHistoryFrom")?.value||"",to=document.getElementById("feedHistoryTo")?.value||"",el=document.getElementById("feedHistoryTable");if(!el)return;
+  if(from&&to&&from>to){el.innerHTML='<div class="history-empty">From Date must be before To Date.</div>';return}
+  const rows=feedHistoryRows(p),dates=[...new Set(rows.map(r=>dateOnly(r.Report_Date||r.report_date||r.date)).filter(d=>inHistoryRange(d,from,to)))].sort();
+  if(!dates.length){el.innerHTML='<div class="history-empty">No history available for selected date range.</div>';return}
+  el.innerHTML=`<div class="history-range-note">${esc(from)} → ${esc(to)} • ${dates.length} days</div><div class="history-table"><table><thead><tr><th>Date</th><th>Production</th><th>Dispatch</th><th>Closing</th></tr></thead><tbody>${dates.map(d=>{const rr=rows.filter(r=>dateOnly(r.Report_Date||r.report_date||r.date)===d);const r=rr[rr.length-1];const prod=feedHistoryValue(r,["Production_Day_MT","production_day_mt","Production_Day","production_day","Production","production"]),disp=feedHistoryValue(r,["Dispatch_Day_MT","dispatch_day_mt","Dispatch_Day","dispatch_day","Dispatch","dispatch"]),close=feedHistoryValue(r,["Closing_Day_MT","closing_day_mt","Closing_Day","closing_day","Closing","closing"]);return `<tr><td>${esc(d)}</td><td>${prod===null?"--":fmtFeed(prod,p)}</td><td>${disp===null?"--":fmtFeed(disp,p)}</td><td>${close===null?"--":fmtFeed(close,p)}</td></tr>`}).join("")}</tbody></table></div>`;
+}
+function bagsHistoryProducts(){
+  const set=new Map();
+  (DATA.bags||[]).forEach(r=>{const p=clean(r.product||"PP Bags");if(p)set.set(normalize(p),p)});
+  (DATA.bagsHistory||[]).forEach(r=>{const p=clean(r.product||"PP Bags");if(p)set.set(normalize(p),p)});
+  return [...set.values()].sort((a,b)=>a.localeCompare(b));
+}
+function bagsHistoryRows(product){const rows=(DATA.bagsHistory||[]).filter(r=>normalize(r.product||"PP Bags")===normalize(product));return rows.length?rows:(DATA.bags||[]).filter(r=>normalize(r.product||"PP Bags")===normalize(product));}
+function bagsHistoryDates(product){return [...new Set(bagsHistoryRows(product).map(r=>dateOnly(r.report_date||r.Report_Date||r.date||r.DATE)).filter(Boolean))].sort();}
+function renderBagsHistoryCard(){
+  const body=document.getElementById("bagsHistoryBody");if(!body)return;
+  const products=bagsHistoryProducts(),product=products[0]||"",defaults=historyRangeDefaults(bagsHistoryDates(product));
+  body.innerHTML=`<div class="history-filter history-filter-3"><label>Product<select id="bagsHistoryProduct" onchange="refreshBagsHistoryCard()">${historySelectOptions(products,product)}</select></label><label>From Date<select id="bagsHistoryFrom">${historyRangeOptions(defaults.all,defaults.from)}</select></label><label>To Date<select id="bagsHistoryTo">${historyRangeOptions(defaults.all,defaults.to)}</select></label></div><div id="bagsHistoryTable"></div>`;
+  document.getElementById("bagsHistoryFrom")?.addEventListener("change",refreshBagsHistoryTable);document.getElementById("bagsHistoryTo")?.addEventListener("change",refreshBagsHistoryTable);refreshBagsHistoryTable();
+}
+function refreshBagsHistoryCard(){
+  const p=document.getElementById("bagsHistoryProduct")?.value||"",dates=bagsHistoryDates(p),defaults=historyRangeDefaults(dates),fs=document.getElementById("bagsHistoryFrom"),ts=document.getElementById("bagsHistoryTo");
+  if(fs)fs.innerHTML=historyRangeOptions(defaults.all,defaults.from);if(ts)ts.innerHTML=historyRangeOptions(defaults.all,defaults.to);
+  fs?.addEventListener("change",refreshBagsHistoryTable);ts?.addEventListener("change",refreshBagsHistoryTable);refreshBagsHistoryTable();
+}
+function refreshBagsHistoryTable(){
+  const p=document.getElementById("bagsHistoryProduct")?.value||"",from=document.getElementById("bagsHistoryFrom")?.value||"",to=document.getElementById("bagsHistoryTo")?.value||"",el=document.getElementById("bagsHistoryTable");if(!el)return;
+  if(from&&to&&from>to){el.innerHTML='<div class="history-empty">From Date must be before To Date.</div>';return}
+  const rows=bagsHistoryRows(p),dates=[...new Set(rows.map(r=>dateOnly(r.report_date||r.Report_Date||r.date||r.DATE)).filter(d=>inHistoryRange(d,from,to)))].sort();
+  if(!dates.length){el.innerHTML='<div class="history-empty">No history available for selected date range.</div>';return}
+  el.innerHTML=`<div class="history-range-note">${esc(from)} → ${esc(to)} • ${dates.length} days</div><div class="history-table"><table><thead><tr><th>Date</th><th>Received</th><th>Issue</th><th>Damage</th><th>Closing</th></tr></thead><tbody>${dates.map(d=>{const rr=rows.filter(r=>dateOnly(r.report_date||r.Report_Date||r.date||r.DATE)===d),r=rr[rr.length-1],v=k=>num(r[k]);return `<tr><td>${esc(d)}</td><td>${v("received")===null?"--":fmt(v("received"))}</td><td>${v("issue")===null?"--":fmt(v("issue"))}</td><td>${v("damage")===null?"--":fmt(v("damage"))}</td><td>${v("closing")===null?"--":fmt(v("closing"))}</td></tr>`}).join("")}</tbody></table></div>`;
+}
+
+
 function renderDashboard(){
+  initReportCenter();
   renderSmartHeader();
+  renderAttentionRequired();
   renderQuick();
   renderMonthlyMix();
   renderControlCenter();
@@ -575,8 +1154,159 @@ function renderDashboard(){
   renderAlerts();
   renderRawCategory("STOCK");
   renderTrends();
+  updateSectionDates();
 }
 
+
+function attentionReorderMaterials(){
+  return getMaterials().map(m=>{
+    const x=getMaterial(m), c=num(x?.closing)||0, avg=avgConsumption(m), s=stockStatus(c,avg);
+    return {m,c,avg,s,unit:x?.unit||"MT"};
+  }).filter(x=>x.s.status==="REORDER");
+}
+function attentionUnder3Materials(){
+  return getMaterials().map(m=>{
+    const x=getMaterial(m), c=num(x?.closing)||0, avg=avgConsumption(m), s=stockStatus(c,avg);
+    return {m,c,avg,s,unit:x?.unit||"MT"};
+  }).filter(x=>x.s.cover!==null && x.s.cover<3 && x.s.status!=="REORDER");
+}
+function attentionAbnormalConsumption(){
+  return abnormalConsumptionItems();
+}
+function attentionIncreasedBagDamage(){
+  const selected=selectedBags();
+  const dates=allAvailableDates().slice().sort();
+  const selectedDate=selectedDateForIntelligence();
+  if(!selected.length)return [];
+  let prev=null;
+  if(selectedDate){
+    const idx=dates.indexOf(dateOnly(selectedDate));
+    prev=idx>0?dates[idx-1]:null;
+  }
+  if(!prev){
+    return selected.filter(r=>(num(r.damage)||0)>0).map(r=>({product:r.product||"PP Bags",damage:num(r.damage)||0,previous:null}));
+  }
+  const yesterday=new Map();
+  (Array.isArray(DATA.bagsHistory)?DATA.bagsHistory:[])
+    .filter(r=>dateOnly(r.report_date||r.Report_Date||r.date||r.DATE)===prev)
+    .forEach(r=>yesterday.set(normalize(r.product||"PP Bags"),num(r.damage)||0));
+  return selected.map(r=>{
+    const product=r.product||"PP Bags", damage=num(r.damage)||0, previous=yesterday.get(normalize(product))||0;
+    return {product,damage,previous};
+  }).filter(x=>x.damage>x.previous);
+}
+function attentionPendingSpareOrders(){
+  const rows=Array.isArray(SPARE_DATA.SPARE_ORDERS)?SPARE_DATA.SPARE_ORDERS:[];
+  return rows.filter(r=>{
+    const st=normalize(spareVal(r,['STATUS','Status','ORDER_STATUS','Order_Status']));
+    return /PENDING|OPEN|PROCESS/.test(st);
+  });
+}
+function attentionProductionIssues(){
+  return selectedProduction().filter(r=>{
+    const op=num(r.output_percentage);
+    return op!==null && Number.isFinite(op) && op<95;
+  });
+}
+function spareOrderDisplayName(r){
+  return clean(spareVal(r,['PART_NAME','Part_Name','PART','Part','ITEM','Item','MATERIAL','Material','NAME','Name','DESCRIPTION','Description']))||"Spare Part";
+}
+function openAttentionFiltered(kind){
+  if(kind==="reorder"){
+    const rows=attentionReorderMaterials();
+    const html=`<div class="detail-section"><h3>🔴 Raw Materials below reorder level • ${rows.length}</h3>${rows.map(x=>`<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(x.m)}')"><div><div class="row-name">${esc(x.m)}</div><div class="prod-meta">Stock ${fmt(x.c)} ${esc(x.unit)} • Avg ${fmt(x.avg)} ${esc(x.unit)}/day</div></div><div class="row-right"><strong>${x.s.cover===null?"--":fmt(x.s.cover)+" d"}</strong><small>Reorder</small></div></div>`).join("")||"<div class='empty'>No materials below reorder level.</div>"}</div>`;
+    showModal("🔴 Reorder Materials",html); return;
+  }
+  if(kind==="under3"){
+    const rows=attentionUnder3Materials().sort((a,b)=>a.s.cover-b.s.cover);
+    const html=`<div class="detail-section"><h3>🟡 Stock coverage below 3 days • ${rows.length}</h3>${rows.map(x=>`<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(x.m)}')"><div><div class="row-name">${esc(x.m)}</div><div class="prod-meta">Stock ${fmt(x.c)} ${esc(x.unit)} • Avg ${fmt(x.avg)} ${esc(x.unit)}/day</div></div><div class="row-right"><strong>${fmt(x.s.cover)} d</strong><small>&lt; 3 days</small></div></div>`).join("")||"<div class='empty'>No materials below 3 days coverage.</div>"}</div>`;
+    showModal("🟡 Low Coverage",html); return;
+  }
+  if(kind==="abnormal"){
+    const rows=attentionAbnormalConsumption();
+    const html=`<div class="detail-section"><h3>🔴 Abnormal consumption • ${rows.length}</h3>${rows.map(x=>`<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(x.material)}')"><div><div class="row-name">${esc(x.material)}</div><div class="prod-meta">${esc(x.direction==="LOW"?"Below":"Above")} average • ${fmt(x.current)} vs ${fmt(x.avg)}</div></div><div class="row-right"><strong>${fmt(Math.abs(x.ratio*100-100))}%</strong><small>${esc(x.date||"Latest")}</small></div></div>`).join("")||"<div class='empty'>No abnormal consumption found.</div>"}</div>`;
+    showModal("🔴 Abnormal Consumption",html); return;
+  }
+  if(kind==="bags"){
+    const rows=attentionIncreasedBagDamage();
+    const html=`<div class="detail-section"><h3>🟡 PP bag damages increased • ${rows.length}</h3>${rows.map(x=>`<div class="feed-row" onclick="closeModal();openBagProduct('${jsq(x.product)}')"><div><div class="row-name">${esc(x.product)}</div><div class="prod-meta">Previous damage ${fmt(x.previous)} • Current ${fmt(x.damage)}</div></div><div class="row-right"><strong>+${fmt(x.damage-x.previous)}</strong><small>Damage increase</small></div></div>`).join("")||"<div class='empty'>No PP bag damage increase found.</div>"}</div>`;
+    showModal("🟡 PP Bag Damage",html); return;
+  }
+  if(kind==="spares"){
+    const rows=attentionPendingSpareOrders();
+    const html=`<div class="detail-section"><h3>🔵 Spare parts pending order • ${rows.length}</h3>${rows.map(r=>`<div class="feed-row" onclick="goSpareParts();closeModal()"><div><div class="row-name">${esc(spareOrderDisplayName(r))}</div><div class="prod-meta">Status: ${esc(spareVal(r,['STATUS','Status','ORDER_STATUS','Order_Status'])||"--")}</div></div><div class="row-right"><strong>Pending</strong><small>Open Spare Parts</small></div></div>`).join("")||"<div class='empty'>No pending spare orders.</div>"}</div>`;
+    showModal("🔵 Pending Spare Orders",html); return;
+  }
+  if(kind==="production"){
+    const rows=attentionProductionIssues();
+    const html=`<div class="detail-section"><h3>🟡 Production output below 95% • ${rows.length}</h3>${rows.map(r=>{const p=r.product||"--",op=num(r.output_percentage);return `<div class="feed-row" onclick="closeModal();openProductDetails('${jsq(p)}')"><div><div class="row-name">${esc(p)}</div><div class="prod-meta">Output ${fmt(op)}%</div></div><div class="row-right"><strong>${fmt(op)}%</strong><small>Below 95%</small></div></div>`}).join("")||"<div class='empty'>No valid production records below 95%.</div>"}</div>`;
+    showModal("🟡 Production Output",html); return;
+  }
+}
+function attentionSummaryItems(){
+  const reorderRows=attentionReorderMaterials();
+  const under3Rows=attentionUnder3Materials();
+  const abnormalRows=attentionAbnormalConsumption();
+  const bagRows=attentionIncreasedBagDamage();
+  const spareRows=attentionPendingSpareOrders();
+  const productionRows=attentionProductionIssues();
+  const items=[];
+  items.push({icon:reorderRows.length?'🔴':'🟢',level:reorderRows.length?'critical':'clear',count:reorderRows.length,text:`${reorderRows.length} Raw Materials below reorder level`,reason:reorderRows.length?"Immediate replenishment recommended":"No material is below its reorder level",action:"openAttentionFiltered('reorder')"});
+  items.push({icon:under3Rows.length?'🟡':'🟢',level:under3Rows.length?'warning':'clear',count:under3Rows.length,text:`${under3Rows.length} materials with < 3 days cover`,reason:under3Rows.length?"Coverage is low but not yet at reorder level":"No additional low-coverage materials",action:"openAttentionFiltered('under3')"});
+  items.push({icon:abnormalRows.length?'🔴':'🟢',level:abnormalRows.length?'critical':'clear',count:abnormalRows.length,text:`${abnormalRows.length} abnormal consumption`,reason:abnormalRows.length?"Consumption is outside the normal pattern":"Consumption is within the monitored range",action:"openAttentionFiltered('abnormal')"});
+  items.push({icon:bagRows.length?'🟡':'🟢',level:bagRows.length?'warning':'clear',count:bagRows.length,text:`${bagRows.length} PP bag damage increases`,reason:bagRows.length?"Damage is higher than the previous available day":"No increase in recorded damage",action:"openAttentionFiltered('bags')"});
+  items.push({icon:spareRows.length?'🔵':'🟢',level:spareRows.length?'info':'clear',count:spareRows.length,text:`${spareRows.length} spare orders pending`,reason:spareRows.length?"Open / pending spare orders need follow-up":"No pending spare orders",action:"openAttentionFiltered('spares')"});
+  items.push({icon:productionRows.length?'🟡':'🟢',level:productionRows.length?'warning':'clear',count:productionRows.length,text:productionRows.length?`${productionRows.length} production outputs below 95%`:'Production output normal',reason:productionRows.length?"Output percentage is below the 95% threshold":"All selected production records are ≥ 95%",action:"openAttentionFiltered('production')"});
+  const dcReviews=dcReviewItems();
+  items.push({icon:dcReviews.length?'🔴':'🟢',level:dcReviews.length?'critical':'clear',count:dcReviews.length,text:dcReviews.length?`${dcReviews.length} data review item${dcReviews.length===1?"":"s"}: hidden / unexplained / changed`:"Data control clear",reason:dcReviews.length?"Manager review is required before accepting the affected data":"No new data-control review required",action:"dcReviewModal()"});
+  return items;
+}
+
+function attentionTotalCount(items){
+  return items.reduce((sum,x)=>sum+(Number(x.count)||0),0);
+}
+function openAttentionOverview(){
+  const items=attentionSummaryItems().filter(x=>x.level!=="clear");
+  if(!items.length){
+    showModal("✓ Attention Required",`<div class="attention-overview-clear"><div class="attention-clear-mark">✓</div><h3>Everything is under control</h3><p>No active attention items were detected for the selected date.</p></div>`);
+    return;
+  }
+  const total=attentionTotalCount(items);
+  const critical=items.filter(x=>x.level==="critical").reduce((n,x)=>n+(Number(x.count)||0),0);
+  const warning=items.filter(x=>x.level==="warning").reduce((n,x)=>n+(Number(x.count)||0),0);
+  const html=`<div class="attention-overview">
+    <div class="attention-overview-stats"><div><strong>${total}</strong><small>Total items</small></div><div class="critical"><strong>${critical}</strong><small>Critical</small></div><div class="warning"><strong>${warning}</strong><small>Warning</small></div></div>
+    <div class="attention-overview-list">${items.map(x=>{const cls=x.level;return `<button type="button" class="attention-overview-row ${cls}" onclick="${x.action}"><span class="attention-overview-icon">${x.icon}</span><span><strong>${esc(x.text)}</strong><small>${esc(x.reason||"Open affected items")}</small></span><b>›</b></button>`}).join("")}</div>
+  </div>`;
+  showModal("⚠️ Attention Required",html);
+}
+function renderAttentionRequired(){
+  const card=document.getElementById("attentionRequiredCard");
+  const list=document.getElementById("attentionList");
+  const count=document.getElementById("attentionCount");
+  const status=document.getElementById("attentionStatus");
+  const meta=document.getElementById("attentionMeta");
+  if(!card||!list)return;
+  const items=attentionSummaryItems();
+  const active=items.filter(x=>x.level!=="clear");
+  const total=attentionTotalCount(active);
+  const critical=active.filter(x=>x.level==="critical").reduce((n,x)=>n+(Number(x.count)||0),0);
+  const warning=active.filter(x=>x.level==="warning").reduce((n,x)=>n+(Number(x.count)||0),0);
+  if(count){count.textContent=String(total);count.className="attention-count"+(critical?" critical":total?" warning":" clear")}
+  if(status){status.textContent=critical?"ACTION NEEDED":total?"CHECK":"ALL CLEAR";status.className="attention-status"+(critical?" critical":total?" warning":" clear")}
+  if(meta){meta.textContent=total?`${critical} critical • ${warning} warning`:`No active issues for ${selectedDateForIntelligence()||"latest data"}`}
+  card.classList.toggle("has-critical",critical>0);
+  card.classList.toggle("has-warning",critical===0&&total>0);
+  card.classList.toggle("is-clear",total===0);
+  list.innerHTML=active.length?active.map(x=>{
+    const cls=x.level==="critical"?"critical":x.level==="warning"?"warning":"info";
+    return `<button type="button" class="attention-summary-row ${cls}" onclick="${x.action}">
+      <span class="attention-summary-icon">${x.icon}</span>
+      <span class="attention-summary-copy"><strong>${esc(x.text)}</strong><small>${esc(x.reason||"Click to view affected items")}</small></span>
+      <span class="attention-summary-arrow">›</span>
+    </button>`;
+  }).join(""): `<div class="attention-inline-clear"><span>✓</span><div><strong>No action required</strong><small>All monitored areas are currently within limits.</small></div></div>`;
+}
 
 function renderSmartHeader(){
   const d=selectedDateForIntelligence()||dateOnly(DATA.report_date)||"";
@@ -836,6 +1566,7 @@ function trendClosing(){
    NAVIGATION
 ===================================================== */
 function goHome(){window.scrollTo({top:0,behavior:"smooth"})}
+function goSpareParts(){document.getElementById("sparePartsSection")?.scrollIntoView({behavior:"smooth",block:"start"});loadSpareParts(false)}
 function goTrend(){document.getElementById("trendsSection").scrollIntoView({behavior:"smooth"})}
 
 
@@ -843,9 +1574,32 @@ function goTrend(){document.getElementById("trendsSection").scrollIntoView({beha
    DATE VIEW — COMPLETE DASHBOARD DATE FILTER
 ===================================================== */
 let VIEW_DATE=null;
+
+/* =====================================================
+   PERFORMANCE MEMOIZATION — invalidated when data/date changes
+===================================================== */
+const PERF_CACHE={
+  viewStock:null, historyStock:new Map(), materials:null, materialMap:null,
+  transactions:new Map(), production:null, bags:null, feedRows:null, latestFeed:null,
+  avgConsumption:new Map(), availableDates:null
+};
+function invalidatePerfCache(){
+  PERF_CACHE.viewStock=null;
+  PERF_CACHE.historyStock.clear();
+  PERF_CACHE.materials=null;
+  PERF_CACHE.materialMap=null;
+  PERF_CACHE.transactions.clear();
+  PERF_CACHE.production=null;
+  PERF_CACHE.bags=null;
+  PERF_CACHE.feedRows=null;
+  PERF_CACHE.latestFeed=null;
+  PERF_CACHE.avgConsumption.clear();
+  PERF_CACHE.availableDates=null;
+}
 function historyStockRowsForDate(date){
   const d=dateOnly(date);
   if(!d)return [];
+  if(PERF_CACHE.historyStock.has(d))return PERF_CACHE.historyStock.get(d);
   const grouped=new Map();
   (DATA.stockHistory||[]).forEach(t=>{
     if(dateOnly(rowDate(t))!==d)return;
@@ -856,57 +1610,80 @@ function historyStockRowsForDate(date){
     grouped.get(key).transactions.push(t);
   });
   const current=new Map((DATA.stock||[]).map(x=>[normalize(x.material),x]));
-  return [...grouped.values()].map(g=>{
+  const result=[...grouped.values()].map(g=>{
     const base=current.get(normalize(g.material))||{};
     const closingRows=g.transactions.filter(t=>tType(t)==="CL. STOCK");
     const latestClosing=closingRows.length?closingRows[closingRows.length-1]:null;
     return {...base,material:g.material,transactions:g.transactions,closing:latestClosing?tVal(latestClosing):null};
   });
+  PERF_CACHE.historyStock.set(d,result);
+  return result;
 }
 function viewStockRows(){
+  if(PERF_CACHE.viewStock)return PERF_CACHE.viewStock;
   if(VIEW_DATE){
-    return historyStockRowsForDate(VIEW_DATE);
+    PERF_CACHE.viewStock=historyStockRowsForDate(VIEW_DATE);
+    return PERF_CACHE.viewStock;
   }
-  return (DATA.stock||[]).map(x=>{
+  PERF_CACHE.viewStock=(DATA.stock||[]).map(x=>{
     const tx=Array.isArray(x.transactions)?x.transactions:[];
     const closingRows=tx.filter(t=>tType(t)==="CL. STOCK");
     const latestClosing=closingRows.length?closingRows[closingRows.length-1]:null;
     return {...x,transactions:tx,closing:latestClosing?tVal(latestClosing):num(x.closing)};
   }).filter(x=>x.material);
+  return PERF_CACHE.viewStock;
 }
 function getMaterials(){
-  return [...new Set(viewStockRows().map(x=>clean(x.material)).filter(Boolean))];
+  if(PERF_CACHE.materials)return PERF_CACHE.materials;
+  PERF_CACHE.materials=[...new Set(viewStockRows().map(x=>clean(x.material)).filter(Boolean))].filter(m=>!dcIsHiddenMaterial(m));
+  return PERF_CACHE.materials;
 }
 function getMaterial(material){
-  return viewStockRows().find(x=>normalize(x.material)===normalize(material))||null;
+  if(!PERF_CACHE.materialMap){
+    PERF_CACHE.materialMap=new Map(viewStockRows().map(x=>[normalize(x.material),x]));
+  }
+  return PERF_CACHE.materialMap.get(normalize(material))||null;
 }
 function transactions(material){
+  const key=normalize(material);
+  if(PERF_CACHE.transactions.has(key))return PERF_CACHE.transactions.get(key);
   const x=getMaterial(material);
-  return x&&Array.isArray(x.transactions)?x.transactions:[];
+  const raw=x&&Array.isArray(x.transactions)?x.transactions:[];
+  const result=raw.filter(t=>!dcIsExcluded(material,t));
+  PERF_CACHE.transactions.set(key,result);
+  return result;
 }
 function selectedProduction(){
-  if(!VIEW_DATE)return Array.isArray(DATA.production)?DATA.production:[];
+  if(PERF_CACHE.production)return PERF_CACHE.production;
+  if(!VIEW_DATE){PERF_CACHE.production=(Array.isArray(DATA.production)?DATA.production:[]).filter(r=>!dcIsHiddenProduct(r.product||r.Product));return PERF_CACHE.production;}
   const d=dateOnly(VIEW_DATE);
   const history=Array.isArray(DATA.productionHistory)?DATA.productionHistory:[];
-  return history.filter(r=>dateOnly(r.report_date||r.Report_Date)===d);
+  PERF_CACHE.production=history.filter(r=>dateOnly(r.report_date||r.Report_Date)===d&&!dcIsHiddenProduct(r.product||r.Product));
+  return PERF_CACHE.production;
 }
 function selectedBags(){
-  if(!VIEW_DATE)return Array.isArray(DATA.bags)?DATA.bags:[];
+  if(PERF_CACHE.bags)return PERF_CACHE.bags;
+  if(!VIEW_DATE){PERF_CACHE.bags=(Array.isArray(DATA.bags)?DATA.bags:[]).filter(r=>!dcIsHiddenProduct(r.product));return PERF_CACHE.bags;}
   const d=dateOnly(VIEW_DATE);
   const history=Array.isArray(DATA.bagsHistory)?DATA.bagsHistory:[];
-  return history.filter(r=>dateOnly(r.report_date||r.Report_Date)===d);
+  PERF_CACHE.bags=history.filter(r=>dateOnly(r.report_date||r.Report_Date)===d&&!dcIsHiddenProduct(r.product));
+  return PERF_CACHE.bags;
 }
 function selectedFeedRows(){
+  if(PERF_CACHE.feedRows)return PERF_CACHE.feedRows;
   const rows=Array.isArray(DATA.feedUnitData)?DATA.feedUnitData:[];
-  return VIEW_DATE?rows.filter(r=>dateOnly(r.Report_Date||r.report_date)===dateOnly(VIEW_DATE)):rows;
+  PERF_CACHE.feedRows=(VIEW_DATE?rows.filter(r=>dateOnly(r.Report_Date||r.report_date)===dateOnly(VIEW_DATE)):rows).filter(r=>!dcIsHiddenProduct(r.Product||r.product));
+  return PERF_CACHE.feedRows;
 }
 function latestFeedRows(){
-  const rows=selectedFeedRows(), latest={};
+  if(PERF_CACHE.latestFeed)return PERF_CACHE.latestFeed;
+  const rows=selectedFeedRows(),latest={};
   rows.forEach(r=>{
     const p=clean(r.Product||r.product);
     if(p)latest[normalize(p)]=r;
   });
-  return Object.values(latest);
+  PERF_CACHE.latestFeed=Object.values(latest);
+  return PERF_CACHE.latestFeed;
 }
 function latestTotal(key){
   return latestFeedRows().reduce((sum,r)=>{
@@ -922,29 +1699,31 @@ function latestFeedClosingTotal(){
   },0);
 }
 function avgConsumption(material){
+  const key=normalize(material);
+  if(PERF_CACHE.avgConsumption.has(key))return PERF_CACHE.avgConsumption.get(key);
   const history=Array.isArray(DATA.stockHistory)?DATA.stockHistory:[];
-  const target=normalize(material);
   const dated=new Map();
   history.forEach(t=>{
-    if(normalize(t.material)!==target || !tType(t).includes("CONSUMPTION"))return;
+    if(normalize(t.material)!==key || !tType(t).includes("CONSUMPTION"))return;
     const d=dateOnly(rowDate(t));
     const v=num(t.for_day);
     if(!d || v===null || v<=0)return;
     dated.set(d,(dated.get(d)||0)+v);
   });
-  if(!dated.size)return 0;
-
+  if(!dated.size){PERF_CACHE.avgConsumption.set(key,0);return 0;}
   const availableDates=[...dated.keys()].sort();
   let anchor=dateOnly(VIEW_DATE);
   if(!anchor)anchor=availableDates[availableDates.length-1];
   const anchorTime=new Date(anchor+"T00:00:00").getTime();
   const startTime=anchorTime-29*86400000;
-  const values=[...dated.entries()]
-    .filter(([d])=>{const tm=new Date(d+"T00:00:00").getTime();return tm>=startTime && tm<=anchorTime;})
-    .map(([,v])=>v)
-    .filter(v=>v>0);
-  if(!values.length)return 0;
-  return values.reduce((a,b)=>a+b,0)/values.length;
+  let total=0,count=0;
+  dated.forEach((v,d)=>{
+    const tm=new Date(d+"T00:00:00").getTime();
+    if(tm>=startTime&&tm<=anchorTime&&v>0){total+=v;count++;}
+  });
+  const result=count?total/count:0;
+  PERF_CACHE.avgConsumption.set(key,result);
+  return result;
 }
 function renderQuick(){
   const pd=latestTotal("Production_Day_MT"),pm=latestTotal("Production_Month_MT");
@@ -987,6 +1766,7 @@ function toggleFeedUnitMore(){feedUnitExpanded=!feedUnitExpanded;renderFeedUnit(
 
 function renderPPBags(){
   const rows=selectedBags(),el=document.getElementById("bagGrid");
+  if(!el)return;
   const seen=new Set();
   const uniqueRows=rows.filter(r=>{
     const key=normalize(r.product||"PP Bags");
@@ -994,16 +1774,32 @@ function renderPPBags(){
     seen.add(key);
     return true;
   });
-  el.innerHTML=uniqueRows.slice().sort((a,b)=>(num(b.closing)||0)-(num(a.closing)||0)).map(r=>{
+  const sorted=uniqueRows.slice().sort((a,b)=>(num(b.closing)||0)-(num(a.closing)||0)).slice(0,10);
+  el.innerHTML=sorted.map(r=>{
     const p=r.product||"PP Bags";
-    return `<div class="pp-item" onclick="openBagProduct('${jsq(p)}')"><p>${esc(p)}</p><small class="pp-closing-label">Closing</small><strong class="pp-closing-number">${fmt(r.closing)}</strong><p style="margin-top:3px">Issue ${fmt(r.issue)} • Damage ${fmt(r.damage)}</p></div>`;
+    const opening=num(r.opening)||0, received=num(r.received)||0, issue=num(r.issue)||0, damage=num(r.damage)||0, closing=num(r.closing)||0;
+    const rec=ppBagReconciliation(p);
+    const status=rec.status==="MISMATCH"?"CHECK":(damage>0?"DAMAGE":"OK");
+    const statusCls=status.toLowerCase();
+    const statusIcon=status==="CHECK"?"⚠":(status==="DAMAGE"?"🟠":"✓");
+    return `<div class="pp-item pp-status-${statusCls}" role="button" tabindex="0" onclick="openBagProduct('${jsq(p)}')" onkeydown="if(event.key==='Enter'||event.key===' ')openBagProduct('${jsq(p)}')">
+      <div class="pp-card-head"><p title="${esc(p)}">${esc(p)}</p><span class="pp-status ${statusCls}" title="${status}">${statusIcon}</span></div>
+      <div class="pp-metrics">
+        <span><b>Open</b><strong>${fmt(opening)}</strong></span>
+        <span><b>Recv</b><strong>${fmt(received)}</strong></span>
+        <span><b>Issue</b><strong>${fmt(issue)}</strong></span>
+        <span><b>Damage</b><strong>${fmt(damage)}</strong></span>
+        <span class="pp-closing"><b>Close</b><strong>${fmt(closing)}</strong></span>
+      </div>
+    </div>`;
   }).join("")||"<div class='empty'>No PP Bag data for this date</div>";
 }
 function renderStock(){
   const list=document.getElementById("stockList"),premixList=document.getElementById("premixStockList"),mats=getMaterials();
   const renderRows=(rows)=>rows.slice().sort((a,b)=>{const av=num(getMaterial(a)?.closing)||0,bv=num(getMaterial(b)?.closing)||0;return (bv>0)-(av>0)||bv-av;}).map(m=>{
     const x=getMaterial(m),closing=num(x?.closing)||0,avg=avgConsumption(m),st=stockStatus(closing,avg),unit=x?.unit||"MT";
-    return `<div class="stock-row" onclick="openMaterialDetails('${jsq(m)}')"><div class="reorder-material-wrap"><strong class="reorder-material">${esc(m)}</strong><small class="avg-under-material">Avg/day ${avg?fmt(avg):"--"} ${esc(unit)}</small></div><span>${fmt(closing)} ${esc(unit)}</span><span class="cover-cell">${st.cover!==null?fmt(st.cover)+" d":"--"}</span><span class="${st.cls} status-text">${esc(st.status)}</span></div>`;
+    const dot=st.status==="REORDER"?"🔴":st.status==="WATCH"?"🟡":st.status==="OK"?"🟢":"⚪";
+    return `<div class="stock-row reorder-card" onclick="openMaterialDetails('${jsq(m)}')"><div class="reorder-card-top"><strong class="reorder-material">${esc(m)}</strong><span class="status-dot ${st.cls}" title="${esc(st.status)}" aria-label="${esc(st.status)}"></span></div><div class="reorder-card-metrics"><span><b>Stock</b><strong>${fmt(closing)} ${esc(unit)}</strong></span><span><b>Avg/day</b><strong>${avg?fmt(avg):"--"} ${esc(unit)}</strong></span><span><b>Cover</b><strong>${st.cover!==null?fmt(st.cover)+" d":"--"}</strong></span></div></div>`;
   }).join("")||"<div class='empty'>No stock data for this date</div>";
   const rawMats=mats.filter(m=>!isPremixMaterial(m));
   const premixMats=mats.filter(m=>isPremixMaterial(m));
@@ -1058,6 +1854,18 @@ function managerAttentionItems(){
   reorder.slice(0,8).forEach(m=>items.push({level:"critical",title:m,msg:`Stock ${fmtMaterial(num(getMaterial(m)?.closing)||0,m,getMaterial(m)?.unit||"MT")} • coverage ${(()=>{const s=stockStatus(num(getMaterial(m)?.closing)||0,avgConsumption(m));return s.cover===null?"--":fmt(s.cover)+" days"})()}`,action:`openMaterialDetails('${jsq(m)}')`}));
   reconciliationItems().filter(x=>x.r.status==="MISMATCH").slice(0,8).forEach(x=>items.push({level:"warning",title:x.m,msg:"Stock reconciliation mismatch — check transactions",action:`openMaterialDetails('${jsq(x.m)}')`}));
   abnormalConsumptionItems().slice(0,8).forEach(x=>items.push({level:"warning",title:x.material,msg:`Consumption ${fmt(x.current)} vs avg ${fmt(x.avg)} • ${fmt(Math.abs(x.ratio*100-100))}% ${x.direction==="LOW"?"below":"above"} average`,action:`openMaterialDetails('${jsq(x.material)}')`}));
+  DATA.production.forEach(r=>{
+    const op=num(r.output_percentage);
+    if(op!==null&&op<95){
+      items.push({level:"warning",title:r.product||"Production",msg:`Output ${fmt(op)}% • below 95% target`,action:`openProductionDetails('${jsq(r.product||"")}')`});
+    }
+  });
+  getMaterials().forEach(m=>{
+    const closing=num(getMaterial(m)?.closing);
+    if(closing!==null&&closing<0){
+      items.push({level:"critical",title:m,msg:`Negative closing stock: ${fmt(closing)} ${materialUnit(m,getMaterial(m)?.unit||"MT")}`,action:`openMaterialDetails('${jsq(m)}')`});
+    }
+  });
   const damage=selectedBags().reduce((a,r)=>a+(num(r.damage)||0),0);
   if(damage>0)items.push({level:"warning",title:"PP Bag Damage",msg:`${fmt(damage)} bags damaged on ${selectedDateForIntelligence()}`,action:"openPPBagDetails()"});
   return items;
@@ -1085,20 +1893,23 @@ function deleteManagerNote(key){localStorage.removeItem("manager_note_"+key);clo
 
 function setViewDate(date){
   VIEW_DATE=date?dateOnly(date):null;
+  invalidatePerfCache();
   closeModal();
   renderDashboard();
   renderTrends();
   showToast(VIEW_DATE?`Dashboard set to ${VIEW_DATE}`:"Dashboard set to latest");
 }
 function getAvailableDates(){
+  if(PERF_CACHE.availableDates)return PERF_CACHE.availableDates;
   const s=new Set();
   (DATA.stockHistory||[]).forEach(t=>{const d=dateOnly(rowDate(t));if(d)s.add(d)});
   (DATA.stock||[]).forEach(x=>(x.transactions||[]).forEach(t=>{const d=dateOnly(rowDate(t));if(d)s.add(d)}));
   (DATA.production||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
   (DATA.bags||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
-  (DATA.feedUnitData||[]).forEach(r=>{const d=dateOnly(r.report_date||r.Report_Date);if(d)s.add(d)});
+  (DATA.feedUnitData||[]).forEach(r=>{const d=dateOnly(r.Report_Date||r.report_date);if(d)s.add(d)});
   if(DATA.report_date)s.add(dateOnly(DATA.report_date));
-  return [...s].filter(Boolean).sort().reverse();
+  PERF_CACHE.availableDates=[...s].filter(Boolean).sort().reverse();
+  return PERF_CACHE.availableDates;
 }
 function openDateSelector(){
   const dates=getAvailableDates();
@@ -1308,20 +2119,673 @@ function renderDataQualityPanel(){
   host.innerHTML=`<div class="card control-card" id="dataQualityPanel"><div class="card-title"><h2>🛡 Data Health &amp; Issues</h2><span>Quality • Accuracy • Issues</span></div><div class="control-grid"><button class="control-item" onclick="openDQDuplicates()"><small>🔁 Duplicate Transactions</small><strong>${dup.length}</strong></button><button class="control-item" onclick="openDQUnknown()"><small>❓ Unknown Transactions</small><strong>${unk.length}</strong></button><button class="control-item" onclick="openDQContinuity()"><small>🔗 Opening → Closing</small><strong>${cont.length}</strong></button><button class="control-item" onclick="openDQAbnormal()"><small>⚠ Abnormal Activity</small><strong>${ab.length}</strong></button><button class="control-item" onclick="openDQHistory()"><small>📈 Historical Trend</small><strong>${getMaterials().length}</strong></button><button class="control-item" onclick="openDQCoverage()"><small>🎯 Coverage</small><strong>${cov.filter(x=>x.percent===100).length}/${cov.length}</strong></button></div><div class="health-strip" onclick="openDataHealth()"><span>⚠ Data Issues</span><b>${badDataIssueCount()}</b> <span>View details →</span></div><div class="small-note">Consumption spelling variations are automatically treated as Consumption; only genuinely unrecognized transaction names are shown as Unknown.</div></div>`;
 }
 function ensureDataQualityHost(){
-  const bagGrid=document.getElementById("bagGrid");if(!bagGrid)return;
-  const bagCard=bagGrid.closest(".card");if(!bagCard)return;
+  const premixCard=document.getElementById("premixTransferCard");
+  if(!premixCard)return;
   let host=document.getElementById("dataQualityPanelHost");
-  if(!host){host=document.createElement("div");host.id="dataQualityPanelHost";bagCard.parentNode.insertBefore(host,bagCard.nextSibling)}
+  if(!host){
+    host=document.createElement("div");
+    host.id="dataQualityPanelHost";
+    premixCard.parentNode.insertBefore(host,premixCard.nextSibling);
+  }
   renderDataQualityPanel();
 }
 const __dqBaseRenderControlCenter=renderControlCenter;
 renderControlCenter=function(){__dqBaseRenderControlCenter();ensureDataQualityHost()};
 
 /* =====================================================
+   SPARE PARTS — ADDITIVE SEPARATE API / UI
+   Existing Feed Plant API and logic remain unchanged.
+===================================================== */
+let SPARE_DATA={SPARE_STOCK:[],SPARE_ORDERS:[],EMPLOYEE_MESSAGES:[]};
+let spareTab="SPARE_STOCK";
+let spareStockExpanded=false;
+
+function spareVal(row, keys){
+  for(const k of keys){ if(row && row[k]!==undefined && row[k]!==null && row[k]!=="") return row[k]; }
+  return "";
+}
+function spareText(v){return clean(v);}
+function setSpareTab(btn,tab){
+  document.querySelectorAll('.spare-tabs button').forEach(x=>x.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  spareTab=tab;
+  spareStockExpanded=false;
+  const input=document.getElementById('spareSearch');
+  if(input)input.value="";
+  renderSpareParts("");
+}
+function renderSpareParts(query=""){
+  const el=document.getElementById('sparePartsList');
+  if(!el)return;
+  const q=normalize(query);
+  const rows=Array.isArray(SPARE_DATA[spareTab])?SPARE_DATA[spareTab]:[];
+  const filtered=q?rows.filter(r=>normalize(Object.values(r||{}).join(" ")).includes(q)):rows;
+  updateSectionDates();
+  if(!filtered.length){el.innerHTML=`<div class="empty">No ${spareTab==='SPARE_STOCK'?'spare stock':spareTab==='SPARE_ORDERS'?'orders':'employee messages'} found.</div>`;return;}
+
+  if(spareTab==='SPARE_STOCK'){
+    const showAll = spareStockExpanded || !!q;
+    const visible = showAll ? filtered : filtered.slice(0,2);
+    const cards = visible.map(r=>{
+      const name=spareVal(r,['NAME','Name','PART_NAME','Part_Name','PART NAME'])||'Unnamed Part';
+      const category=spareVal(r,['CATEGORY','Category']);
+      const size=spareVal(r,['SIZE','Size']);
+      const code=spareVal(r,['CODE','Code']);
+      const stock=spareVal(r,['STOCK','Stock']);
+      const unit=spareVal(r,['UNIT','Unit'])||'Nos';
+      const reorder=spareVal(r,['REORDER_LEVEL','Reorder_Level','REORDER LEVEL']);
+      const location=spareVal(r,['LOCATION','Location']);
+      const n=num(stock), rl=num(reorder);
+      const low=rl!==null && n!==null && n<=rl;
+      return `<div class="spare-stock-row ${low?'spare-low-stock':''}">
+        <div class="spare-main"><strong>${esc(name)}</strong><small>${esc(category||'')}${size?' • '+esc(size):''}${code?' • Code: '+esc(code):''}</small></div>
+        <div class="spare-stock-right"><strong>${esc(fmt(stock))}</strong><small>${esc(unit)}${low?' • Reorder':''}</small></div>
+        ${location?`<div class="spare-location">📍 ${esc(location)}</div>`:''}
+      </div>`;
+    }).join('');
+    const more = filtered.length > 2 && !q ? `<button class="spare-view-more-btn" onclick="toggleSpareStock()">${spareStockExpanded?'⌃ Show less':'⌄ View details • '+(filtered.length-2)+' more'}</button>` : '';
+    el.innerHTML=cards+more;
+    return;
+  }
+
+  if(spareTab==='SPARE_ORDERS'){
+    el.innerHTML=filtered.map(r=>{
+      const date=spareVal(r,['DATE','Date']);
+      const title=spareVal(r,['ORDER_TITLE','Order_Title','ORDER TITLE']);
+      const msg=spareVal(r,['ORDER_MESSAGE','Order_Message','ORDER MESSAGE','MESSAGE','Message']);
+      const status=spareVal(r,['STATUS','Status']);
+      return `<div class="spare-message-card"><div class="spare-message-head"><strong>${esc(title||'Spare Parts Order')}</strong><small>${esc(date)}</small></div>${status?`<span class="spare-status">${esc(status)}</span>`:''}<div class="spare-message-body">${esc(msg||'')}</div></div>`;
+    }).join('');
+    return;
+  }
+
+  el.innerHTML=filtered.map(r=>{
+    const date=spareVal(r,['DATE','Date']);
+    const employee=spareVal(r,['EMPLOYEE','Employee','EMPLOYEE_NAME','Employee_Name']);
+    const msg=spareVal(r,['MESSAGE','Message','EMPLOYEE_MESSAGE','Employee_Message']);
+    const category=spareVal(r,['CATEGORY','Category']);
+    const status=spareVal(r,['STATUS','Status']);
+    return `<div class="spare-message-card"><div class="spare-message-head"><strong>${esc(employee||'Employee Message')}</strong><small>${esc(date)}</small></div>${category?`<div class="spare-message-meta">${esc(category)}${status?' • '+esc(status):''}</div>`:''}<div class="spare-message-body">${esc(msg||'')}</div></div>`;
+  }).join('');
+}
+function toggleSpareStock(){
+  spareStockExpanded=!spareStockExpanded;
+  renderSpareParts(document.getElementById('spareSearch')?.value||'');
+}
+async function loadSpareParts(showToastOnSuccess=false){
+  const el=document.getElementById('sparePartsList');
+  if(el && !showToastOnSuccess)el.innerHTML='<div class="empty">Loading spare parts...</div>';
+  try{
+    const response=await fetch(SPARE_PARTS_API+`?t=${Date.now()}`,{cache:'no-store'});
+    if(!response.ok)throw new Error(`HTTP ${response.status}`);
+    const data=await response.json();
+    SPARE_DATA={
+      SPARE_STOCK:Array.isArray(data.SPARE_STOCK)?data.SPARE_STOCK:[],
+      SPARE_ORDERS:Array.isArray(data.SPARE_ORDERS)?data.SPARE_ORDERS:[],
+      EMPLOYEE_MESSAGES:Array.isArray(data.EMPLOYEE_MESSAGES)?data.EMPLOYEE_MESSAGES:[]
+    };
+    renderSpareParts(document.getElementById('spareSearch')?.value||'');
+    if(showToastOnSuccess)showToast('Spare Parts updated');
+  }catch(error){
+    console.error('Spare Parts API:',error);
+    if(el)el.innerHTML='<div class="error-box">❌ Spare Parts API connection failed.</div>';
+  }
+}
+
+
+/* =====================================================
+   REPORT CENTER — ADDITIVE REPORTING LAYER
+   Uses existing DATA / SPARE_DATA only. No source API or dashboard data is changed.
+===================================================== */
+function reportAllDates(){
+  const s=new Set();
+  const add=v=>{const d=dateOnly(v);if(d)s.add(d)};
+  (DATA.stockHistory||[]).forEach(r=>add(rowDate(r)));
+  (DATA.stock||[]).forEach(r=>{add(r.report_date||r.Report_Date||r.date);(r.transactions||[]).forEach(t=>add(rowDate(t)))});
+  (DATA.productionHistory||[]).forEach(r=>add(r.report_date||r.Report_Date||r.date));
+  (DATA.production||[]).forEach(r=>add(r.report_date||r.Report_Date||r.date));
+  (DATA.productionTrend||[]).forEach(r=>add(r.report_date||r.Report_Date||r.date));
+  (DATA.feedUnitData||[]).forEach(r=>add(r.report_date||r.Report_Date||r.date));
+  (DATA.bagsHistory||[]).forEach(r=>add(r.report_date||r.Report_Date||r.date));
+  (DATA.bags||[]).forEach(r=>add(r.report_date||r.Report_Date||r.date));
+  add(DATA.report_date);
+  Object.values(SPARE_DATA||{}).forEach(rows=>(rows||[]).forEach(r=>Object.keys(r||{}).forEach(k=>{if(normalize(k).includes('DATE'))add(r[k])})));
+  return [...s].filter(Boolean).sort();
+}
+function reportRange(){
+  const all=reportAllDates();
+  let from=document.getElementById('reportFromDate')?.value||'';
+  let to=document.getElementById('reportToDate')?.value||'';
+  if(!all.length)return {from,to,all};
+  if(!from)from=all[Math.max(0,all.length-7)];
+  if(!to)to=all[all.length-1];
+  if(from>to){const x=from;from=to;to=x;}
+  return {from,to,all};
+}
+let reportActiveView='';
+function initReportCenter(){
+  const all=reportAllDates();
+  const f=document.getElementById('reportFromDate'),t=document.getElementById('reportToDate');
+  if(all.length){
+    if(f&&!f.value)f.value=all[Math.max(0,all.length-7)];
+    if(t&&!t.value)t.value=all[all.length-1];
+  }
+  f?.addEventListener('change',()=>{if(reportActiveView)refreshReportPreview()});
+  t?.addEventListener('change',()=>{if(reportActiveView)refreshReportPreview()});
+}
+function resetReportDates(){
+  const all=reportAllDates();const f=document.getElementById('reportFromDate'),t=document.getElementById('reportToDate');
+  if(f)f.value=all[Math.max(0,all.length-7)]||'';if(t)t.value=all[all.length-1]||'';
+  if(reportActiveView)refreshReportPreview();
+  showToast('Report range reset');
+}
+function reportInRange(d,from,to){return !!d&&(!from||d>=from)&&(!to||d<=to)}
+function reportDate(v){return dateOnly(v)}
+function reportNum(v){const n=Number(v);return Number.isFinite(n)?n:0}
+function reportFmt(v){return reportNum(v).toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2})}
+function reportDisplayCell(v){
+  if(v===null||v===undefined||v==='')return '';
+  const n=Number(v);
+  if(Number.isFinite(n))return n.toLocaleString('en-IN',{minimumFractionDigits:0,maximumFractionDigits:2});
+  return String(v);
+}
+function reportRound(v){
+  const n=Number(v);
+  return Number.isFinite(n)?Math.round(n*100)/100:v;
+}
+function reportCleanRows(rows){return (rows||[]).map(r=>r.map(reportRound));}
+function reportTypeTotals(rows,from,to){
+  const out={};
+  (rows||[]).forEach(t=>{const d=reportDate(rowDate(t));if(!reportInRange(d,from,to))return;const ty=tType(t);out[ty]=(out[ty]||0)+tVal(t)});
+  return out;
+}
+function reportRawRows(from,to){
+  const map=new Map();
+  const key=(d,m)=>d+'|'+normalize(m);
+  (DATA.stockHistory||[]).forEach(t=>{
+    const d=reportDate(rowDate(t)),m=clean(t.material);if(!m||!reportInRange(d,from,to))return;
+    const k=key(d,m);if(!map.has(k))map.set(k,{Date:d,Material:m,Unit:materialUnit(m),Received:0,Consumption:0,Transfer:0,Closing:null});
+    const r=map.get(k),ty=tType(t),v=tVal(t);
+    if(ty==='PURCHASE'||ty==='RECEIVED')r.Received+=v;
+    else if(ty.includes('CONSUMPTION')||ty.includes('CONSUMPION'))r.Consumption+=v;
+    else if(ty.includes('TRANSFER'))r.Transfer+=v;
+    if(ty==='CL. STOCK')r.Closing=v;
+  });
+  if(!map.size){
+    (DATA.stock||[]).forEach(x=>(x.transactions||[]).forEach(t=>{
+      const d=reportDate(rowDate(t)),m=clean(x.material||t.material);if(!m||!reportInRange(d,from,to))return;
+      const k=key(d,m);if(!map.has(k))map.set(k,{Date:d,Material:m,Unit:materialUnit(m),Received:0,Consumption:0,Transfer:0,Closing:null});
+      const r=map.get(k),ty=tType(t),v=tVal(t);if(ty==='PURCHASE'||ty==='RECEIVED')r.Received+=v;else if(ty.includes('CONSUMPTION')||ty.includes('CONSUMPION'))r.Consumption+=v;else if(ty.includes('TRANSFER'))r.Transfer+=v;if(ty==='CL. STOCK')r.Closing=v;
+    }));
+  }
+  return [...map.values()].sort((a,b)=>a.Date.localeCompare(b.Date)||a.Material.localeCompare(b.Material));
+}
+function reportFeedRows(from,to){
+  return (DATA.feedUnitData||[]).filter(r=>reportInRange(reportDate(r.report_date||r.Report_Date||r.date),from,to)).map(r=>{
+    const p=clean(r.Product||r.product);
+    return {Date:reportDate(r.report_date||r.Report_Date||r.date),Product:p,Production:feedHistoryValue(r,['Production_Day_MT','production_day_mt','Production_Day','production_day','Production','production']),Dispatch:feedHistoryValue(r,['Dispatch_Day_MT','dispatch_day_mt','Dispatch_Day','dispatch_day','Dispatch','dispatch']),Closing:feedHistoryValue(r,['Closing_Day_MT','closing_day_mt','Closing_Day','closing_day','Closing','closing'])};
+  }).sort((a,b)=>a.Date.localeCompare(b.Date)||a.Product.localeCompare(b.Product));
+}
+function reportBagRows(from,to){
+  const src=(DATA.bagsHistory&&DATA.bagsHistory.length?DATA.bagsHistory:DATA.bags)||[];
+  return src.filter(r=>reportInRange(reportDate(r.report_date||r.Report_Date||r.date||r.DATE),from,to)).map(r=>({Date:reportDate(r.report_date||r.Report_Date||r.date||r.DATE),Product:clean(r.product||'PP Bags'),Received:reportNum(r.received),Issue:reportNum(r.issue),Damage:reportNum(r.damage),Closing:reportNum(r.closing)})).sort((a,b)=>a.Date.localeCompare(b.Date)||a.Product.localeCompare(b.Product));
+}
+function reportProductionRows(from,to){
+  const src=(DATA.productionHistory&&DATA.productionHistory.length?DATA.productionHistory:DATA.production)||[];
+  return src.filter(r=>reportInRange(reportDate(r.report_date||r.Report_Date||r.date),from,to)).map(r=>({Date:reportDate(r.report_date||r.Report_Date||r.date),Product:clean(r.product||r.Product),Actual_Output:reportNum(r.actual_output),Standard_Output:reportNum(r.standard_output),Output_Percentage:r.output_percentage===null||r.output_percentage===undefined||r.output_percentage===''?'':reportNum(r.output_percentage),Process_Loss:r.process_loss===null||r.process_loss===undefined||r.process_loss===''?'':reportNum(r.process_loss),Remarks:clean(r.remarks)})).sort((a,b)=>a.Date.localeCompare(b.Date)||a.Product.localeCompare(b.Product));
+}
+function reportPremixRows(from,to){
+  const out=[];
+  const seen=new Set();
+  (DATA.stockHistory||[]).forEach(t=>{
+    const d=reportDate(rowDate(t)),m=clean(t.material),ty=tType(t);if(!m||!isPremixMaterial(m)||!reportInRange(d,from,to)||!isBommakalTransfer(t))return;
+    const k=d+'|'+normalize(m)+'|'+tVal(t);if(seen.has(k))return;seen.add(k);out.push({Date:d,Premix:m,Transfer_KG:tVal(t)});
+  });
+  return out.sort((a,b)=>a.Date.localeCompare(b.Date)||a.Premix.localeCompare(b.Premix));
+}
+function reportMovementRows(from,to){
+  const rows=[];
+  (DATA.stockHistory||[]).forEach(t=>{const d=reportDate(rowDate(t)),m=clean(t.material);if(m&&reportInRange(d,from,to))rows.push({Date:d,Material:m,Movement:tType(t),Value:tVal(t),For_Month:reportNum(t.for_month),For_Year:reportNum(t.for_year)});});
+  return rows.sort((a,b)=>a.Date.localeCompare(b.Date)||a.Material.localeCompare(b.Material)||a.Movement.localeCompare(b.Movement));
+}
+function reportSpareRows(){
+  const stock=(SPARE_DATA.SPARE_STOCK||[]).map(r=>({Category:spareVal(r,['CATEGORY','Category']),Part_Name:spareVal(r,['NAME','Name','PART_NAME','Part_Name','PART NAME']),Size:spareVal(r,['SIZE','Size']),Code:spareVal(r,['CODE','Code']),Stock:spareVal(r,['STOCK','Stock']),Unit:spareVal(r,['UNIT','Unit'])||'Nos',Reorder_Level:spareVal(r,['REORDER_LEVEL','Reorder_Level','REORDER LEVEL']),Location:spareVal(r,['LOCATION','Location'])}));
+  return stock;
+}
+function reportHealthRows(from,to){
+  let reorder=0,issues=0,abnormal=0;
+  try{reorder=getMaterials().filter(m=>stockStatus(reportNum(getMaterial(m)?.closing),avgConsumption(m)).status==='REORDER').length}catch(e){}
+  try{issues=reconciliationItems().length+feedUnitReconciliationItems().length+ppBagReconciliationItems().length+duplicateTransactionCount()}catch(e){}
+  try{abnormal=abnormalConsumptionItems().length}catch(e){}
+  return [
+    {Metric:'Report Period',Value:from+' → '+to},
+    {Metric:'Raw Material Reorder Items',Value:reorder},
+    {Metric:'Reconciliation / Data Issues',Value:issues},
+    {Metric:'Abnormal Consumption Items',Value:abnormal},
+    {Metric:'Raw Material Records',Value:reportRawRows(from,to).length},
+    {Metric:'Feed Unit Records',Value:reportFeedRows(from,to).length},
+    {Metric:'PP Bag Records',Value:reportBagRows(from,to).length},
+    {Metric:'Production Records',Value:reportProductionRows(from,to).length}
+  ];
+}
+function reportSummary(from,to){
+  const raw=reportRawRows(from,to),feed=reportFeedRows(from,to),bags=reportBagRows(from,to),prod=reportProductionRows(from,to),premix=reportPremixRows(from,to);
+  const sum=(rows,k)=>rows.reduce((a,r)=>a+reportNum(r[k]),0);
+  return [
+    ['Raw Material Received',sum(raw,'Received'),'MT / source unit'],
+    ['Raw Material Consumption',sum(raw,'Consumption'),'MT / source unit'],
+    ['Raw Material Transfer',sum(raw,'Transfer'),'MT / source unit'],
+    ['Feed Production',sum(feed,'Production'),'MT / product unit'],
+    ['Feed Dispatch',sum(feed,'Dispatch'),'MT / product unit'],
+    ['PP Bags Received',sum(bags,'Received'),'Bags'],
+    ['PP Bags Issue',sum(bags,'Issue'),'Bags'],
+    ['PP Bags Damage',sum(bags,'Damage'),'Bags'],
+    ['Production Actual Output',sum(prod,'Actual_Output'),'Bags'],
+    ['Premix Bommakal Transfer',sum(premix,'Transfer_KG'),'KG']
+  ];
+}
+function reportMixRows(from,to){
+  const months=mixAvailableMonths().filter(m=>{
+    const start=m+'-01';
+    return (!from||m>=from.slice(0,7))&&(!to||m<=to.slice(0,7));
+  });
+  const rows=[];
+  months.forEach(m=>{
+    monthlyRMConsumption(m).forEach(r=>rows.push({Month:monthLabel(m),Type:'RM Consumption Mix',Item:r.name,Value_MT:r.value,Percent:0}));
+    monthlyFeedMix(m,'Production_Month_MT').forEach(r=>rows.push({Month:monthLabel(m),Type:'Production Mix',Item:r.name,Value_MT:r.value,Percent:0}));
+    monthlyFeedMix(m,'Dispatch_Month_MT').forEach(r=>rows.push({Month:monthLabel(m),Type:'Dispatch Mix',Item:r.name,Value_MT:r.value,Percent:0}));
+  });
+  const totals={};rows.forEach(r=>{const k=r.Month+'|'+r.Type;totals[k]=(totals[k]||0)+r.Value_MT});
+  rows.forEach(r=>{const t=totals[r.Month+'|'+r.Type]||0;r.Percent=t?r.Value_MT/t*100:0});
+  return rows;
+}
+function reportMaterialHistoryRows(material,from,to){
+  const rows=rmHistoryTransactions(material).filter(t=>inHistoryRange(dateOnly(rowDate(t)),from,to));
+  const unit=materialUnit(material,getMaterial(material)?.unit||"MT");
+  const dates=[...new Set(rows.map(t=>dateOnly(rowDate(t))).filter(Boolean))].sort();
+  return dates.map(d=>{
+    const day=rows.filter(t=>dateOnly(rowDate(t))===d);
+    return {Date:d,Material:material,Unit:unit,
+      Received:rmHistoryValue(day,"received"),Consumption:rmHistoryValue(day,"consumption"),
+      Transfer:rmHistoryValue(day,"transfer"),Closing:rmHistoryClosing(day)};
+  });
+}
+function reportProductHistoryRows(kind,product,from,to){
+  if(kind==='feed'){
+    return feedHistoryDates(product).filter(d=>inHistoryRange(d,from,to)).map(d=>{
+      const rr=feedHistoryRows(product).filter(r=>dateOnly(r.Report_Date||r.report_date||r.date)===d),r=rr[rr.length-1]||{};
+      return {Date:d,Product:product,
+        Production:feedHistoryValue(r,['Production_Day_MT','production_day_mt','Production_Day','production_day','Production','production']),
+        Dispatch:feedHistoryValue(r,['Dispatch_Day_MT','dispatch_day_mt','Dispatch_Day','dispatch_day','Dispatch','dispatch']),
+        Closing:feedHistoryValue(r,['Closing_Day_MT','closing_day_mt','Closing_Day','closing_day','Closing','closing'])};
+    });
+  }
+  return bagsHistoryDates(product).filter(d=>inHistoryRange(d,from,to)).map(d=>{
+    const rr=bagsHistoryRows(product).filter(r=>dateOnly(r.report_date||r.Report_Date||r.date||r.DATE)===d),r=rr[rr.length-1]||{};
+    return {Date:d,Product:product,Received:num(r.received),Issue:num(r.issue),Damage:num(r.damage),Closing:num(r.closing)};
+  });
+}
+function reportHistorySelection(kind){
+  const material=document.getElementById('reportHistoryMaterial')?.value||rmHistoryMaterials()[0]||'';
+  const feed=document.getElementById('reportHistoryFeedProduct')?.value||feedHistoryProducts()[0]||'';
+  const bags=document.getElementById('reportHistoryBagProduct')?.value||bagsHistoryProducts()[0]||'';
+  return kind==='material'?material:(kind==='feed'?feed:bags);
+}
+function refreshReportHistorySelectors(){
+  const fill=(id,items)=>{const el=document.getElementById(id);if(!el)return;const cur=el.value;el.innerHTML=historySelectOptions(items,items.includes(cur)?cur:(items[0]||''));};
+  fill('reportHistoryMaterial',rmHistoryMaterials());
+  fill('reportHistoryFeedProduct',feedHistoryProducts());
+  fill('reportHistoryBagProduct',bagsHistoryProducts());
+}
+function reportHistoryData(kind,from,to){
+  const selected=reportHistorySelection(kind);
+  if(kind==='material')return {title:'Raw Material Material-wise History',headers:['Date','Material','Unit','Received','Consumption','Transfer','Closing'],rows:reportMaterialHistoryRows(selected,from,to).map(r=>[r.Date,r.Material,r.Unit,r.Received,r.Consumption,r.Transfer,r.Closing===null?'':r.Closing]),selected};
+  if(kind==='feed')return {title:'Feed Unit Product-wise History',headers:['Date','Product','Production','Dispatch','Closing'],rows:reportProductHistoryRows('feed',selected,from,to).map(r=>[r.Date,r.Product,r.Production??'',r.Dispatch??'',r.Closing??'']),selected};
+  return {title:'PP Bags Product-wise History',headers:['Date','Product','Received','Issue','Damage','Closing'],rows:reportProductHistoryRows('bags',selected,from,to).map(r=>[r.Date,r.Product,r.Received??'',r.Issue??'',r.Damage??'',r.Closing??'']),selected};
+}
+function generateHistoryReportPDF(kind){
+  const {from,to}=reportRange();if(!from||!to){showToast('No report dates available');return}
+  const sec=reportHistoryData(kind,from,to);if(!sec.rows.length){showToast('No history for selected range');return}
+  const title=sec.title+' • '+sec.selected;
+  if(!(window.jspdf&&window.jspdf.jsPDF)){reportPdfFallback(title,[sec]);return;}
+  try{
+    const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    doc.setFontSize(16);doc.text(title,14,14);doc.setFontSize(9);doc.text('Period: '+from+' → '+to+'   Generated: '+new Date().toLocaleString('en-IN'),14,20);
+    doc.autoTable({startY:25,head:[sec.headers],body:reportCleanRows(sec.rows),margin:{left:10,right:10},styles:{fontSize:7,cellPadding:2},headStyles:{fillColor:[39,58,86],textColor:255},alternateRowStyles:{fillColor:[248,250,252]},theme:'grid',didDrawPage:d=>{doc.setFontSize(7);doc.text('Feed Plant Report • '+from+' → '+to,10,202);}});
+    doc.save('Feed_Plant_'+reportSafeName(sec.title)+'_'+reportSafeName(sec.selected)+'_'+reportFileStamp()+'.pdf');showToast('History PDF generated');
+  }catch(e){console.error(e);reportPdfFallback(title,[sec])}
+}
+function exportHistoryReportExcel(kind){
+  const {from,to}=reportRange();if(!from||!to){showToast('No report dates available');return}
+  const sec=reportHistoryData(kind,from,to);if(!sec.rows.length){showToast('No history for selected range');return}
+  if(!(window.XLSX&&window.XLSX.utils)){showToast('Excel engine not loaded');return}
+  const wb=XLSX.utils.book_new(),aoa=[sec.headers,...sec.rows.map(r=>r.map(reportRound))],ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols']=sec.headers.map(h=>({wch:Math.max(12,Math.min(28,String(h).length+6))}));XLSX.utils.book_append_sheet(wb,ws,'History');
+  XLSX.writeFile(wb,'Feed_Plant_'+reportSafeName(sec.title)+'_'+reportSafeName(sec.selected)+'_'+reportFileStamp()+'.xlsx');showToast('History Excel exported');
+}
+function historyWhatsAppText(kind,from,to){
+  const sec=reportHistoryData(kind,from,to),s0=kind==='material'?'📦 RAW MATERIAL HISTORY':kind==='feed'?'🌾 FEED UNIT HISTORY':'🛍 PP BAGS HISTORY';
+  let s=s0+'\n'+sec.selected+'\n'+from+' to '+to+'\n\n';
+  sec.rows.forEach(r=>{if(kind==='material')s+=r[0]+' | Received: '+reportDisplayCell(r[3])+' '+r[2]+' | Consumption: '+reportDisplayCell(r[4])+' '+r[2]+' | Transfer: '+reportDisplayCell(r[5])+' '+r[2]+' | Closing: '+(r[6]===''?'--':reportDisplayCell(r[6]))+' '+r[2]+'\n';
+    else if(kind==='feed')s+=r[0]+' | Production: '+reportDisplayCell(r[2])+' | Dispatch: '+reportDisplayCell(r[3])+' | Closing: '+(r[4]===''?'--':reportDisplayCell(r[4]))+'\n';
+    else s+=r[0]+' | Received: '+reportDisplayCell(r[2])+' | Issue: '+reportDisplayCell(r[3])+' | Damage: '+reportDisplayCell(r[4])+' | Closing: '+reportDisplayCell(r[5])+'\n';});
+  return s.trim();
+}
+async function copyTextRobust(text){
+  try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);return true}}catch(e){}
+  const ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.left='-9999px';ta.style.top='0';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,text.length);
+  let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();return ok;
+}
+function showWhatsAppCopyModal(text){
+  showModal('📱 WhatsApp Message',`<div class="detail-section"><div class="small-note">Message ready. Tap Copy Message, then paste directly into WhatsApp.</div><textarea id="reportWhatsAppBox" readonly style="width:100%;min-height:260px;box-sizing:border-box;border:1px solid #dfe5ee;border-radius:10px;padding:10px;font:12px/1.5 inherit;resize:vertical;background:#fff">${esc(text)}</textarea><div style="display:flex;gap:8px;margin-top:9px"><button class="more-toggle" onclick="copyVisibleWhatsApp()">📋 Copy Message</button><button class="more-toggle" onclick="closeModal()">Close</button></div></div>`);
+}
+async function copyVisibleWhatsApp(){const ta=document.getElementById('reportWhatsAppBox');if(!ta)return;const ok=await copyTextRobust(ta.value);if(ok)showToast('WhatsApp message copied');else{ta.focus();ta.select();ta.setSelectionRange(0,ta.value.length);showToast('Tap and hold the message to copy');}}
+async function copyHistoryWhatsApp(kind){const {from,to}=reportRange();if(!from||!to){showToast('No report dates available');return}const text=historyWhatsAppText(kind,from,to);if(!text){showToast('No history for selected range');return}const ok=await copyTextRobust(text);showToast(ok?'WhatsApp message copied':'Tap Copy Message in the message window');showWhatsAppCopyModal(text)}
+
+function openReportView(kind){
+  reportActiveView=kind;
+  const panel=document.getElementById('reportViewPanel');
+  if(!panel)return;
+  panel.hidden=false;
+  const titles={
+    complete:['📕 Complete Dashboard Report','Management summary for the selected date range'],
+    material:['📦 Raw Material — Material-wise','Select a material to view its history'],
+    feed:['🌾 Feed Unit — Product-wise','Select a product to view its history'],
+    bags:['🛍 PP Bags — Product-wise','Select a PP bag product to view its history'],
+    production:['🏭 Production — Product-wise','Production records for the selected date range'],
+    premix:['🧪 Premix','Premix transfer records for the selected date range'],
+    mix:['📊 Monthly Mix & Contribution','Monthly mix and contribution for the selected range'],
+    movements:['📋 RM Movements','Raw material stock movement records'],
+    spares:['🔧 Spare Parts','Current spare parts stock and reorder data'],
+    health:['⚠️ Data Health','Reorder, reconciliation and data-quality checks']
+  };
+  const title=document.getElementById('reportViewTitle'),sub=document.getElementById('reportViewSubtitle'),controls=document.getElementById('reportViewControls');
+  if(title)title.textContent=titles[kind]?.[0]||'Report View';
+  if(sub)sub.textContent=titles[kind]?.[1]||'';
+  if(controls){
+    if(kind==='material') controls.innerHTML='<label>Material<select id="reportHistoryMaterial" onchange="refreshReportPreview()"></select></label>';
+    else if(kind==='feed') controls.innerHTML='<label>Product<select id="reportHistoryFeedProduct" onchange="refreshReportPreview()"></select></label>';
+    else if(kind==='bags') controls.innerHTML='<label>PP Bag Product<select id="reportHistoryBagProduct" onchange="refreshReportPreview()"></select></label>';
+    else controls.innerHTML='';
+  }
+  if(['material','feed','bags'].includes(kind))refreshReportHistorySelectors();
+  refreshReportPreview();
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function closeReportView(){
+  reportActiveView='';
+  const panel=document.getElementById('reportViewPanel');
+  if(panel)panel.hidden=true;
+}
+function refreshReportPreview(){
+  const table=document.getElementById('reportPreviewTable'),meta=document.getElementById('reportPreviewMeta');
+  if(!table||!reportActiveView)return;
+  const {from,to}=reportRange();
+  if(!from||!to){table.innerHTML='<div class="empty">No report dates available.</div>';if(meta)meta.textContent='';return;}
+  let sec;
+  if(reportActiveView==='complete'){
+    const summary=reportSummary(from,to);
+    sec={title:'Management Summary',headers:['Metric','Value','Unit / Context'],rows:summary};
+  }else if(['material','feed','bags'].includes(reportActiveView)){
+    sec=reportHistoryData(reportActiveView,from,to);
+  }else{
+    sec=reportSectionData(reportActiveView,from,to);
+  }
+  const rows=sec.rows||[];
+  if(meta)meta.innerHTML=`<span>${esc(from)} → ${esc(to)}${sec.selected?' • '+esc(sec.selected):''}</span><b>${rows.length.toLocaleString('en-IN')} records</b>`;
+  if(!rows.length){table.innerHTML='<div class="history-empty">No data available for the selected date range.</div>';return;}
+  const maxRows=500,visible=rows.slice(0,maxRows);
+  table.innerHTML=`<table><thead><tr>${sec.headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${visible.map(r=>`<tr>${r.map(v=>`<td>${esc(reportDisplayCell(v))}</td>`).join('')}</tr>`).join('')}</tbody></table>${rows.length>maxRows?`<div class="report-preview-more">Showing first ${maxRows.toLocaleString('en-IN')} of ${rows.length.toLocaleString('en-IN')} records. Download Excel/PDF for the complete report.</div>`:''}`;
+}
+
+function reportSectionData(section,from,to){
+  switch(section){
+    case 'raw':return {title:'Raw Material',headers:['Date','Material','Unit','Received','Consumption','Transfer','Closing'],rows:reportRawRows(from,to).map(r=>[r.Date,r.Material,r.Unit,r.Received,r.Consumption,r.Transfer,r.Closing===null?'':r.Closing])};
+    case 'feed':return {title:'Feed Unit',headers:['Date','Product','Production','Dispatch','Closing'],rows:reportFeedRows(from,to).map(r=>[r.Date,r.Product,r.Production??'',r.Dispatch??'',r.Closing??''])};
+    case 'bags':return {title:'PP Bags',headers:['Date','Product','Received','Issue','Damage','Closing'],rows:reportBagRows(from,to).map(r=>[r.Date,r.Product,r.Received,r.Issue,r.Damage,r.Closing])};
+    case 'production':return {title:'Production',headers:['Date','Product','Actual Output','Standard Output','Output %','Process Loss %','Remarks'],rows:reportProductionRows(from,to).map(r=>[r.Date,r.Product,r.Actual_Output,r.Standard_Output,r.Output_Percentage,r.Process_Loss,r.Remarks])};
+    case 'premix':return {title:'Premix Transfers',headers:['Date','Premix','Transfer KG'],rows:reportPremixRows(from,to).map(r=>[r.Date,r.Premix,r.Transfer_KG])};
+    case 'mix':return {title:'Monthly Mix & Contribution',headers:['Month','Type','Item','Value MT','Contribution %'],rows:reportMixRows(from,to).map(r=>[r.Month,r.Type,r.Item,r.Value_MT,r.Percent])};
+    case 'movements':return {title:'Raw Material Movements',headers:['Date','Material','Movement','Value','For Month','For Year'],rows:reportMovementRows(from,to).map(r=>[r.Date,r.Material,r.Movement,r.Value,r.For_Month,r.For_Year])};
+    case 'spares':return {title:'Spare Parts',headers:['Category','Part Name','Size','Code','Stock','Unit','Reorder Level','Location'],rows:reportSpareRows().map(r=>[r.Category,r.Part_Name,r.Size,r.Code,r.Stock,r.Unit,r.Reorder_Level,r.Location])};
+    case 'health':return {title:'Data Health',headers:['Metric','Value'],rows:reportHealthRows(from,to).map(r=>[r.Metric,r.Value])};
+    default:return {title:'Complete Dashboard',headers:[],rows:[]};
+  }
+}
+function reportCompleteSections(from,to){
+  const sections=[];
+  sections.push({title:'Management Summary',headers:['Metric','Value','Unit / Context'],rows:reportSummary(from,to)});
+  ['raw','feed','bags','production','premix','mix','movements','spares','health'].forEach(k=>sections.push(reportSectionData(k,from,to)));
+  return sections;
+}
+function reportFileStamp(){return (document.getElementById('reportFromDate')?.value||'')+'_'+(document.getElementById('reportToDate')?.value||'')}
+function reportSafeName(s){return clean(s).replace(/[^a-z0-9_-]+/gi,'_').replace(/^_+|_+$/g,'')}
+function reportPdfFallback(title,sections){
+  const w=window.open('','_blank');if(!w){showToast('Popup blocked — allow popups for PDF');return;}
+  const css=`<style>body{font-family:Arial,sans-serif;padding:24px;color:#202938}h1{font-size:22px}h2{font-size:16px;margin-top:24px;border-bottom:1px solid #ddd;padding-bottom:6px}table{border-collapse:collapse;width:100%;margin:8px 0 20px;font-size:10px}th,td{border:1px solid #ddd;padding:5px;text-align:left}th{background:#f1f4f8}small{color:#667085}@media print{.page{break-before:page}}</style>`;
+  w.document.write('<!doctype html><html><head><title>'+esc(title)+'</title>'+css+'</head><body><h1>'+esc(title)+'</h1><small>Generated: '+esc(new Date().toLocaleString('en-IN'))+'</small>');
+  sections.forEach((sec,i)=>{w.document.write((i?'':'')+'<div class="page"><h2>'+esc(sec.title)+'</h2><table><thead><tr>'+sec.headers.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+sec.rows.map(r=>'<tr>'+r.map(v=>'<td>'+esc(reportDisplayCell(v))+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>')});
+  w.document.write('</body></html>');w.document.close();setTimeout(()=>w.print(),500);
+}
+function generateReportPDF(section){
+  const {from,to}=reportRange();if(!from||!to){showToast('No report dates available');return}
+  const sections=section==='complete'?reportCompleteSections(from,to):[reportSectionData(section,from,to)];
+  const title=section==='complete'?'Feed Plant Complete Management Report':'Feed Plant '+(sections[0]?.title||'Report');
+  if(!(window.jspdf&&window.jspdf.jsPDF)){reportPdfFallback(title,sections);return;}
+  try{
+    const {jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    doc.setFontSize(16);doc.text(title,14,14);doc.setFontSize(9);doc.text('Period: '+from+' → '+to+'   Generated: '+new Date().toLocaleString('en-IN'),14,20);
+    let y=25;
+    sections.forEach((sec,i)=>{
+      if(i>0){doc.addPage();y=14;}
+      doc.setFontSize(12);doc.text(sec.title,14,y);y+=4;
+      doc.autoTable({startY:y,head:[sec.headers],body:reportCleanRows(sec.rows),margin:{left:10,right:10},styles:{fontSize:7,cellPadding:2},headStyles:{fillColor:[39,58,86],textColor:255},alternateRowStyles:{fillColor:[248,250,252]},theme:'grid',didDrawPage:data=>{doc.setFontSize(7);doc.text('Feed Plant Report • '+from+' → '+to,10,202);}});
+    });
+    doc.save('Feed_Plant_'+reportSafeName(section==='complete'?'Complete_Report':sections[0].title)+'_'+reportFileStamp()+'.pdf');showToast('PDF generated');
+  }catch(e){console.error(e);reportPdfFallback(title,sections)}
+}
+function exportReportExcel(section){
+  const {from,to}=reportRange();if(!from||!to){showToast('No report dates available');return}
+  const sections=section==='complete'?reportCompleteSections(from,to):[reportSectionData(section,from,to)];
+  if(!(window.XLSX&&window.XLSX.utils)){showToast('Excel engine not loaded — use PDF/CSV fallback');return}
+  const wb=XLSX.utils.book_new();
+  sections.forEach((sec,i)=>{const aoa=[sec.headers,...sec.rows.map(r=>r.map(reportRound))];const ws=XLSX.utils.aoa_to_sheet(aoa);ws['!cols']=sec.headers.map(h=>({wch:Math.max(12,Math.min(28,String(h).length+5))}));XLSX.utils.book_append_sheet(wb,ws,clean(sec.title).slice(0,31)||('Report'+(i+1)));});
+  XLSX.writeFile(wb,'Feed_Plant_'+reportSafeName(section==='complete'?'Complete_Report':sections[0].title)+'_'+reportFileStamp()+'.xlsx');showToast('Excel exported');
+}
+function reportWhatsAppText(section,from,to){
+  const sum=reportSummary(from,to);let s='📊 FEED PLANT REPORT\n'+from+' to '+to+'\n\n';
+  if(section==='complete'){
+    s+='🌾 FEED UNIT\nProduction: '+reportFmt(sum[3][1])+' MT\nDispatch: '+reportFmt(sum[4][1])+' MT\n\n';
+    s+='📦 RAW MATERIAL\nReceived: '+reportFmt(sum[0][1])+'\nConsumption: '+reportFmt(sum[1][1])+'\nTransfer: '+reportFmt(sum[2][1])+'\n\n';
+    s+='🛍 PP BAGS\nReceived: '+reportFmt(sum[5][1])+'\nIssue: '+reportFmt(sum[6][1])+'\nDamage: '+reportFmt(sum[7][1])+'\n\n';
+    s+='🏭 PRODUCTION\nActual Output: '+reportFmt(sum[8][1])+' Bags\n\n';
+    s+='🧪 PREMIX TRANSFER\n'+reportFmt(sum[9][1])+' KG\n\n';
+    const h=reportHealthRows(from,to);s+='⚠️ DATA HEALTH\nReorder: '+h[1].Value+'\nIssues: '+h[2].Value+'\nAbnormal Consumption: '+h[3].Value;
+    return s;
+  }
+  const sec=reportSectionData(section,from,to);s+='📌 '+sec.title.toUpperCase()+'\n';
+  sec.rows.slice(-25).forEach(r=>{s+=r.join(' | ')+'\n'});
+  if(sec.rows.length>25)s+='\n… '+(sec.rows.length-25)+' more rows available in PDF/Excel.';
+  return s;
+}
+async function copyReportWhatsApp(section){
+  const {from,to}=reportRange();if(!from||!to){showToast('No report dates available');return}
+  const text=reportWhatsAppText(section,from,to);
+  const ok=await copyTextRobust(text);
+  showToast(ok?'WhatsApp message copied':'Tap Copy Message in the message window');
+  showWhatsAppCopyModal(text);
+}
+
+
+/* =====================================================
+   PLANT AI — DATA INTELLIGENCE LAYER
+   Uses the dashboard data already loaded in the browser.
+   No API/source changes and no external credentials required.
+===================================================== */
+function plantAIJSON(){
+  const m=plantAIMetrics();
+  const safe=(v)=>v==null?null:Number.isFinite(Number(v))?Number(v):v;
+  const materials=m.stockRows.slice(0,200).map(x=>({
+    name:x.material||x.name||'', closing:safe(x.closing), unit:x.unit||'MT', avgDay:safe(x.avg), coverDays:safe(x.cover), status:x.status||'OK'
+  }));
+  const attention=m.attention.slice(0,100).map(x=>({level:x.level||'info',text:x.text||'',reason:x.reason||'',count:safe(x.count)||0}));
+  const productionRows=m.prodRows.slice(0,100).map(r=>({
+    product:r.product||r.Product||r.name||'', output:safe(r.output_percentage??r.outputPercent??r.output_percentage_value),
+    actual:safe(r.actual??r.actualOutput??r.output), target:safe(r.target??r.targetOutput)
+  }));
+  const productionAvg=m.avgOutput==null?null:Number(m.avgOutput);
+  return {
+    date:m.date,
+    summary:{productionMT:safe(m.production),dispatchMT:safe(m.dispatch),dispatchProductionPct:m.production>0?safe(m.dispatch/m.production*100):null,averageOutputPct:productionAvg},
+    attention,
+    rawMaterials:{totalStock:safe(m.stockTotal),items:materials},
+    production:{records:productionRows,count:m.products||0},
+    flags:{critical:m.critical,warning:m.warning,lowStock:materials.filter(x=>x.status!=='OK').length},
+    generatedAt:new Date().toISOString()
+  };
+}
+function plantAIContext(intent){
+  const d=plantAIJSON();
+  if(intent==='materials')return {date:d.date,rawMaterials:d.rawMaterials,attention:d.attention.filter(x=>/stock|reorder|material|premix/i.test(x.text+' '+x.reason))};
+  if(intent==='production')return {date:d.date,summary:d.summary,production:d.production,attention:d.attention.filter(x=>/production|output|pellet|downtime|machine/i.test(x.text+' '+x.reason)),rawMaterials:{items:d.rawMaterials.items.filter(x=>x.status!=='OK')}};
+  if(intent==='consumption')return {date:d.date,rawMaterials:d.rawMaterials,attention:d.attention.filter(x=>/consumption|usage|variance/i.test(x.text+' '+x.reason)),summary:d.summary};
+  if(intent==='dispatch')return {date:d.date,summary:d.summary,attention:d.attention.filter(x=>/dispatch|stock/i.test(x.text+' '+x.reason))};
+  return d;
+}
+function plantAIMetrics(){
+  const date=selectedDateForIntelligence()||dateOnly(DATA.report_date)||"Latest";
+  const attention=attentionSummaryItems().filter(x=>x.level!=="clear");
+  const critical=attention.filter(x=>x.level==="critical").reduce((n,x)=>n+(Number(x.count)||0),0);
+  const warning=attention.filter(x=>x.level==="warning").reduce((n,x)=>n+(Number(x.count)||0),0);
+  const stockRows=viewStockRows();
+  const stockTotal=stockRows.reduce((n,x)=>n+(num(x.closing)||0),0);
+  const lowStock=stockRows.filter(x=>x.status&&x.status!=='OK').sort((a,b)=>(Number(a.cover??999)-Number(b.cover??999)));
+  const prodRows=selectedProduction();
+  const outputs=prodRows.map(r=>num(r.output_percentage??r.outputPercent??r.output_percentage_value)).filter(v=>v!==null);
+  const avgOutput=outputs.length?outputs.reduce((a,b)=>a+b,0)/outputs.length:null;
+  const feedRows=selectedFeedRows();
+  const production=feedRows.reduce((n,r)=>n+(feedField(r,"Production_Day_MT")||0),0);
+  const dispatch=feedRows.reduce((n,r)=>n+(feedField(r,"Dispatch_Day_MT")||0),0);
+  const products=feedRows.length;
+  return {date,attention,critical,warning,stockRows,stockTotal,lowStock,prodRows,avgOutput,feedRows,production,dispatch,products};
+}
+function plantAIIntent(q){
+  const s=plantAINormalizeQuestion(q);
+  if(!s)return {intent:'status',confidence:0.5};
+  const rules=[
+    ['materials',/(raw material|\brm\b|stock|inventory|maize|rice|soy|premix|material|reorder|cover|shortage|closing stock)/],
+    ['production',/(production|output|pellet|tonnage|tph|produce|manufactur|yield|efficiency|machine output)/],
+    ['consumption',/(consumption|consume|usage|used|variance|abnormal consumption|actual vs standard)/],
+    ['dispatch',/(dispatch|sale|sales|delivery|outward|despatch)/],
+    ['maintenance',/(maintenance|breakdown|motor|vfd|equipment|repair|downtime|trip|machine fault)/],
+    ['quality',/(quality|qms|rejection|bag damage|damage|complaint)/],
+    ['status',/(attention|alert|warning|critical|problem|issue|today|risk|urgent|health|condition|status|overall|plant|what should i|what needs)/]
+  ];
+  let best={intent:'status',score:0};
+  rules.forEach(([intent,re])=>{const hits=(s.match(re)||[]).length;if(hits>best.score)best={intent,score:hits};});
+  return {intent:best.intent,confidence:Math.min(.99,.55+best.score*.14)};
+}
+function plantAIAnswer(kind){
+  const m=plantAIMetrics();
+  let title="Plant status", intro="", findings=[], actions=[];
+  if(kind==="status"){
+    title="What needs my attention today?";
+    intro=m.critical?`There are ${m.critical} critical item${m.critical===1?"":"s"} requiring attention.`:m.warning?`There are ${m.warning} warning item${m.warning===1?"":"s"} to review.`:"No active critical or warning conditions were detected in the monitored dashboard data.";
+    m.attention.slice(0,7).forEach(x=>findings.push({level:x.level,title:x.text,body:x.reason}));
+    if(m.lowStock.length)actions.push("Review the lowest stock-cover materials first.");
+    if(m.critical)actions.push("Open Attention Required and clear critical items before lower-priority checks.");
+  }else if(kind==="production"){
+    title="Production analysis";
+    if(m.production>0)findings.push({level:"info",title:`Current production: ${fmt(m.production)} MT`,body:`${m.products||0} feed product record(s) are available for ${m.date}.`});
+    if(m.avgOutput!==null)findings.push({level:m.avgOutput<95?"warning":"good",title:`Average recorded output: ${fmt(m.avgOutput)}%`,body:m.avgOutput<95?"Output is below the 95% monitoring threshold used by Attention Required.":"Average output is at or above the monitored 95% threshold."});
+    const prodAlert=m.attention.find(x=>/production output/i.test(x.text));
+    if(prodAlert)findings.push({level:prodAlert.level,title:prodAlert.text,body:prodAlert.reason});
+    if(m.dispatch>0&&m.production>0){const ratio=m.dispatch/m.production*100;findings.push({level:ratio>100?"warning":"info",title:`Dispatch / production: ${fmt(ratio)}%`,body:ratio>100?"Dispatch exceeds today's recorded production; verify dates and opening/previous stock movement.":"Dispatch is within today's recorded production volume."});}
+    actions=["Check affected production records and Attention Required alerts.","If output is low, review machine load, downtime, steam/feed rate and raw-material availability before changing settings."];
+  }else if(kind==="materials"){
+    title="Raw-material analysis";
+    if(!m.lowStock.length)findings.push({level:"good",title:"No low-stock materials found",body:"Current stock coverage does not show a material requiring attention."});
+    m.lowStock.slice(0,8).forEach(x=>findings.push({level:x.status==="REORDER"?"critical":"warning",title:x.material,body:`Closing ${fmt(x.closing)} ${x.unit||"MT"} • Cover ${x.cover==null?"--":fmt(x.cover)+" days"} • Avg ${fmt(x.avg||0)} ${x.unit||"MT"}/day`}));
+    actions=["Review the lowest-cover material first.","Confirm purchase/transfer timing before stock reaches the reorder level."];
+  }else if(kind==="consumption"){
+    title="Consumption analysis";
+    const abnormal=m.attention.find(x=>/abnormal consumption/i.test(x.text));
+    if(abnormal)findings.push({level:"critical",title:abnormal.text,body:abnormal.reason});
+    else findings.push({level:"good",title:"No abnormal-consumption alert",body:"Current monitored consumption is within the configured alert range."});
+    const rmTotal=monthlyRMConsumption(MIX_MONTH||mixDefaultMonth()).reduce((a,r)=>a+r.value,0);
+    findings.push({level:"info",title:`Monthly RM consumption: ${fmt(rmTotal)} MT`,body:`Based on the currently selected month (${monthLabel(MIX_MONTH||mixDefaultMonth())}).`});
+    actions=["Compare affected material consumption with production output and transaction history for the same dates."];
+  }else if(kind==="dispatch"){
+    title="Dispatch analysis";
+    if(m.dispatch>0)findings.push({level:m.production>0&&m.dispatch>m.production?"warning":"info",title:`Current dispatch: ${fmt(m.dispatch)} MT`,body:`${m.products||0} feed product record(s) are available for ${m.date}.`});
+    if(m.production>0){const ratio=m.dispatch/m.production*100;findings.push({level:ratio>100?"warning":"good",title:`Dispatch / production: ${fmt(ratio)}%`,body:ratio>100?"Dispatch exceeds today's recorded production; verify opening stock, previous stock and date alignment.":"Dispatch is within today's recorded production volume."});}
+    actions=["Review dispatch and feed closing details if the quantity looks unusual."];
+  }else if(kind==="maintenance"){
+    title="Maintenance signals";
+    const items=m.attention.filter(x=>/maintenance|breakdown|motor|vfd|equipment|downtime|machine/i.test(x.text+' '+x.reason));
+    if(items.length)items.slice(0,6).forEach(x=>findings.push({level:x.level,title:x.text,body:x.reason}));
+    else findings.push({level:"good",title:"No maintenance alert detected",body:"The current Attention Required data has no matching maintenance/equipment alert."});
+    actions=["Verify machine condition, downtime and recent trips for any output-related anomaly."];
+  }else if(kind==="quality"){
+    title="Quality signals";
+    const items=m.attention.filter(x=>/quality|damage|rejection|complaint/i.test(x.text+' '+x.reason));
+    if(items.length)items.slice(0,6).forEach(x=>findings.push({level:x.level,title:x.text,body:x.reason}));
+    else findings.push({level:"good",title:"No quality alert detected",body:"No matching quality-related alert is present in the loaded dashboard data."});
+    actions=["Review the underlying quality record before taking corrective action."];
+  }
+  if(!findings.length)findings.push({level:"info",title:"Not enough matching data",body:"The dashboard has no matching records for this question and selected date."});
+  return {title,intro,findings,actions,date:m.date,context:plantAIContext(kind)};
+}
+function plantAIExplain(question,a){
+  const q=plantAINormalizeQuestion(question);
+  if(/why|reason|cause|because|problem|issue/.test(q)){
+    const negatives=a.findings.filter(f=>['critical','warning'].includes(f.level));
+    if(negatives.length)return `Main signal: ${negatives.slice(0,3).map(f=>f.title).join('; ')}. These are indicators, not proof of root cause; verify the underlying operational records.`;
+    return 'No strong negative signal was detected in the currently loaded data, so a specific root cause cannot be established from the dashboard alone.';
+  }
+  if(/compare|vs|versus|trend|yesterday|average/.test(q))return 'Comparison is based only on the periods/records currently loaded in the dashboard; verify the selected date range before using it for a management decision.';
+  return '';
+}
+function plantAIAnswerNatural(question){
+  const q=String(question||'').trim();
+  const route=plantAIIntent(q);
+  const base=plantAIAnswer(route.intent);
+  const explanation=plantAIExplain(q,base);
+  base.intro=(q?`I analysed the loaded plant data for: “${q}”. `:'')+base.intro+(explanation?' '+explanation:'');
+  base.confidence=route.confidence;
+  base.intent=route.intent;
+  base.context=plantAIContext(route.intent);
+  return base;
+}
+function plantAIConfidenceLabel(c){return c>=.82?'High':c>=.68?'Medium':'Low';}
+function renderPlantAI(kind="status"){
+  const box=document.getElementById("plantAIAnswer");if(!box)return;
+  const a=plantAIAnswer(kind);
+  box.innerHTML=`<div class="plant-ai-answer"><div class="plant-ai-meta"><span>Confidence: ${plantAIConfidenceLabel(.9)}</span><span>Source: dashboard data</span></div><h4>${esc(a.title)}</h4><p>${esc(a.intro)}</p>${a.findings.map(f=>`<div class="plant-ai-finding"><span class="ai-dot ${f.level}"></span><div><strong>${esc(f.title)}</strong><p>${esc(f.body)}</p></div></div>`).join("")}${a.actions.length?`<div class="plant-ai-answer" style="background:#f7f9fc;margin-top:10px"><strong style="font-size:11px">Suggested checks</strong>${a.actions.map(x=>`<p>• ${esc(x)}</p>`).join("")}</div>`:""}<div class="plant-ai-note">Analysis date: ${esc(a.date)} • Verify operational conditions before taking plant action.</div></div>`;
+}
+function plantAINormalizeQuestion(q){return String(q||'').toLowerCase().replace(/[^a-z0-9%\.\s-]/g,' ').replace(/\s+/g,' ').trim();}
+function askPlantAI(){const input=document.getElementById('plantAIQuestion');const q=input?input.value.trim():'';if(!q){showToast('Type a question first');if(input)input.focus();return;}renderPlantAIQuestion(q);}
+function renderPlantAIQuestion(question){
+  const box=document.getElementById('plantAIAnswer');if(!box)return;
+  box.innerHTML='<div class="plant-ai-thinking"><span class="plant-ai-spinner"></span> Analysing plant data…</div>';
+  setTimeout(()=>{
+    const a=plantAIAnswerNatural(question);
+    const contextSize=JSON.stringify(a.context||{}).length;
+    box.innerHTML=`<div class="plant-ai-answer"><div class="plant-ai-meta"><span>Confidence: ${plantAIConfidenceLabel(a.confidence)}</span><span>Focus: ${esc(a.intent)}</span><span>Data used: ${contextSize>0?Math.round(contextSize/1024)+' KB':'--'}</span></div><h4>${esc(a.title)}</h4><p>${esc(a.intro)}</p>${a.findings.map(f=>`<div class="plant-ai-finding"><span class="ai-dot ${f.level}"></span><div><strong>${esc(f.title)}</strong><p>${esc(f.body)}</p></div></div>`).join('')}${a.actions.length?`<div class="plant-ai-answer" style="background:#f7f9fc;margin-top:10px"><strong style="font-size:11px">Suggested checks</strong>${a.actions.map(x=>`<p>• ${esc(x)}</p>`).join('')}</div>`:''}<details class="plant-ai-data"><summary>View AI data context</summary><pre>${esc(JSON.stringify(a.context,null,2))}</pre></details><div class="plant-ai-note">Analysis date: ${esc(a.date)} • Uses only relevant data already loaded in this dashboard. Verify operational conditions before taking plant action.</div></div>`;
+  },80);
+}
+function setPlantAIQuestion(q){const input=document.getElementById('plantAIQuestion');if(input){input.value=q;input.focus();}}
+function openPlantAI(){
+  const html=`<div class="plant-ai-hero"><div class="plant-ai-status"><span></span>Plant Intelligence Engine</div><h3>🤖 Plant AI</h3><p>Ask about production, raw materials, consumption, dispatch, maintenance, quality or plant status. The engine builds a focused JSON context and analyses only relevant loaded data.</p><div class="plant-ai-ask"><input id="plantAIQuestion" type="text" autocomplete="off" placeholder="Ask anything… e.g. Why is production low today?" onkeydown="if(event.key==='Enter')askPlantAI()"><button onclick="askPlantAI()">Ask</button></div><div class="plant-ai-suggestions"><span>Try:</span><button onclick="setPlantAIQuestion('Why is production low today?')">Why is production low?</button><button onclick="setPlantAIQuestion('Which raw material needs attention?')">Which RM needs attention?</button><button onclick="setPlantAIQuestion('Is consumption normal?')">Is consumption normal?</button><button onclick="setPlantAIQuestion('What maintenance issues need attention?')">Maintenance issues?</button></div><div class="plant-ai-actions"><button class="plant-ai-action" onclick="renderPlantAI('status')">What needs attention today?<small>Critical & warning conditions</small></button><button class="plant-ai-action" onclick="renderPlantAI('production')">Analyse production<small>Output, dispatch & signals</small></button><button class="plant-ai-action" onclick="renderPlantAI('materials')">Analyse raw materials<small>Stock cover & reorder</small></button><button class="plant-ai-action" onclick="renderPlantAI('consumption')">Analyse consumption<small>Usage & anomaly signals</small></button><button class="plant-ai-action" onclick="renderPlantAI('maintenance')">Analyse maintenance<small>Equipment & downtime alerts</small></button><button class="plant-ai-action" onclick="renderPlantAI('quality')">Analyse quality<small>Damage & quality alerts</small></button></div></div><div id="plantAIAnswer"></div>`;
+  showModal("🤖 Plant AI",html);renderPlantAI("status");
+}
+
+/* =====================================================
    START
 ===================================================== */
 restoreCache();
 refreshData();
+loadSpareParts();
 
 /* PWA */
 let deferredPrompt=null;
