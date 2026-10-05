@@ -491,29 +491,69 @@ function supabaseHeaders(extra={}){
 }
 
 function supabaseActivityToTransactions(activity,date){
-  // JSONB can arrive as an object or as a JSON string depending on how n8n
-  // wrote the value. Support both so the dashboard never silently shows 0.
-  if(typeof activity === "string") {
-    try { activity = JSON.parse(activity); } catch(e) { return []; }
+  // Supabase JSONB may arrive as an object, JSON text, or an array of
+  // transaction objects. Normalize all supported shapes into the dashboard's
+  // existing transaction format.
+  while(typeof activity === "string"){
+    try{ activity=JSON.parse(activity); }
+    catch(e){ return []; }
   }
-  if(!activity || typeof activity!=="object" || Array.isArray(activity))return [];
+  if(activity===null||activity===undefined)return [];
+
   const out=[];
-  Object.entries(activity).forEach(([rawKey,rawValue])=>{
-    const key=clean(rawKey);
-    if(!key || /^(DATE|DATES?)$/i.test(key))return;
-    let transaction=key;
-    const nk=normalize(key).replace(/[^A-Z0-9]+/g," ").trim();
-    if(nk.includes("OPENING")) transaction="OPENING STOCK";
-    else if(nk.includes("CL") && nk.includes("STOCK")) transaction="CL. STOCK";
-    else if(nk==="CLOSING" || nk.includes("CLOSING STOCK")) transaction="CL. STOCK";
-    else if(nk==="OPENING") transaction="OPENING STOCK";
-    const n=num(rawValue);
-    if(n===null && clean(rawValue)==="")return;
-    out.push({report_date:date,transaction,for_day:n===null?rawValue:n});
-  });
+  const pushOne=(obj,fallbackDate=date)=>{
+    if(!obj||typeof obj!=="object"||Array.isArray(obj))return;
+    const d=dateOnly(obj.report_date||obj.Report_Date||obj.date||obj.Date||fallbackDate)||fallbackDate;
+    const transaction=clean(obj.transaction||obj.type||obj.movement||obj.Transaction||obj.Type||obj.Movement);
+    if(transaction){
+      const valueRaw=obj.for_day??obj.value??obj.quantity??obj.qty??obj.For_Day;
+      const n=num(valueRaw);
+      if(n!==null || clean(valueRaw)!==""){
+        out.push({report_date:d,transaction,for_day:n===null?valueRaw:n,for_month:num(obj.for_month??obj.For_Month),for_year:num(obj.for_year??obj.For_Year)});
+      }
+      return;
+    }
+    for(const k of ["latestActivity","latest_activity","activity","data","row"]){
+      if(obj[k]!==undefined){
+        const before=out.length; pushAny(obj[k],fallbackDate);
+        if(out.length>before)return;
+      }
+    }
+  };
+  const pushAny=(value,fallbackDate=date)=>{
+    while(typeof value === "string"){
+      try{value=JSON.parse(value)}catch(e){return;}
+    }
+    if(Array.isArray(value)){value.forEach(v=>pushOne(v,fallbackDate));return;}
+    if(value&&typeof value==="object"){
+      pushOne(value,fallbackDate);
+      const hasTransaction=!!clean(value.transaction||value.type||value.movement||value.Transaction||value.Type||value.Movement);
+      if(hasTransaction)return;
+      for(const [rawKey,rawValue] of Object.entries(value)){
+        const key=clean(rawKey);
+        if(!key || /^(DATE|DATES?|REPORT_DATE|CATEGORY|SHEET_NAME|MATERIAL)$/i.test(key))continue;
+        if(["latestActivity","latest_activity","activity","data","row"].includes(key))continue;
+        if(rawValue&&typeof rawValue==="object"){
+          const before=out.length; pushOne(rawValue,fallbackDate);
+          if(out.length>before)continue;
+          if(Array.isArray(rawValue))rawValue.forEach(v=>pushOne(v,fallbackDate));
+          continue;
+        }
+        const n=num(rawValue);
+        if(n===null && clean(rawValue)==="")continue;
+        const nk=normalize(key).replace(/[^A-Z0-9]+/g," ").trim();
+        let transaction=key;
+        if(nk.includes("OPENING")) transaction="OPENING STOCK";
+        else if((nk==="CL"||nk.includes("CL ")) && nk.includes("STOCK")) transaction="CL. STOCK";
+        else if(nk==="CLOSING" || nk.includes("CLOSING STOCK")) transaction="CL. STOCK";
+        else if(nk==="OPENING") transaction="OPENING STOCK";
+        out.push({report_date:fallbackDate,transaction,for_day:n===null?rawValue:n});
+      }
+    }
+  };
+  pushAny(activity,date);
   return out;
 }
-
 function normalizeSupabaseInventory(rows){
   const grouped=new Map();
   const history=[];
