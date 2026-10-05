@@ -491,7 +491,12 @@ function supabaseHeaders(extra={}){
 }
 
 function supabaseActivityToTransactions(activity,date){
-  if(!activity || typeof activity!=="object")return [];
+  // JSONB can arrive as an object or as a JSON string depending on how n8n
+  // wrote the value. Support both so the dashboard never silently shows 0.
+  if(typeof activity === "string") {
+    try { activity = JSON.parse(activity); } catch(e) { return []; }
+  }
+  if(!activity || typeof activity!=="object" || Array.isArray(activity))return [];
   const out=[];
   Object.entries(activity).forEach(([rawKey,rawValue])=>{
     const key=clean(rawKey);
@@ -517,6 +522,8 @@ function normalizeSupabaseInventory(rows){
     const date=dateOnly(r.activity_date);
     if(!material || !date)return;
     const tx=supabaseActivityToTransactions(r.latest_activity,date);
+    // Keep the Excel activity date even when latest_activity itself is stored
+    // as JSON text in Supabase.
     tx.forEach(t=>history.push({material,...t,category:r.category||""}));
     const key=normalize(material);
     let g=grouped.get(key);
@@ -553,6 +560,9 @@ async function fetchAllSupabaseInventory(){
 
 async function loadDashboard(){
   const rows=await fetchAllSupabaseInventory();
+  if(!rows.length){
+    throw new Error("SUPABASE_EMPTY: feed_inventory returned 0 rows");
+  }
   const mapped=normalizeSupabaseInventory(rows);
   const dates=rows.map(r=>dateOnly(r.activity_date)).filter(Boolean).sort();
   const latestDate=dates.length?dates[dates.length-1]:null;
@@ -595,6 +605,8 @@ async function refreshData(){
     else if(e&&e.code==="API_TIMEOUT")msg="API timeout • showing saved data";
     else if(e&&e.code==="API_NETWORK")msg="API connection issue • showing saved data";
     else if(e&&e.code==="API_RESPONSE")msg="API response error • showing saved data";
+    else if(String(e?.message||"").includes("SUPABASE_EMPTY"))msg="Supabase connected • feed_inventory has no rows";
+    else if(e?.message)msg="Supabase error • "+e.message.slice(0,120);
     setConnection(false,has?msg:"Unable to load dashboard");
     if(!has)document.getElementById("stockList").innerHTML="<div class='error-box'>❌ Unable to load dashboard data.</div>";
   }finally{refreshing=false}
