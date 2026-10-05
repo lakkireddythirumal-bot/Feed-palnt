@@ -490,92 +490,207 @@ function supabaseHeaders(extra={}){
   },extra);
 }
 
-function supabaseActivityToTransactions(activity,date){
-  // Supabase JSONB may arrive as an object, JSON text, or an array of
-  // transaction objects. Normalize all supported shapes into the dashboard's
-  // existing transaction format.
-  while(typeof activity === "string"){
-    try{ activity=JSON.parse(activity); }
-    catch(e){ return []; }
+function supabaseActivityToTransactions(activity, date) {
+  function parseValue(value) {
+    if (typeof value !== "string") return value;
+    let v = value;
+    for (let i = 0; i < 3; i++) {
+      try { v = JSON.parse(v); }
+      catch (e) { break; }
+    }
+    return v;
   }
-  if(activity===null||activity===undefined)return [];
 
-  const out=[];
-  const pushOne=(obj,fallbackDate=date)=>{
-    if(!obj||typeof obj!=="object"||Array.isArray(obj))return;
-    const d=dateOnly(obj.report_date||obj.Report_Date||obj.date||obj.Date||fallbackDate)||fallbackDate;
-    const transaction=clean(obj.transaction||obj.type||obj.movement||obj.Transaction||obj.Type||obj.Movement);
-    if(transaction){
-      const valueRaw=obj.for_day??obj.value??obj.quantity??obj.qty??obj.For_Day;
-      const n=num(valueRaw);
-      if(n!==null || clean(valueRaw)!==""){
-        out.push({report_date:d,transaction,for_day:n===null?valueRaw:n,for_month:num(obj.for_month??obj.For_Month),for_year:num(obj.for_year??obj.For_Year)});
-      }
+  function transactionName(key) {
+    const nk = normalize(key).replace(/[^A-Z0-9]+/g, " ").trim();
+    if (nk.includes("OPENING")) return "OPENING STOCK";
+    if (nk === "CLOSING" || nk.includes("CLOSING STOCK") || nk === "CL STOCK") return "CL. STOCK";
+    return clean(key);
+  }
+
+  const output = [];
+
+  function processObject(obj, fallbackDate) {
+    if (!obj || typeof obj !== "object" || Array.isArray(obj)) return;
+
+    const directTransaction = clean(
+      obj.transaction ?? obj.Transaction ?? obj.type ?? obj.Type ?? obj.movement ?? obj.Movement
+    );
+
+    if (directTransaction) {
+      const d = dateOnly(
+        obj.report_date ?? obj.Report_Date ?? obj.date ?? obj.Date ?? fallbackDate
+      ) || fallbackDate;
+      const day = obj.for_day ?? obj.For_Day ?? obj.value ?? obj.quantity ?? obj.qty;
+      output.push({
+        report_date: d,
+        transaction: directTransaction,
+        for_day: num(day) ?? 0,
+        for_month: num(obj.for_month ?? obj.For_Month) ?? 0,
+        for_year: num(obj.for_year ?? obj.For_Year) ?? 0
+      });
       return;
     }
-    for(const k of ["latestActivity","latest_activity","activity","data","row"]){
-      if(obj[k]!==undefined){
-        const before=out.length; pushAny(obj[k],fallbackDate);
-        if(out.length>before)return;
+
+    // This is the important case for the current Excel/Normalize output:
+    // {Opening: ..., RECEIPT: ..., CONSUMPTION: ..., Closing: ...}
+    for (const [rawKey, rawValue] of Object.entries(obj)) {
+      const key = clean(rawKey);
+      if (!key) continue;
+      if (/^(DATE|DATES?|REPORT_DATE|CATEGORY|SHEET_NAME|MATERIAL)$/i.test(key)) continue;
+
+      const value = parseValue(rawValue);
+      if (value && typeof value === "object") {
+        processValue(value, fallbackDate);
+        continue;
       }
+      if (value === null || value === undefined || clean(value) === "") continue;
+
+      const transaction = transactionName(key);
+      if (!transaction) continue;
+
+      output.push({
+        report_date: fallbackDate,
+        transaction,
+        for_day: num(value) ?? value,
+        for_month: 0,
+        for_year: 0
+      });
     }
-  };
-  const pushAny=(value,fallbackDate=date)=>{
-    while(typeof value === "string"){
-      try{value=JSON.parse(value)}catch(e){return;}
+  }
+
+  function processValue(value, fallbackDate) {
+    value = parseValue(value);
+    if (value === null || value === undefined) return;
+
+    if (Array.isArray(value)) {
+      value.forEach(item => processValue(item, fallbackDate));
+      return;
     }
-    if(Array.isArray(value)){value.forEach(v=>pushOne(v,fallbackDate));return;}
-    if(value&&typeof value==="object"){
-      pushOne(value,fallbackDate);
-      const hasTransaction=!!clean(value.transaction||value.type||value.movement||value.Transaction||value.Type||value.Movement);
-      if(hasTransaction)return;
-      for(const [rawKey,rawValue] of Object.entries(value)){
-        const key=clean(rawKey);
-        if(!key || /^(DATE|DATES?|REPORT_DATE|CATEGORY|SHEET_NAME|MATERIAL)$/i.test(key))continue;
-        if(["latestActivity","latest_activity","activity","data","row"].includes(key))continue;
-        if(rawValue&&typeof rawValue==="object"){
-          const before=out.length; pushOne(rawValue,fallbackDate);
-          if(out.length>before)continue;
-          if(Array.isArray(rawValue))rawValue.forEach(v=>pushOne(v,fallbackDate));
-          continue;
-        }
-        const n=num(rawValue);
-        if(n===null && clean(rawValue)==="")continue;
-        const nk=normalize(key).replace(/[^A-Z0-9]+/g," ").trim();
-        let transaction=key;
-        if(nk.includes("OPENING")) transaction="OPENING STOCK";
-        else if((nk==="CL"||nk.includes("CL ")) && nk.includes("STOCK")) transaction="CL. STOCK";
-        else if(nk==="CLOSING" || nk.includes("CLOSING STOCK")) transaction="CL. STOCK";
-        else if(nk==="OPENING") transaction="OPENING STOCK";
-        out.push({report_date:fallbackDate,transaction,for_day:n===null?rawValue:n});
-      }
+
+    if (typeof value === "object") {
+      processObject(value, fallbackDate);
     }
-  };
-  pushAny(activity,date);
-  return out;
+  }
+
+  processValue(activity, date);
+  return output;
 }
+
+function supabaseJsonObject(value) {
+  value = value ?? null;
+  if (typeof value !== "string") return value;
+  let v = value;
+  for (let i = 0; i < 3; i++) {
+    try { v = JSON.parse(v); }
+    catch (e) { break; }
+  }
+  return v;
+}
+
+function supabaseDetailRows(value) {
+  value = supabaseJsonObject(value);
+  const rows = [];
+  const seen = new Set();
+
+  function add(key, val) {
+    const label = clean(key);
+    if (!label || val === null || val === undefined || clean(val) === "") return;
+    const signature = label + "|" + String(val);
+    if (seen.has(signature)) return;
+    seen.add(signature);
+    rows.push({label, value: val});
+  }
+
+  function walk(obj) {
+    if (obj === null || obj === undefined) return;
+    obj = supabaseJsonObject(obj);
+
+    if (Array.isArray(obj)) {
+      obj.forEach(item => walk(item));
+      return;
+    }
+
+    if (typeof obj !== "object") return;
+
+    for (const [key, raw] of Object.entries(obj)) {
+      const label = clean(key);
+      if (!label) continue;
+      if (/^(DATE|DATES?|REPORT_DATE|CATEGORY|SHEET_NAME|MATERIAL)$/i.test(label)) continue;
+
+      const val = supabaseJsonObject(raw);
+      if (val && typeof val === "object") {
+        walk(val);
+      } else {
+        add(label, val);
+      }
+    }
+  }
+
+  walk(value);
+  return rows;
+}
+
 function normalizeSupabaseInventory(rows){
-  const grouped=new Map();
-  const history=[];
-  (Array.isArray(rows)?rows:[]).forEach(r=>{
-    const material=clean(r.sheet_name);
-    const date=dateOnly(r.activity_date);
-    if(!material || !date)return;
-    const tx=supabaseActivityToTransactions(r.latest_activity,date);
-    // Keep the Excel activity date even when latest_activity itself is stored
-    // as JSON text in Supabase.
-    tx.forEach(t=>history.push({material,...t,category:r.category||""}));
-    const key=normalize(material);
-    let g=grouped.get(key);
-    if(!g){g={material,category:r.category||"",transactions:[]};grouped.set(key,g);}
+  const grouped = new Map();
+  const history = [];
+
+  (Array.isArray(rows) ? rows : []).forEach(r => {
+    const material = clean(r.sheet_name);
+    const date = dateOnly(r.activity_date);
+    if (!material || !date) return;
+
+    const tx = supabaseActivityToTransactions(r.latest_activity, date);
+    tx.forEach(t => history.push({material, ...t, category:r.category || ""}));
+
+    const key = normalize(material);
+    let g = grouped.get(key);
+
+    if (!g) {
+      g = {
+        material,
+        category: r.category || "",
+        activityDate: date,
+        latestActivity: r.latest_activity,
+        forTheMonth: r.for_the_month,
+        forTheYear: r.for_the_year,
+        transactions: []
+      };
+      grouped.set(key, g);
+    }
+
+    // Keep the newest record for the material.
+    if (date >= g.activityDate) {
+      g.activityDate = date;
+      g.latestActivity = r.latest_activity;
+      g.forTheMonth = r.for_the_month;
+      g.forTheYear = r.for_the_year;
+    }
+
     g.transactions.push(...tx);
   });
-  const stock=[...grouped.values()].map(g=>{
-    const tx=g.transactions.slice().sort((a,b)=>dateOnly(rowDate(a)).localeCompare(dateOnly(rowDate(b))));
-    const closing=tx.filter(t=>tType(t)==="CL. STOCK").slice(-1)[0];
-    return {material:g.material,category:g.category,transactions:tx,closing:closing?tVal(closing):null};
+
+  const stock = [...grouped.values()].map(g => {
+    const tx = g.transactions.slice().sort((a,b) =>
+      dateOnly(rowDate(a)).localeCompare(dateOnly(rowDate(b)))
+    );
+
+    const closingRows = tx.filter(t => tType(t) === "CL. STOCK");
+    const latestClosing = closingRows.length ? closingRows[closingRows.length - 1] : null;
+
+    return {
+      material: g.material,
+      category: g.category,
+      activityDate: g.activityDate,
+      latestActivity: g.latestActivity,
+      forTheMonth: g.forTheMonth,
+      forTheYear: g.forTheYear,
+      transactions: tx,
+      closing: latestClosing ? tVal(latestClosing) : null
+    };
   });
-  return {stock,stockHistory:history};
+
+  return {stock, stockHistory:history};
 }
 
 async function fetchAllSupabaseInventory(){
@@ -1467,29 +1582,64 @@ function closeModal(){document.getElementById("modal").classList.remove("show")}
 function outsideClose(e){if(e.target.id==="modal")closeModal()}
 function detail(label,value){return `<div class="detail-row"><span>${esc(label)}</span><strong>${esc(value??"--")}</strong></div>`}
 function openMaterialDetails(material){
-  const x=getMaterial(material),rows=transactions(material),closing=num(x?.closing)||0,avg=avgConsumption(material),s=stockStatus(closing,avg),reorder=avg*DEFAULT_SAFETY_DAYS;
-  const groups=["OPENING STOCK","PURCHASE","TRANSFER FROM SOYA DIVISION","GAIN","SALE","SHORTAGE","CONSUMPTION","CL. STOCK"];
-  const unit=materialUnit(material,x?.unit||"MT");
-  const rec=materialReconciliation(material);
-  let html=`<div class="detail-section"><h3>${esc(material)}</h3>${detail("Current Stock",fmt(closing)+" "+unit)}${detail("Average Daily Consumption",avg?fmt(avg)+" "+unit+"/day":"Insufficient history")}${detail("Safety Days",DEFAULT_SAFETY_DAYS+" days")}${detail("Stock Coverage",s.cover!==null?fmt(s.cover)+" days":"--")}${detail("Calculated Reorder Level",fmt(reorder)+" "+unit)}${detail("Status",s.status)}</div>`;
-  if(rec.status==="MATCH"||rec.status==="MISMATCH"){
-    const cls=rec.status==="MATCH"?"reconcile-ok":"reconcile-bad";
-    html+=`<div class="detail-section ${cls}"><h3>🔎 Stock Reconciliation • ${esc(rec.date||"Latest")}</h3>${detail("Opening",fmt(rec.opening)+" "+unit)}${detail("Additions",fmt(rec.add)+" "+unit)}${detail("Other deductions",fmt(rec.otherOut)+" "+unit)}${detail("Actual Closing",fmt(rec.closing)+" "+unit)}${detail("Calculated Consumption",fmt(rec.calculated)+" "+unit)}${detail("Recorded Consumption",fmt(rec.recorded)+" "+unit)}${detail("Difference",fmt(rec.diff)+" "+unit)}${detail("Result",rec.status==="MATCH"?"✓ MATCH":"⚠ CHECK — possible missing/wrong transaction")}</div>`;
-  }else{
-    html+=`<div class="detail-section reconcile-warn"><h3>🔎 Stock Reconciliation</h3><div class="empty">${esc(rec.message||"Insufficient data for reconciliation.")}</div></div>`;
+  const x = getMaterial(material);
+  if (!x) {
+    showModal(material, "<div class='empty'>No data available.</div>");
+    return;
   }
-  html+=`<div class="detail-section"><h3>Material-wise Movement</h3>`;
-  groups.forEach(g=>{const total=rows.filter(t=>tType(t)===normalize(g)).reduce((a,t)=>a+tVal(t),0);if(total)html+=detail(g,fmt(total)+" "+unit)});
-  const namedConsumption=rows.filter(t=>tType(t).includes("CONSUMPTION")).reduce((a,t)=>a+tVal(t),0);
-  if(namedConsumption)html+=detail("All Consumption Activities",fmt(namedConsumption)+" "+unit);
-  html+="</div>";
-  if(rows.length){
-    html+=`<div class="detail-section"><h3>Transactions</h3>`;
-    rows.forEach(t=>{html+=`<div class="transaction"><div class="transaction-title"><strong>${esc(txName(t.transaction||t.type||"Movement"))}</strong><span>${esc(rowDate(t))}</span></div><div class="transaction-values"><div class="transaction-value"><span>FOR DAY</span><strong>${fmt(t.for_day)}</strong></div><div class="transaction-value"><span>FOR MONTH</span><strong>${fmt(t.for_month)}</strong></div><div class="transaction-value"><span>FOR YEAR</span><strong>${fmt(t.for_year)}</strong></div></div></div>`});
-    html+="</div>";
+
+  const unit = materialUnit(material, x.unit || "MT");
+  const closing = num(x.closing);
+  const activity = supabaseDetailRows(x.latestActivity);
+  const month = supabaseDetailRows(x.forTheMonth);
+  const year = supabaseDetailRows(x.forTheYear);
+
+  let html = `<div class="detail-section"><h3>${esc(material)}</h3>`;
+  html += detail("Activity Date", x.activityDate || DATA.report_date || "--");
+  if (closing !== null) html += detail("Current Closing", fmt(closing) + " " + unit);
+  html += `</div>`;
+
+  function renderDataSection(title, rows, showUnit=false) {
+    if (!rows.length) {
+      return `<div class="detail-section"><h3>${esc(title)}</h3><div class="empty">No data available.</div></div>`;
+    }
+
+    let out = `<div class="detail-section"><h3>${esc(title)}</h3>`;
+    rows.forEach(r => {
+      const n = num(r.value);
+      const display = n !== null ? fmt(n) + (showUnit ? " " + unit : "") : clean(r.value);
+      out += detail(r.label, display);
+    });
+    out += `</div>`;
+    return out;
   }
-  showModal(material,html);
+
+  html += renderDataSection("Latest Activity", activity, true);
+  html += renderDataSection("For The Month", month, false);
+  html += renderDataSection("Up To Date", year, false);
+
+  // Keep existing transaction section only when transaction records really exist.
+  // This avoids showing a misleading 'No historical transaction data' message.
+  const rows = transactions(material);
+  if (rows.length) {
+    html += `<div class="detail-section"><h3>Activity Records</h3>`;
+    rows.forEach(t => {
+      html += `<div class="transaction">
+        <div class="transaction-title">
+          <strong>${esc(txName(t.transaction || t.type || "Movement"))}</strong>
+          <span>${esc(rowDate(t))}</span>
+        </div>
+        <div class="transaction-values">
+          <div class="transaction-value"><span>VALUE</span><strong>${fmt(t.for_day)}</strong></div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  showModal(material, html);
 }
+
 function openStockDetails(){showModal("Raw Material Stock",getMaterials().map(m=>{const x=getMaterial(m);return `<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(x?.closing,m,x?.unit||"MT")}</strong><small>Details →</small></div></div>`}).join("")||"<div class='empty'>No stock data</div>")}
 function openRawCategory(tab){const rows=getMaterials().map(m=>({m,v:rawTotal(m,tab)})).sort((a,b)=>(b.v>0)-(a.v>0)||b.v-a.v);showModal(tab==="PURCHASE"?"Raw Material Received":("Raw Material "+tab),rows.map(({m,v})=>`<div class="feed-row" onclick="closeModal();openMaterialDetails('${jsq(m)}')"><div class="row-name">${esc(m)}</div><div class="row-right"><strong>${fmtMaterial(v,m,"MT")}</strong><small>Tap for complete details</small></div></div>`).join("")||"<div class='empty'>No data</div>")}
 function openProductionDetails(){const rows=selectedProduction().slice().sort((a,b)=>{const av=num(a.actual_output)||0,bv=num(b.actual_output)||0;return (bv>0)-(av>0)||bv-av});showModal("Production",rows.map(r=>`<div class="feed-row" onclick="closeModal();openProductDetails('${jsq(r.product)}')"><div class="row-name">${esc(r.product)}</div><div class="row-right"><strong>${fmtBags(r.actual_output)}</strong><small>Output ${fmt(r.output_percentage)}%</small></div></div>`).join("")||"<div class='empty'>No production data</div>")}
