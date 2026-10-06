@@ -1,0 +1,73 @@
+FEED PLANT — FINAL VALUE FIX PACKAGE
+
+Important:
+This ZIP is a PATCH package, not a replacement for the whole website.
+Keep the current GitHub app.js because it contains your latest dashboard work.
+
+ROOT CAUSE FOUND
+----------------
+The current app.js can read the Supabase JSONB fields, but the closing-value
+path depends on the transaction parser. If the JSONB shape is slightly
+different, material names load while numeric values become null.
+
+There is also a service-worker cache-first path for app.js/style.css. That can
+keep an older JavaScript version running even after GitHub was updated.
+
+FIXES INCLUDED
+--------------
+1. Dynamic JSONB numeric parser for nested objects/arrays/JSON strings.
+2. Direct Closing fallback from latest_activity.
+3. Robust detail-value extraction.
+4. Service-worker cache version bump + network-first for app.js/style.css.
+5. No fixed material list and no Supabase schema change.
+
+WHAT TO DO
+----------
+A) Replace your current service-worker.js with:
+   service-worker-fixed.js
+
+B) In the CURRENT GitHub app.js, the safest source-level change is:
+
+   1. Keep the existing supabaseJsonObject().
+   2. Add the helper functions from SUPABASE_VALUE_FIX.js before
+      normalizeSupabaseInventory().
+   3. In normalizeSupabaseInventory(), replace only:
+
+      const latestClosing = closingRows.length ? closingRows[closingRows.length - 1] : null;
+
+      with:
+
+      const latestClosing = closingRows.length ? closingRows[closingRows.length - 1] : null;
+      const parsedClosing = latestClosing ? tVal(latestClosing) : null;
+      const directClosing = supabaseActivityClosing(g.latestActivity);
+      const closing = parsedClosing !== null ? parsedClosing : directClosing;
+
+   4. Return:
+      closing
+
+C) In openMaterialDetails(), use:
+
+   const closing =
+     num(x.closing) !== null
+       ? num(x.closing)
+       : supabaseActivityClosing(x.latestActivity);
+
+D) In index.html, change:
+   <script defer src="app.js">
+   to:
+   <script defer src="app.js?v=20261006">
+
+E) After deploying, hard refresh once.
+
+DO NOT
+------
+- Do not change n8n.
+- Do not change Supabase table schema.
+- Do not replace current app.js with the old app(1).js.
+- Do not put the Supabase service-role key in the frontend.
+
+NOTE
+----
+The existing Supabase loader already requests:
+latest_activity, for_the_month, for_the_year.
+The fix preserves those JSONB structures dynamically.
