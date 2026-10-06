@@ -309,7 +309,14 @@ function renderDataControlLists(){
 
 function clean(v){return String(v??"").trim()}
 function normalize(v){return clean(v).replace(/\s+/g," ").toUpperCase()}
-function num(v){const n=Number(v);return Number.isFinite(n)?n:null}
+function num(v){
+  if(v===null||v===undefined||v==="")return null;
+  if(typeof v==="number")return Number.isFinite(v)?v:null;
+  const str=String(v).trim().replace(/,/g,"");
+  if(!str)return null;
+  const n=Number(str);
+  return Number.isFinite(n)?n:null;
+}
 function fmt(v){if(v===null||v===undefined||v==="")return"--";const n=Number(v);return Number.isFinite(n)?n.toLocaleString("en-IN",{maximumFractionDigits:2}):String(v)}
 function fmtMT(v){return v===null||v===undefined||v===""?"--":fmt(v)+" MT"}
 function isPremixProduct(name){return /PREMIX/i.test(clean(name));}
@@ -631,6 +638,45 @@ function supabaseDetailRows(value) {
   return rows;
 }
 
+function supabaseFindNumericByKey(value, matcher){
+  value=supabaseJsonObject(value);
+  if(value===null||value===undefined)return null;
+  if(Array.isArray(value)){
+    for(const item of value){
+      const found=supabaseFindNumericByKey(item,matcher);
+      if(found!==null)return found;
+    }
+    return null;
+  }
+  if(typeof value!=="object")return null;
+  for(const [rawKey,rawValue] of Object.entries(value)){
+    const key=normalize(rawKey).replace(/[^A-Z0-9]+/g,"");
+    const parsed=supabaseJsonObject(rawValue);
+    if(matcher(key)){
+      const n=num(parsed);
+      if(n!==null)return n;
+    }
+    if(parsed&&typeof parsed==="object"){
+      const found=supabaseFindNumericByKey(parsed,matcher);
+      if(found!==null)return found;
+    }
+  }
+  return null;
+}
+function supabaseActivityClosing(activity){
+  return supabaseFindNumericByKey(activity,key=>
+    key==="CLOSING"||key==="CLOSINGSTOCK"||key==="CLSTOCK"||
+    key==="CLOSINGBALANCE"||key==="CLSTOCKMT"||key==="CLOSINGMT"
+  );
+}
+function supabaseActivityHasNumericData(value){
+  value=supabaseJsonObject(value);
+  if(value===null||value===undefined)return false;
+  if(Array.isArray(value))return value.some(supabaseActivityHasNumericData);
+  if(typeof value!=="object")return num(value)!==null;
+  return Object.values(value).some(v=>supabaseActivityHasNumericData(v));
+}
+
 function normalizeSupabaseInventory(rows){
   const grouped = new Map();
   const history = [];
@@ -677,6 +723,9 @@ function normalizeSupabaseInventory(rows){
 
     const closingRows = tx.filter(t => tType(t) === "CL. STOCK");
     const latestClosing = closingRows.length ? closingRows[closingRows.length - 1] : null;
+    const transactionClosing = latestClosing ? tVal(latestClosing) : null;
+    const directClosing = supabaseActivityClosing(g.latestActivity);
+    const closing = transactionClosing !== null ? transactionClosing : directClosing;
 
     return {
       material: g.material,
@@ -686,7 +735,7 @@ function normalizeSupabaseInventory(rows){
       forTheMonth: g.forTheMonth,
       forTheYear: g.forTheYear,
       transactions: tx,
-      closing: latestClosing ? tVal(latestClosing) : null
+      closing
     };
   });
 
@@ -698,7 +747,7 @@ async function fetchAllSupabaseInventory(){
   const pageSize=1000;
   let from=0;
   while(true){
-    const url=SUPABASE_URL+"/rest/v1/feed_inventory?select=sheet_name,category,activity_date,latest_activity,for_the_month,for_the_year,imported_at&order=activity_date.asc,sheet_name.asc&limit="+pageSize+"&offset="+from;
+    const url=SUPABASE_URL+"/rest/v1/feed_inventory?select=*&order=activity_date.asc,sheet_name.asc&limit="+pageSize+"&offset="+from;
     const response=await fetch(url,{headers:supabaseHeaders(),cache:"no-store"});
     if(!response.ok){
       const body=await response.text().catch(()=>"");
@@ -715,6 +764,7 @@ async function fetchAllSupabaseInventory(){
 
 async function loadDashboard(){
   const rows=await fetchAllSupabaseInventory();
+  window.__SUPABASE_RAW_ROWS__=rows;
   if(!rows.length){
     throw new Error("SUPABASE_EMPTY: feed_inventory returned 0 rows");
   }
@@ -1589,7 +1639,7 @@ function openMaterialDetails(material){
   }
 
   const unit = materialUnit(material, x.unit || "MT");
-  const closing = num(x.closing);
+  const closing = num(x.closing) !== null ? num(x.closing) : supabaseActivityClosing(x.latestActivity);
   const activity = supabaseDetailRows(x.latestActivity);
   const month = supabaseDetailRows(x.forTheMonth);
   const year = supabaseDetailRows(x.forTheYear);
